@@ -1,0 +1,58 @@
+{
+  "NullSuite": {
+    "NullWireActive": false,
+    "NullMonitorActive": false,
+    "NullMidiActive": false,
+    "NullProtonActive": false,
+    "NullRipActive": false,
+    "NullGitActive": false,
+    "NullTrackerActive": false,
+    "NullMojiActive": false,
+    "StartMinimized": false,
+    "StartInTray": false,
+    "DontStartApps": false
+  },
+  "NullProton": {
+    "Default": "[ not set ]",
+    "A": "[ not set ]",
+    "B": "[ not set ]",
+    "Min": false,
+    "Close": false,
+    "Games": []
+  },
+  "NullWire": {
+    "Sinks": {},
+    "DevicesA": {},
+    "DevicesM": {}
+  },
+  "NullMidi": {
+    "MidiRows": []
+  },
+  "NullGit": {
+    "Repos": {
+      "(Install First)": {
+        "Name": "NullSuite",
+        "Path": "(InstallFirst)",
+        "Owner": false,
+        "CurrentBranch": "main [Branch]"
+      }
+    }
+  },
+  "NullTracker": {
+    "AppClassification": {
+    },
+    "WriteToDiskSeconds": 1,
+    "MinimumWindowTime": 1,
+    "NewDayThreshold": 3
+  },
+  "NullMoji": {
+    "CustomEmoji": {},
+    "RecentEmoji": []
+  },
+  "NullMonitor": {
+    "Profiles": {
+    },
+    "ActiveProfile": "Default",
+    "ScanForMouse": false
+  }
+}
