@@ -26,8 +26,6 @@ for Command, Package in Dependencies["Commands"].items():
     if shutil.which(Command) is None:
         MissingPackages.add(Package)
 
-
-
 if MissingModules or MissingPackages:
 
     subprocess.run(
@@ -48,9 +46,6 @@ if MissingModules or MissingPackages:
 
     sys.exit()
 
-
-
-
 import tkinter as tk
 from tkinter import (ttk,filedialog,messagebox)
 import threading
@@ -69,7 +64,8 @@ import shlex
 from pynput import mouse, keyboard
 import atexit
 import tempfile
-from PIL import Image
+from PIL import Image, ImageTk
+
 from datetime import datetime
 import urllib.request
 
@@ -921,6 +917,114 @@ def SelectWindow(Window, Dict, var, ClassName,DisplayName, Popup, Program, Page=
     Popup.destroy()
     TrackerPopup = None
     SaveConfig(Program)
+
+def OpenImagePopUp(Path, ThumbnailSize=256):
+    Popup = tk.Toplevel(Root)
+    Popup.title("Select Image")
+    Popup.geometry("1400x900")
+
+    SelectedImage = [None]
+    Thumbnails = []
+
+    Outer = tk.Frame(Popup)
+    Outer.pack(fill="both", expand=True)
+
+    Canvas = tk.Canvas(Outer)
+    ScrollBar = tk.Scrollbar(Outer, orient="vertical", command=Canvas.yview)
+
+    Inner = tk.Frame(Canvas)
+
+    Inner.bind(
+        "<Configure>",
+        lambda e: Canvas.configure(scrollregion=Canvas.bbox("all"))
+    )
+
+    Canvas.create_window((0, 0), window=Inner, anchor="nw")
+    Canvas.configure(yscrollcommand=ScrollBar.set)
+
+    Canvas.pack(side="left", fill="both", expand=True)
+    ScrollBar.pack(side="right", fill="y")
+
+    SupportedTypes = (
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".bmp",
+        ".webp",
+        ".gif"
+    )
+
+    Images = []
+
+    for File in sorted(os.listdir(Path)):
+        FullPath = os.path.join(Path, File)
+
+        if (
+            os.path.isfile(FullPath)
+            and File.lower().endswith(SupportedTypes)
+        ):
+            Images.append(FullPath)
+
+    def SelectImage(ImagePath):
+        SelectedImage[0] = ImagePath
+        Popup.destroy()
+
+    for Index, ImagePath in enumerate(Images):
+        Row = Index // 5
+        Column = Index % 5
+
+        Cell = tk.Frame(
+            Inner,
+            relief="groove",
+            borderwidth=2
+        )
+
+        Cell.grid(
+            row=Row,
+            column=Column,
+            padx=5,
+            pady=5,
+            sticky="n"
+        )
+
+        try:
+            Thumb = Image.open(ImagePath)
+            Thumb.thumbnail((ThumbnailSize, ThumbnailSize))
+
+            Photo = ImageTk.PhotoImage(Thumb)
+            Thumbnails.append(Photo)
+
+            tk.Label(
+                Cell,
+                image=Photo
+            ).pack()
+
+        except Exception:
+            tk.Label(
+                Cell,
+                text="Preview Failed",
+                width=30,
+                height=15
+            ).pack()
+
+        tk.Label(
+            Cell,
+            text=os.path.basename(ImagePath),
+            wraplength=ThumbnailSize
+        ).pack()
+
+        tk.Button(
+            Cell,
+            text="Select",
+            command=lambda P=ImagePath: SelectImage(P)
+        ).pack(fill="x")
+
+    Popup.transient(Root)
+    Popup.grab_set()
+
+    Root.wait_window(Popup)
+
+    return SelectedImage[0]
 
 # ————————————————————————————————————————————————————————————
 # NullWire
@@ -2754,8 +2858,11 @@ def UpdateLockScreenWallPapers(ProfileName):
     CanvasWidth = MaxX - MinX
     CanvasHeight = MaxY - MinY
 
+
     Canvas = Image.new("RGB",(CanvasWidth, CanvasHeight),"black")
 
+
+    print("Constructing Image")
     for Monitor in Layout:
         ID = Monitor["ID"]
         MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
@@ -2816,20 +2923,20 @@ def UpdateLockScreenWallPapers(ProfileName):
             Canvas.paste(Wallpaper,(PasteX, PasteY))
 
     TempPath = os.path.join(
+    tempfile.gettempdir(),
+    "nullmonitor_lockscreen_building.png"
+    )
+
+    FinalPath = os.path.join(
         tempfile.gettempdir(),
         "nullmonitor_lockscreen_wallpaper.png"
     )
 
     Canvas.save(TempPath)
 
+    os.replace(TempPath, FinalPath)
+
     try:
-        subprocess.run([
-            "gsettings",
-            "set",
-            "org.cinnamon.desktop.background",
-            "picture-uri",
-            f"file://{TempPath}"
-        ], check=True)
 
         subprocess.run([
             "gsettings",
@@ -2839,15 +2946,15 @@ def UpdateLockScreenWallPapers(ProfileName):
             "spanned"
         ], check=True)
 
+        subprocess.run([
+            "gsettings",
+            "set",
+            "org.cinnamon.desktop.background",
+            "picture-uri",
+            f"file://{FinalPath}"
+        ], check=True)        
     except Exception:
         try:
-            subprocess.run([
-                "gsettings",
-                "set",
-                "org.cinnamon.desktop.background",
-                "picture-uri-dark",
-                f"file://{TempPath}"
-            ], check=True)
 
             subprocess.run([
                 "gsettings",
@@ -2857,10 +2964,20 @@ def UpdateLockScreenWallPapers(ProfileName):
                 "spanned"
             ], check=True)
 
+            subprocess.run([
+                "gsettings",
+                "set",
+                "org.cinnamon.desktop.background",
+                "picture-uri-dark",
+                f"file://{FinalPath}"
+            ], check=True)
+
+            
+
         except Exception as e:
             print(e)
     
-    Root.after(500, lambda: UpdateDesktopWallPapers(ProfileName))
+    Root.after(1, lambda: UpdateDesktopWallPapers(ProfileName))
     return
 
 def ManageWallPapers(Name):
@@ -2921,12 +3038,16 @@ def ManageWallPapers(Name):
         LSModeVar = tk.StringVar(value=Data.get("LSMode","Fill"))
 
         def DTBrowseForPic(Data=Data, PathVar=DTPathVar, ProfileName=Name):
-            Path = filedialog.askopenfilename(title="Select Desktop Wallpaper",filetypes=[("Images", "*.png *.jpg *.jpeg *.webp *.bmp"),("All Files", "*.*")])
+            CurrentPath = DTPathVar.get()
+            InitialDir = (os.path.dirname(CurrentPath)if CurrentPath and os.path.exists(CurrentPath)else os.path.expanduser("~"))
+            Path = filedialog.askdirectory(initialdir=InitialDir,title="Choose Desktop Wallpaper Folder")
             if Path:
-                Data['DTPath'] = Path
-                PathVar.set(os.path.basename(Path))
-                SaveConfig("NullMonitor")
-                UpdateDesktopWallPapers(ProfileName)
+                SelectedImage = OpenImagePopUp(Path)
+                if SelectedImage:
+                    Data["DTPath"] = SelectedImage
+                    PathVar.set(os.path.basename(SelectedImage))
+                    SaveConfig("NullMonitor")
+                    UpdateDesktopWallPapers(ProfileName)
 
         DTBrowseButton = tk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
         DTBrowseButton.grid(row=0,column=0,padx=5,pady=5)
@@ -2944,12 +3065,16 @@ def ManageWallPapers(Name):
         #-------
 
         def LSBrowseForPic(Data=Data, PathVar=LSPathVar, ProfileName=Name):
-            Path = filedialog.askopenfilename(title="Select Lock Screen Wallpaper",filetypes=[("Images", "*.png *.jpg *.jpeg *.webp *.bmp"),("All Files", "*.*")])
+            CurrentPath = LSPathVar.get()
+            InitialDir = (os.path.dirname(CurrentPath)if CurrentPath and os.path.exists(CurrentPath)else os.path.expanduser("~"))
+            Path = filedialog.askdirectory(initialdir=InitialDir,title="Choose Lock Screen Wallpaper Folder")
             if Path:
-                Data['LSPath'] = Path
-                PathVar.set(os.path.basename(Path))
-                SaveConfig("NullMonitor")
-                UpdateLockScreenWallPapers(ProfileName)
+                SelectedImage = OpenImagePopUp(Path)
+                if SelectedImage:
+                    Data["LSPath"] = SelectedImage
+                    PathVar.set(os.path.basename(SelectedImage))
+                    SaveConfig("NullMonitor")
+                    UpdateLockScreenWallPapers(ProfileName)
 
         LSBrowseButton = tk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
         LSBrowseButton.grid(row=0,column=0,padx=5,pady=5)
