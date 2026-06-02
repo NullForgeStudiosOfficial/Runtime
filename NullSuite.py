@@ -383,7 +383,7 @@ def StartTray():
     def Restart(_):
         if SystemLoading:
             return
-        subprocess.run([NWPath, "ClearSinks"])
+        #subprocess.run([NWPath, "ClearSinks"])
         subprocess.Popen([sys.executable] + sys.argv)
         Root.after(0, Root.destroy)
         Gtk.main_quit()
@@ -9305,9 +9305,9 @@ def ChangedWindowFocus(NewFocus):
 
         if FocusedDuration > (NewDayThreshold * 3600):
             CurrentCycle = {
-                "StartTime": datetime.now().strftime("%m/%d/%y - %I:%M%p"
-                        ),
-                        "TimeSpent": {
+                "StartTime": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
+                "LastUpdated": time.time(),
+                "TimeSpent": {
                             "Sleep": {
                                 "Name": "Sleep",
                                 "FocusedTime": int(
@@ -11480,7 +11480,7 @@ def StartUpNullWire():
             Devices["A"].update(wire.get("DevicesA", {}))
             Devices["M"].update(wire.get("DevicesM", {}))
 
-            subprocess.run([NWPath, "ClearSinks"])
+            #subprocess.run([NWPath, "ClearSinks"])
 
             for name, sink in Sinks.items():
                 subprocess.run([NWPath, "CreateSink", name])
@@ -11754,12 +11754,12 @@ def StartUpNullTracker():
                 Button.pack(fill="x")
                 YearButtons.append(Button)
 
-        LatestYear = sorted(FileYears)[-1]
+        LatestYear = max(os.path.splitext(File)[0]for File in YearFiles)
         LatestYearPath = os.path.join(TrackerPath,f"{LatestYear}.json")
         with open(LatestYearPath, "r") as f:
             Data = json.load(f)
         if Data:
-            LatestMonth = sorted(Data.keys())[-1]
+            LatestMonth = max(Data.keys(),key=lambda m: datetime.strptime(m, "%b"))
         
         if Data[LatestMonth]:
             LatestCycleName = max(Data[LatestMonth].keys(),key=lambda x: datetime.strptime(x,"%m/%d/%y - %I:%M%p"))

@@ -18,8 +18,13 @@ case "$Action" in
 
     #-------------------------------------- Sinks
     CreateSink)
-        pactl load-module module-null-sink sink_name="$Arg1" \
-          sink_properties=device.description="$Arg1"
+        if pactl list short sinks | awk '{print $2}' | grep -Fxq "$Arg1"; then
+            exit 0
+        fi
+
+        pactl load-module module-null-sink \
+            sink_name="$Arg1" \
+            sink_properties=device.description="$Arg1"
         exit 0
     ;;
 
