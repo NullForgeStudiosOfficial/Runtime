@@ -1,0 +1,7480 @@
+{
+  "Emojis": [
+    {
+      "Alias": "grinning",
+      "Emoji": "😀"
+    },
+    {
+      "Alias": "smiley",
+      "Emoji": "😃"
+    },
+    {
+      "Alias": "smile",
+      "Emoji": "😄"
+    },
+    {
+      "Alias": "grin",
+      "Emoji": "😁"
+    },
+    {
+      "Alias": "laughing",
+      "Emoji": "😆"
+    },
+    {
+      "Alias": "sweat_smile",
+      "Emoji": "😅"
+    },
+    {
+      "Alias": "rofl",
+      "Emoji": "🤣"
+    },
+    {
+      "Alias": "joy",
+      "Emoji": "😂"
+    },
+    {
+      "Alias": "slightly_smiling_face",
+      "Emoji": "🙂"
+    },
+    {
+      "Alias": "wink",
+      "Emoji": "😉"
+    },
+    {
+      "Alias": "blush",
+      "Emoji": "😊"
+    },
+    {
+      "Alias": "innocent",
+      "Emoji": "😇"
+    },
+    {
+      "Alias": "smiling_face_with_3_hearts",
+      "Emoji": "🥰"
+    },
+    {
+      "Alias": "eyes",
+      "Emoji": "👀"
+    },
+    {
+      "Alias": "heart_eyes",
+      "Emoji": "😍"
+    },
+    {
+      "Alias": "star_struck",
+      "Emoji": "🤩"
+    },
+    {
+      "Alias": "kissing_heart",
+      "Emoji": "😘"
+    },
+    {
+      "Alias": "kissing",
+      "Emoji": "😗"
+    },
+    {
+      "Alias": "relaxed",
+      "Emoji": "☺️"
+    },
+    {
+      "Alias": "kissing_closed_eyes",
+      "Emoji": "😚"
+    },
+    {
+      "Alias": "kissing_smiling_eyes",
+      "Emoji": "😙"
+    },
+    {
+      "Alias": "smiling_face_with_tear",
+      "Emoji": "🥲"
+    },
+    {
+      "Alias": "smirk",
+      "Emoji": "😏"
+    },
+    {
+      "Alias": "yum",
+      "Emoji": "😋"
+    },
+    {
+      "Alias": "stuck_out_tongue",
+      "Emoji": "😛"
+    },
+    {
+      "Alias": "stuck_out_tongue_winking_eye",
+      "Emoji": "😜"
+    },
+    {
+      "Alias": "zany_face",
+      "Emoji": "🤪"
+    },
+    {
+      "Alias": "stuck_out_tongue_closed_eyes",
+      "Emoji": "😝"
+    },
+    {
+      "Alias": "money_mouth_face",
+      "Emoji": "🤑"
+    },
+    {
+      "Alias": "hugs",
+      "Emoji": "🤗"
+    },
+    {
+      "Alias": "face_with_hand_over_mouth",
+      "Emoji": "🤭"
+    },
+    {
+      "Alias": "face_with_peeking_eye",
+      "Emoji": "🫢"
+    },
+    {
+      "Alias": "face_with_open_eyes_and_hand_over_mouth",
+      "Emoji": "🫣"
+    },
+    {
+      "Alias": "shushing_face",
+      "Emoji": "🤫"
+    },
+    {
+      "Alias": "thinking",
+      "Emoji": "🤔"
+    },
+    {
+      "Alias": "saluting_face",
+      "Emoji": "🫡"
+    },
+    {
+      "Alias": "drooling_face",
+      "Emoji": "🤤"
+    },
+    {
+      "Alias": "cowboy_hat_face",
+      "Emoji": "🤠"
+    },
+    {
+      "Alias": "partying_face",
+      "Emoji": "🥳"
+    },
+    {
+      "Alias": "disguised_face",
+      "Emoji": "🥸"
+    },
+    {
+      "Alias": "sunglasses",
+      "Emoji": "😎"
+    },
+    {
+      "Alias": "nerd_face",
+      "Emoji": "🤓"
+    },
+    {
+      "Alias": "monocle_face",
+      "Emoji": "🧐"
+    },
+    {
+      "Alias": "upside_down_face",
+      "Emoji": "🙃"
+    },
+    {
+      "Alias": "melting_face",
+      "Emoji": "🫠"
+    },
+    {
+      "Alias": "zipper_mouth_face",
+      "Emoji": "🤐"
+    },
+    {
+      "Alias": "face_with_raised_eyebrow",
+      "Emoji": "🤨"
+    },
+    {
+      "Alias": "neutral_face",
+      "Emoji": "😐"
+    },
+    {
+      "Alias": "expressionless",
+      "Emoji": "😑"
+    },
+    {
+      "Alias": "no_mouth",
+      "Emoji": "😶"
+    },
+    {
+      "Alias": "dotted_line_face",
+      "Emoji": "🫥"
+    },
+    {
+      "Alias": "face_in_clouds",
+      "Emoji": "😶‍🌫️"
+    },
+    {
+      "Alias": "unamused",
+      "Emoji": "😒"
+    },
+    {
+      "Alias": "roll_eyes",
+      "Emoji": "🙄"
+    },
+    {
+      "Alias": "grimacing",
+      "Emoji": "😬"
+    },
+    {
+      "Alias": "face_exhaling",
+      "Emoji": "😮‍💨"
+    },
+    {
+      "Alias": "lying_face",
+      "Emoji": "🤥"
+    },
+    {
+      "Alias": "shaking_face",
+      "Emoji": "🫨"
+    },
+    {
+      "Alias": "face_with_diagonal_mouth",
+      "Emoji": "🙂‍↔️"
+    },
+    {
+      "Alias": "face_with_vertical_mouth",
+      "Emoji": "🙂‍↕️"
+    },
+    {
+      "Alias": "relieved",
+      "Emoji": "😌"
+    },
+    {
+      "Alias": "pensive",
+      "Emoji": "😔"
+    },
+    {
+      "Alias": "sleepy",
+      "Emoji": "😪"
+    },
+    {
+      "Alias": "sleeping",
+      "Emoji": "😴"
+    },
+    {
+      "Alias": "face_with_open_eyes_and_hand_over_mouth",
+      "Emoji": "🫩"
+    },
+    {
+      "Alias": "mask",
+      "Emoji": "😷"
+    },
+    {
+      "Alias": "face_with_thermometer",
+      "Emoji": "🤒"
+    },
+    {
+      "Alias": "face_with_head_bandage",
+      "Emoji": "🤕"
+    },
+    {
+      "Alias": "nauseated_face",
+      "Emoji": "🤢"
+    },
+    {
+      "Alias": "vomiting_face",
+      "Emoji": "🤮"
+    },
+    {
+      "Alias": "sneezing_face",
+      "Emoji": "🤧"
+    },
+    {
+      "Alias": "hot_face",
+      "Emoji": "🥵"
+    },
+    {
+      "Alias": "cold_face",
+      "Emoji": "🥶"
+    },
+    {
+      "Alias": "woozy_face",
+      "Emoji": "🥴"
+    },
+    {
+      "Alias": "dizzy_face",
+      "Emoji": "😵"
+    },
+    {
+      "Alias": "face_with_spiral_eyes",
+      "Emoji": "😵‍💫"
+    },
+    {
+      "Alias": "exploding_head",
+      "Emoji": "🤯"
+    },
+    {
+      "Alias": "yawning_face",
+      "Emoji": "🥱"
+    },
+    {
+      "Alias": "confused",
+      "Emoji": "😕"
+    },
+    {
+      "Alias": "face_with_diagonal_mouth",
+      "Emoji": "🫤"
+    },
+    {
+      "Alias": "worried",
+      "Emoji": "😟"
+    },
+    {
+      "Alias": "slightly_frowning_face",
+      "Emoji": "🙁"
+    },
+    {
+      "Alias": "frowning_face",
+      "Emoji": "☹️"
+    },
+    {
+      "Alias": "open_mouth",
+      "Emoji": "😮"
+    },
+    {
+      "Alias": "hushed",
+      "Emoji": "😯"
+    },
+    {
+      "Alias": "astonished",
+      "Emoji": "😲"
+    },
+    {
+      "Alias": "flushed",
+      "Emoji": "😳"
+    },
+    {
+      "Alias": "pleading_face",
+      "Emoji": "🥺"
+    },
+    {
+      "Alias": "face_holding_back_tears",
+      "Emoji": "🥹"
+    },
+    {
+      "Alias": "frowning",
+      "Emoji": "😦"
+    },
+    {
+      "Alias": "anguished",
+      "Emoji": "😧"
+    },
+    {
+      "Alias": "fearful",
+      "Emoji": "😨"
+    },
+    {
+      "Alias": "cold_sweat",
+      "Emoji": "😰"
+    },
+    {
+      "Alias": "disappointed_relieved",
+      "Emoji": "😥"
+    },
+    {
+      "Alias": "cry",
+      "Emoji": "😢"
+    },
+    {
+      "Alias": "sob",
+      "Emoji": "😭"
+    },
+    {
+      "Alias": "scream",
+      "Emoji": "😱"
+    },
+    {
+      "Alias": "confounded",
+      "Emoji": "😖"
+    },
+    {
+      "Alias": "persevere",
+      "Emoji": "😣"
+    },
+    {
+      "Alias": "disappointed",
+      "Emoji": "😞"
+    },
+    {
+      "Alias": "sweat",
+      "Emoji": "😓"
+    },
+    {
+      "Alias": "weary",
+      "Emoji": "😩"
+    },
+    {
+      "Alias": "tired_face",
+      "Emoji": "😫"
+    },
+    {
+      "Alias": "triumph",
+      "Emoji": "😤"
+    },
+    {
+      "Alias": "rage",
+      "Emoji": "😡"
+    },
+    {
+      "Alias": "angry",
+      "Emoji": "😠"
+    },
+    {
+      "Alias": "face_with_symbols_over_mouth",
+      "Emoji": "🤬"
+    },
+    {
+      "Alias": "smiling_imp",
+      "Emoji": "😈"
+    },
+    {
+      "Alias": "imp",
+      "Emoji": "👿"
+    },
+    {
+      "Alias": "skull",
+      "Emoji": "💀"
+    },
+    {
+      "Alias": "skull_and_crossbones",
+      "Emoji": "☠️"
+    },
+    {
+      "Alias": "poop",
+      "Emoji": "💩"
+    },
+    {
+      "Alias": "clown_face",
+      "Emoji": "🤡"
+    },
+    {
+      "Alias": "japanese_ogre",
+      "Emoji": "👹"
+    },
+    {
+      "Alias": "japanese_goblin",
+      "Emoji": "👺"
+    },
+    {
+      "Alias": "ghost",
+      "Emoji": "👻"
+    },
+    {
+      "Alias": "alien",
+      "Emoji": "👽"
+    },
+    {
+      "Alias": "space_invader",
+      "Emoji": "👾"
+    },
+    {
+      "Alias": "robot",
+      "Emoji": "🤖"
+    },
+    {
+      "Alias": "smiley_cat",
+      "Emoji": "😺"
+    },
+    {
+      "Alias": "smile_cat",
+      "Emoji": "😸"
+    },
+    {
+      "Alias": "joy_cat",
+      "Emoji": "😹"
+    },
+    {
+      "Alias": "heart_eyes_cat",
+      "Emoji": "😻"
+    },
+    {
+      "Alias": "smirk_cat",
+      "Emoji": "😼"
+    },
+    {
+      "Alias": "kissing_cat",
+      "Emoji": "😽"
+    },
+    {
+      "Alias": "scream_cat",
+      "Emoji": "🙀"
+    },
+    {
+      "Alias": "crying_cat_face",
+      "Emoji": "😿"
+    },
+    {
+      "Alias": "pouting_cat",
+      "Emoji": "😾"
+    },
+    {
+      "Alias": "see_no_evil",
+      "Emoji": "🙈"
+    },
+    {
+      "Alias": "hear_no_evil",
+      "Emoji": "🙉"
+    },
+    {
+      "Alias": "speak_no_evil",
+      "Emoji": "🙊"
+    },
+    {
+      "Alias": "wave",
+      "Emoji": "👋"
+    },
+    {
+      "Alias": "raised_back_of_hand",
+      "Emoji": "🤚"
+    },
+    {
+      "Alias": "hand_with_fingers_splayed",
+      "Emoji": "🖐️"
+    },
+    {
+      "Alias": "raised_hand",
+      "Emoji": "✋"
+    },
+    {
+      "Alias": "vulcan_salute",
+      "Emoji": "🖖"
+    },
+    {
+      "Alias": "rightwards_hand",
+      "Emoji": "🫱"
+    },
+    {
+      "Alias": "leftwards_hand",
+      "Emoji": "🫲"
+    },
+    {
+      "Alias": "palm_down_hand",
+      "Emoji": "🫳"
+    },
+    {
+      "Alias": "palm_up_hand",
+      "Emoji": "🫴"
+    },
+    {
+      "Alias": "leftwards_pushing_hand",
+      "Emoji": "🫷"
+    },
+    {
+      "Alias": "rightwards_pushing_hand",
+      "Emoji": "🫸"
+    },
+    {
+      "Alias": "ok_hand",
+      "Emoji": "👌"
+    },
+    {
+      "Alias": "pinched_fingers",
+      "Emoji": "🤌"
+    },
+    {
+      "Alias": "pinching_hand",
+      "Emoji": "🤏"
+    },
+    {
+      "Alias": "victory_hand",
+      "Emoji": "✌️"
+    },
+    {
+      "Alias": "crossed_fingers",
+      "Emoji": "🤞"
+    },
+    {
+      "Alias": "hand_with_index_finger_and_thumb_crossed",
+      "Emoji": "🫰"
+    },
+    {
+      "Alias": "love_you_gesture",
+      "Emoji": "🤟"
+    },
+    {
+      "Alias": "metal",
+      "Emoji": "🤘"
+    },
+    {
+      "Alias": "call_me_hand",
+      "Emoji": "🤙"
+    },
+    {
+      "Alias": "backhand_index_pointing_left",
+      "Emoji": "👈"
+    },
+    {
+      "Alias": "backhand_index_pointing_right",
+      "Emoji": "👉"
+    },
+    {
+      "Alias": "backhand_index_pointing_up",
+      "Emoji": "👆"
+    },
+    {
+      "Alias": "middle_finger",
+      "Emoji": "🖕"
+    },
+    {
+      "Alias": "backhand_index_pointing_down",
+      "Emoji": "👇"
+    },
+    {
+      "Alias": "index_pointing_up",
+      "Emoji": "☝️"
+    },
+    {
+      "Alias": "index_pointing_at_the_viewer",
+      "Emoji": "🫵"
+    },
+    {
+      "Alias": "thumbs_up",
+      "Emoji": "👍"
+    },
+    {
+      "Alias": "thumbs_down",
+      "Emoji": "👎"
+    },
+    {
+      "Alias": "raised_fist",
+      "Emoji": "✊"
+    },
+    {
+      "Alias": "oncoming_fist",
+      "Emoji": "👊"
+    },
+    {
+      "Alias": "left_facing_fist",
+      "Emoji": "🤛"
+    },
+    {
+      "Alias": "right_facing_fist",
+      "Emoji": "🤜"
+    },
+    {
+      "Alias": "clapping_hands",
+      "Emoji": "👏"
+    },
+    {
+      "Alias": "raising_hands",
+      "Emoji": "🙌"
+    },
+    {
+      "Alias": "heart_hands",
+      "Emoji": "🫶"
+    },
+    {
+      "Alias": "open_hands",
+      "Emoji": "👐"
+    },
+    {
+      "Alias": "palms_up_together",
+      "Emoji": "🤲"
+    },
+    {
+      "Alias": "handshake",
+      "Emoji": "🤝"
+    },
+    {
+      "Alias": "folded_hands",
+      "Emoji": "🙏"
+    },
+    {
+      "Alias": "writing_hand",
+      "Emoji": "✍️"
+    },
+    {
+      "Alias": "nail_polish",
+      "Emoji": "💅"
+    },
+    {
+      "Alias": "selfie",
+      "Emoji": "🤳"
+    },
+    {
+      "Alias": "flexed_biceps",
+      "Emoji": "💪"
+    },
+    {
+      "Alias": "mechanical_arm",
+      "Emoji": "🦾"
+    },
+    {
+      "Alias": "mechanical_leg",
+      "Emoji": "🦿"
+    },
+    {
+      "Alias": "leg",
+      "Emoji": "🦵"
+    },
+    {
+      "Alias": "foot",
+      "Emoji": "🦶"
+    },
+    {
+      "Alias": "ear",
+      "Emoji": "👂"
+    },
+    {
+      "Alias": "ear_with_hearing_aid",
+      "Emoji": "🦻"
+    },
+    {
+      "Alias": "nose",
+      "Emoji": "👃"
+    },
+    {
+      "Alias": "brain",
+      "Emoji": "🧠"
+    },
+    {
+      "Alias": "anatomical_heart",
+      "Emoji": "🫀"
+    },
+    {
+      "Alias": "lungs",
+      "Emoji": "🫁"
+    },
+    {
+      "Alias": "tooth",
+      "Emoji": "🦷"
+    },
+    {
+      "Alias": "bone",
+      "Emoji": "🦴"
+    },
+    {
+      "Alias": "eye",
+      "Emoji": "👁️"
+    },
+    {
+      "Alias": "tongue",
+      "Emoji": "👅"
+    },
+    {
+      "Alias": "mouth",
+      "Emoji": "👄"
+    },
+    {
+      "Alias": "biting_lip",
+      "Emoji": "🫦"
+    },
+    {
+      "Alias": "footprints",
+      "Emoji": "👣"
+    },
+    {
+      "Alias": "bone_marrow",
+      "Emoji": "🫆"
+    },
+    {
+      "Alias": "dna",
+      "Emoji": "🧬"
+    },
+    {
+      "Alias": "drop_of_blood",
+      "Emoji": "🩸"
+    },
+    {
+      "Alias": "baby",
+      "Emoji": "👶"
+    },
+    {
+      "Alias": "child",
+      "Emoji": "🧒"
+    },
+    {
+      "Alias": "boy",
+      "Emoji": "👦"
+    },
+    {
+      "Alias": "girl",
+      "Emoji": "👧"
+    },
+    {
+      "Alias": "adult",
+      "Emoji": "🧑"
+    },
+    {
+      "Alias": "blond_haired_person",
+      "Emoji": "👱"
+    },
+    {
+      "Alias": "man",
+      "Emoji": "👨"
+    },
+    {
+      "Alias": "bearded_person",
+      "Emoji": "🧔"
+    },
+    {
+      "Alias": "woman",
+      "Emoji": "👩"
+    },
+    {
+      "Alias": "older_adult",
+      "Emoji": "🧓"
+    },
+    {
+      "Alias": "old_man",
+      "Emoji": "👴"
+    },
+    {
+      "Alias": "old_woman",
+      "Emoji": "👵"
+    },
+    {
+      "Alias": "deaf_person",
+      "Emoji": "🧏"
+    },
+    {
+      "Alias": "person_with_turban",
+      "Emoji": "👳"
+    },
+    {
+      "Alias": "man_with_turban",
+      "Emoji": "👳‍♂️"
+    },
+    {
+      "Alias": "woman_with_turban",
+      "Emoji": "👳‍♀️"
+    },
+    {
+      "Alias": "man_with_chinese_cap",
+      "Emoji": "👲"
+    },
+    {
+      "Alias": "woman_with_headscarf",
+      "Emoji": "🧕"
+    },
+    {
+      "Alias": "pregnant_woman",
+      "Emoji": "🤰"
+    },
+    {
+      "Alias": "pregnant_man",
+      "Emoji": "🫃"
+    },
+    {
+      "Alias": "pregnant_person",
+      "Emoji": "🫄"
+    },
+    {
+      "Alias": "baby_angel",
+      "Emoji": "👼"
+    },
+    {
+      "Alias": "speaking_head",
+      "Emoji": "🗣️"
+    },
+    {
+      "Alias": "bust_in_silhouette",
+      "Emoji": "👤"
+    },
+    {
+      "Alias": "busts_in_silhouette",
+      "Emoji": "👥"
+    },
+    {
+      "Alias": "people_hugging",
+      "Emoji": "🫂"
+    },
+    {
+      "Alias": "frowning",
+      "Emoji": "🙍"
+    },
+    {
+      "Alias": "frowning_man",
+      "Emoji": "🙍‍♂️"
+    },
+    {
+      "Alias": "frowning_woman",
+      "Emoji": "🙍‍♀️"
+    },
+    {
+      "Alias": "pouting",
+      "Emoji": "🙎"
+    },
+    {
+      "Alias": "pouting_man",
+      "Emoji": "🙎‍♂️"
+    },
+    {
+      "Alias": "pouting_woman",
+      "Emoji": "🙎‍♀️"
+    },
+    {
+      "Alias": "face_with_no_good_gesture",
+      "Emoji": "🙅"
+    },
+    {
+      "Alias": "man_gesturing_no",
+      "Emoji": "🙅‍♂️"
+    },
+    {
+      "Alias": "woman_gesturing_no",
+      "Emoji": "🙅‍♀️"
+    },
+    {
+      "Alias": "face_with_ok_gesture",
+      "Emoji": "🙆"
+    },
+    {
+      "Alias": "man_gesturing_ok",
+      "Emoji": "🙆‍♂️"
+    },
+    {
+      "Alias": "woman_gesturing_ok",
+      "Emoji": "🙆‍♀️"
+    },
+    {
+      "Alias": "person_tipping_hand",
+      "Emoji": "💁"
+    },
+    {
+      "Alias": "man_tipping_hand",
+      "Emoji": "💁‍♂️"
+    },
+    {
+      "Alias": "woman_tipping_hand",
+      "Emoji": "💁‍♀️"
+    },
+    {
+      "Alias": "person_raising_hand",
+      "Emoji": "🙋"
+    },
+    {
+      "Alias": "man_raising_hand",
+      "Emoji": "🙋‍♂️"
+    },
+    {
+      "Alias": "woman_raising_hand",
+      "Emoji": "🙋‍♀️"
+    },
+    {
+      "Alias": "deaf_person",
+      "Emoji": "🧏"
+    },
+    {
+      "Alias": "deaf_man",
+      "Emoji": "🧏‍♂️"
+    },
+    {
+      "Alias": "deaf_woman",
+      "Emoji": "🧏‍♀️"
+    },
+    {
+      "Alias": "person_bowing",
+      "Emoji": "🙇"
+    },
+    {
+      "Alias": "man_bowing",
+      "Emoji": "🙇‍♂️"
+    },
+    {
+      "Alias": "woman_bowing",
+      "Emoji": "🙇‍♀️"
+    },
+    {
+      "Alias": "person_facepalming",
+      "Emoji": "🤦"
+    },
+    {
+      "Alias": "man_facepalming",
+      "Emoji": "🤦‍♂️"
+    },
+    {
+      "Alias": "woman_facepalming",
+      "Emoji": "🤦‍♀️"
+    },
+    {
+      "Alias": "person_shrugging",
+      "Emoji": "🤷"
+    },
+    {
+      "Alias": "man_shrugging",
+      "Emoji": "🤷‍♂️"
+    },
+    {
+      "Alias": "woman_shrugging",
+      "Emoji": "🤷‍♀️"
+    },
+    {
+      "Alias": "breast_feeding",
+      "Emoji": "🤱"
+    },
+    {
+      "Alias": "woman_feeding_baby",
+      "Emoji": "👩‍🍼"
+    },
+    {
+      "Alias": "man_feeding_baby",
+      "Emoji": "👨‍🍼"
+    },
+    {
+      "Alias": "person_feeding_baby",
+      "Emoji": "🧑‍🍼"
+    },
+    {
+      "Alias": "person_getting_massage",
+      "Emoji": "💆"
+    },
+    {
+      "Alias": "man_getting_massage",
+      "Emoji": "💆‍♂️"
+    },
+    {
+      "Alias": "woman_getting_massage",
+      "Emoji": "💆‍♀️"
+    },
+    {
+      "Alias": "person_getting_haircut",
+      "Emoji": "💇"
+    },
+    {
+      "Alias": "man_getting_haircut",
+      "Emoji": "💇‍♂️"
+    },
+    {
+      "Alias": "woman_getting_haircut",
+      "Emoji": "💇‍♀️"
+    },
+    {
+      "Alias": "person_walking",
+      "Emoji": "🚶"
+    },
+    {
+      "Alias": "man_walking",
+      "Emoji": "🚶‍♂️"
+    },
+    {
+      "Alias": "woman_walking",
+      "Emoji": "🚶‍♀️"
+    },
+    {
+      "Alias": "person_walking_arrow",
+      "Emoji": "🚶‍➡️"
+    },
+    {
+      "Alias": "woman_walking_arrow",
+      "Emoji": "🚶‍♀️‍➡️"
+    },
+    {
+      "Alias": "man_walking_arrow",
+      "Emoji": "🚶‍♂️‍➡️"
+    },
+    {
+      "Alias": "standing_person",
+      "Emoji": "🧍"
+    },
+    {
+      "Alias": "man_standing",
+      "Emoji": "🧍‍♂️"
+    },
+    {
+      "Alias": "woman_standing",
+      "Emoji": "🧍‍♀️"
+    },
+    {
+      "Alias": "person_kneeling",
+      "Emoji": "🧎"
+    },
+    {
+      "Alias": "man_kneeling",
+      "Emoji": "🧎‍♂️"
+    },
+    {
+      "Alias": "woman_kneeling",
+      "Emoji": "🧎‍♀️"
+    },
+    {
+      "Alias": "person_kneeling_arrow",
+      "Emoji": "🧎‍➡️"
+    },
+    {
+      "Alias": "woman_kneeling_arrow",
+      "Emoji": "🧎‍♀️‍➡️"
+    },
+    {
+      "Alias": "man_kneeling_arrow",
+      "Emoji": "🧎‍♂️‍➡️"
+    },
+    {
+      "Alias": "person_with_white_cane",
+      "Emoji": "🧑‍🦯"
+    },
+    {
+      "Alias": "person_with_white_cane_arrow",
+      "Emoji": "🧑‍🦯‍➡️"
+    },
+    {
+      "Alias": "man_with_white_cane",
+      "Emoji": "👨‍🦯"
+    },
+    {
+      "Alias": "man_with_white_cane_arrow",
+      "Emoji": "👨‍🦯‍➡️"
+    },
+    {
+      "Alias": "woman_with_white_cane",
+      "Emoji": "👩‍🦯"
+    },
+    {
+      "Alias": "woman_with_white_cane_arrow",
+      "Emoji": "👩‍🦯‍➡️"
+    },
+    {
+      "Alias": "person_in_motorized_wheelchair",
+      "Emoji": "🧑‍🦼"
+    },
+    {
+      "Alias": "person_in_motorized_wheelchair_arrow",
+      "Emoji": "🧑‍🦼‍➡️"
+    },
+    {
+      "Alias": "man_in_motorized_wheelchair",
+      "Emoji": "👨‍🦼"
+    },
+    {
+      "Alias": "man_in_motorized_wheelchair_arrow",
+      "Emoji": "👨‍🦼‍➡️"
+    },
+    {
+      "Alias": "woman_in_motorized_wheelchair",
+      "Emoji": "👩‍🦼"
+    },
+    {
+      "Alias": "woman_in_motorized_wheelchair_arrow",
+      "Emoji": "👩‍🦼‍➡️"
+    },
+    {
+      "Alias": "person_in_manual_wheelchair",
+      "Emoji": "🧑‍🦽"
+    },
+    {
+      "Alias": "person_in_manual_wheelchair_arrow",
+      "Emoji": "🧑‍🦽‍➡️"
+    },
+    {
+      "Alias": "man_in_manual_wheelchair",
+      "Emoji": "👨‍🦽"
+    },
+    {
+      "Alias": "man_in_manual_wheelchair_arrow",
+      "Emoji": "👨‍🦽‍➡️"
+    },
+    {
+      "Alias": "woman_in_manual_wheelchair",
+      "Emoji": "👩‍🦽"
+    },
+    {
+      "Alias": "woman_in_manual_wheelchair_arrow",
+      "Emoji": "👩‍🦽‍➡️"
+    },
+    {
+      "Alias": "person_running",
+      "Emoji": "🏃"
+    },
+    {
+      "Alias": "man_running",
+      "Emoji": "🏃‍♂️"
+    },
+    {
+      "Alias": "woman_running",
+      "Emoji": "🏃‍♀️"
+    },
+    {
+      "Alias": "person_running_arrow",
+      "Emoji": "🏃‍➡️"
+    },
+    {
+      "Alias": "woman_running_arrow",
+      "Emoji": "🏃‍♀️‍➡️"
+    },
+    {
+      "Alias": "man_running_arrow",
+      "Emoji": "🏃‍♂️‍➡️"
+    },
+    {
+      "Alias": "woman_dancing",
+      "Emoji": "💃"
+    },
+    {
+      "Alias": "man_dancing",
+      "Emoji": "🕺"
+    },
+    {
+      "Alias": "man_in_suit_levitating",
+      "Emoji": "🕴️"
+    },
+    {
+      "Alias": "people_with_bunny_ears",
+      "Emoji": "👯"
+    },
+    {
+      "Alias": "men_with_bunny_ears",
+      "Emoji": "👯‍♂️"
+    },
+    {
+      "Alias": "women_with_bunny_ears",
+      "Emoji": "👯‍♀️"
+    },
+    {
+      "Alias": "person_in_steamy_room",
+      "Emoji": "🧖"
+    },
+    {
+      "Alias": "man_in_steamy_room",
+      "Emoji": "🧖‍♂️"
+    },
+    {
+      "Alias": "woman_in_steamy_room",
+      "Emoji": "🧖‍♀️"
+    },
+    {
+      "Alias": "person_climbing",
+      "Emoji": "🧗"
+    },
+    {
+      "Alias": "man_climbing",
+      "Emoji": "🧗‍♂️"
+    },
+    {
+      "Alias": "woman_climbing",
+      "Emoji": "🧗‍♀️"
+    },
+    {
+      "Alias": "person_fencing",
+      "Emoji": "🤺"
+    },
+    {
+      "Alias": "horse_racing",
+      "Emoji": "🏇"
+    },
+    {
+      "Alias": "skier",
+      "Emoji": "⛷️"
+    },
+    {
+      "Alias": "snowboarder",
+      "Emoji": "🏂"
+    },
+    {
+      "Alias": "person_golfing",
+      "Emoji": "🏌️"
+    },
+    {
+      "Alias": "man_golfing",
+      "Emoji": "🏌️‍♂️"
+    },
+    {
+      "Alias": "woman_golfing",
+      "Emoji": "🏌️‍♀️"
+    },
+    {
+      "Alias": "person_surfing",
+      "Emoji": "🏄"
+    },
+    {
+      "Alias": "man_surfing",
+      "Emoji": "🏄‍♂️"
+    },
+    {
+      "Alias": "woman_surfing",
+      "Emoji": "🏄‍♀️"
+    },
+    {
+      "Alias": "person_rowing_boat",
+      "Emoji": "🚣"
+    },
+    {
+      "Alias": "man_rowing_boat",
+      "Emoji": "🚣‍♂️"
+    },
+    {
+      "Alias": "woman_rowing_boat",
+      "Emoji": "🚣‍♀️"
+    },
+    {
+      "Alias": "person_swimming",
+      "Emoji": "🏊"
+    },
+    {
+      "Alias": "man_swimming",
+      "Emoji": "🏊‍♂️"
+    },
+    {
+      "Alias": "woman_swimming",
+      "Emoji": "🏊‍♀️"
+    },
+    {
+      "Alias": "person_bouncing_ball",
+      "Emoji": "⛹️"
+    },
+    {
+      "Alias": "man_bouncing_ball",
+      "Emoji": "⛹️‍♂️"
+    },
+    {
+      "Alias": "woman_bouncing_ball",
+      "Emoji": "⛹️‍♀️"
+    },
+    {
+      "Alias": "person_lifting_weights",
+      "Emoji": "🏋️"
+    },
+    {
+      "Alias": "man_lifting_weights",
+      "Emoji": "🏋️‍♂️"
+    },
+    {
+      "Alias": "woman_lifting_weights",
+      "Emoji": "🏋️‍♀️"
+    },
+    {
+      "Alias": "person_biking",
+      "Emoji": "🚴"
+    },
+    {
+      "Alias": "man_biking",
+      "Emoji": "🚴‍♂️"
+    },
+    {
+      "Alias": "woman_biking",
+      "Emoji": "🚴‍♀️"
+    },
+    {
+      "Alias": "person_mountain_biking",
+      "Emoji": "🚵"
+    },
+    {
+      "Alias": "man_mountain_biking",
+      "Emoji": "🚵‍♂️"
+    },
+    {
+      "Alias": "woman_mountain_biking",
+      "Emoji": "🚵‍♀️"
+    },
+    {
+      "Alias": "person_cartwheeling",
+      "Emoji": "🤸"
+    },
+    {
+      "Alias": "man_cartwheeling",
+      "Emoji": "🤸‍♂️"
+    },
+    {
+      "Alias": "woman_cartwheeling",
+      "Emoji": "🤸‍♀️"
+    },
+    {
+      "Alias": "people_wrestling",
+      "Emoji": "🤼"
+    },
+    {
+      "Alias": "men_wrestling",
+      "Emoji": "🤼‍♂️"
+    },
+    {
+      "Alias": "women_wrestling",
+      "Emoji": "🤼‍♀️"
+    },
+    {
+      "Alias": "person_playing_water_polo",
+      "Emoji": "🤽"
+    },
+    {
+      "Alias": "man_playing_water_polo",
+      "Emoji": "🤽‍♂️"
+    },
+    {
+      "Alias": "woman_playing_water_polo",
+      "Emoji": "🤽‍♀️"
+    },
+    {
+      "Alias": "person_playing_handball",
+      "Emoji": "🤾"
+    },
+    {
+      "Alias": "man_playing_handball",
+      "Emoji": "🤾‍♂️"
+    },
+    {
+      "Alias": "woman_playing_handball",
+      "Emoji": "🤾‍♀️"
+    },
+    {
+      "Alias": "person_juggling",
+      "Emoji": "🤹"
+    },
+    {
+      "Alias": "man_juggling",
+      "Emoji": "🤹‍♂️"
+    },
+    {
+      "Alias": "woman_juggling",
+      "Emoji": "🤹‍♀️"
+    },
+    {
+      "Alias": "person_in_lotus_position",
+      "Emoji": "🧘"
+    },
+    {
+      "Alias": "man_in_lotus_position",
+      "Emoji": "🧘‍♂️"
+    },
+    {
+      "Alias": "woman_in_lotus_position",
+      "Emoji": "🧘‍♀️"
+    },
+    {
+      "Alias": "person_taking_bath",
+      "Emoji": "🛀"
+    },
+    {
+      "Alias": "person_in_bed",
+      "Emoji": "🛌"
+    },
+    {
+      "Alias": "health_worker",
+      "Emoji": "🧑‍⚕️"
+    },
+    {
+      "Alias": "man_health_worker",
+      "Emoji": "👨‍⚕️"
+    },
+    {
+      "Alias": "woman_health_worker",
+      "Emoji": "👩‍⚕️"
+    },
+    {
+      "Alias": "student",
+      "Emoji": "🧑‍🎓"
+    },
+    {
+      "Alias": "man_student",
+      "Emoji": "👨‍🎓"
+    },
+    {
+      "Alias": "woman_student",
+      "Emoji": "👩‍🎓"
+    },
+    {
+      "Alias": "teacher",
+      "Emoji": "🧑‍🏫"
+    },
+    {
+      "Alias": "man_teacher",
+      "Emoji": "👨‍🏫"
+    },
+    {
+      "Alias": "woman_teacher",
+      "Emoji": "👩‍🏫"
+    },
+    {
+      "Alias": "judge",
+      "Emoji": "🧑‍⚖️"
+    },
+    {
+      "Alias": "man_judge",
+      "Emoji": "👨‍⚖️"
+    },
+    {
+      "Alias": "woman_judge",
+      "Emoji": "👩‍⚖️"
+    },
+    {
+      "Alias": "farmer",
+      "Emoji": "🧑‍🌾"
+    },
+    {
+      "Alias": "man_farmer",
+      "Emoji": "👨‍🌾"
+    },
+    {
+      "Alias": "woman_farmer",
+      "Emoji": "👩‍🌾"
+    },
+    {
+      "Alias": "cook",
+      "Emoji": "🧑‍🍳"
+    },
+    {
+      "Alias": "man_cook",
+      "Emoji": "👨‍🍳"
+    },
+    {
+      "Alias": "woman_cook",
+      "Emoji": "👩‍🍳"
+    },
+    {
+      "Alias": "mechanic",
+      "Emoji": "🧑‍🔧"
+    },
+    {
+      "Alias": "man_mechanic",
+      "Emoji": "👨‍🔧"
+    },
+    {
+      "Alias": "woman_mechanic",
+      "Emoji": "👩‍🔧"
+    },
+    {
+      "Alias": "factory_worker",
+      "Emoji": "🧑‍🏭"
+    },
+    {
+      "Alias": "man_factory_worker",
+      "Emoji": "👨‍🏭"
+    },
+    {
+      "Alias": "woman_factory_worker",
+      "Emoji": "👩‍🏭"
+    },
+    {
+      "Alias": "office_worker",
+      "Emoji": "🧑‍💼"
+    },
+    {
+      "Alias": "man_office_worker",
+      "Emoji": "👨‍💼"
+    },
+    {
+      "Alias": "woman_office_worker",
+      "Emoji": "👩‍💼"
+    },
+    {
+      "Alias": "scientist",
+      "Emoji": "🧑‍🔬"
+    },
+    {
+      "Alias": "man_scientist",
+      "Emoji": "👨‍🔬"
+    },
+    {
+      "Alias": "woman_scientist",
+      "Emoji": "👩‍🔬"
+    },
+    {
+      "Alias": "technologist",
+      "Emoji": "🧑‍💻"
+    },
+    {
+      "Alias": "man_technologist",
+      "Emoji": "👨‍💻"
+    },
+    {
+      "Alias": "woman_technologist",
+      "Emoji": "👩‍💻"
+    },
+    {
+      "Alias": "singer",
+      "Emoji": "🧑‍🎤"
+    },
+    {
+      "Alias": "man_singer",
+      "Emoji": "👨‍🎤"
+    },
+    {
+      "Alias": "woman_singer",
+      "Emoji": "👩‍🎤"
+    },
+    {
+      "Alias": "artist",
+      "Emoji": "🧑‍🎨"
+    },
+    {
+      "Alias": "man_artist",
+      "Emoji": "👨‍🎨"
+    },
+    {
+      "Alias": "woman_artist",
+      "Emoji": "👩‍🎨"
+    },
+    {
+      "Alias": "pilot",
+      "Emoji": "🧑‍✈️"
+    },
+    {
+      "Alias": "man_pilot",
+      "Emoji": "👨‍✈️"
+    },
+    {
+      "Alias": "woman_pilot",
+      "Emoji": "👩‍✈️"
+    },
+    {
+      "Alias": "astronaut",
+      "Emoji": "🧑‍🚀"
+    },
+    {
+      "Alias": "man_astronaut",
+      "Emoji": "👨‍🚀"
+    },
+    {
+      "Alias": "woman_astronaut",
+      "Emoji": "👩‍🚀"
+    },
+    {
+      "Alias": "firefighter",
+      "Emoji": "🧑‍🚒"
+    },
+    {
+      "Alias": "man_firefighter",
+      "Emoji": "👨‍🚒"
+    },
+    {
+      "Alias": "woman_firefighter",
+      "Emoji": "👩‍🚒"
+    },
+    {
+      "Alias": "police_officer",
+      "Emoji": "👮"
+    },
+    {
+      "Alias": "man_police_officer",
+      "Emoji": "👮‍♂️"
+    },
+    {
+      "Alias": "woman_police_officer",
+      "Emoji": "👮‍♀️"
+    },
+    {
+      "Alias": "detective",
+      "Emoji": "🕵️"
+    },
+    {
+      "Alias": "man_detective",
+      "Emoji": "🕵️‍♂️"
+    },
+    {
+      "Alias": "woman_detective",
+      "Emoji": "🕵️‍♀️"
+    },
+    {
+      "Alias": "guard",
+      "Emoji": "💂"
+    },
+    {
+      "Alias": "man_guard",
+      "Emoji": "💂‍♂️"
+    },
+    {
+      "Alias": "woman_guard",
+      "Emoji": "💂‍♀️"
+    },
+    {
+      "Alias": "ninja",
+      "Emoji": "🥷"
+    },
+    {
+      "Alias": "construction_worker",
+      "Emoji": "👷"
+    },
+    {
+      "Alias": "man_construction_worker",
+      "Emoji": "👷‍♂️"
+    },
+    {
+      "Alias": "woman_construction_worker",
+      "Emoji": "👷‍♀️"
+    },
+    {
+      "Alias": "prince",
+      "Emoji": "🤴"
+    },
+    {
+      "Alias": "princess",
+      "Emoji": "👸"
+    },
+    {
+      "Alias": "man_in_tuxedo",
+      "Emoji": "🤵"
+    },
+    {
+      "Alias": "man_in_tuxedo",
+      "Emoji": "🤵‍♂️"
+    },
+    {
+      "Alias": "woman_in_tuxedo",
+      "Emoji": "🤵‍♀️"
+    },
+    {
+      "Alias": "bride_with_veil",
+      "Emoji": "👰"
+    },
+    {
+      "Alias": "man_with_veil",
+      "Emoji": "👰‍♂️"
+    },
+    {
+      "Alias": "bride",
+      "Emoji": "👰‍♀️"
+    },
+    {
+      "Alias": "santa",
+      "Emoji": "🎅"
+    },
+    {
+      "Alias": "mrs_claus",
+      "Emoji": "🤶"
+    },
+    {
+      "Alias": "mx_claus",
+      "Emoji": "🧑‍🎄"
+    },
+    {
+      "Alias": "superhero",
+      "Emoji": "🦸"
+    },
+    {
+      "Alias": "man_superhero",
+      "Emoji": "🦸‍♂️"
+    },
+    {
+      "Alias": "woman_superhero",
+      "Emoji": "🦸‍♀️"
+    },
+    {
+      "Alias": "supervillain",
+      "Emoji": "🦹"
+    },
+    {
+      "Alias": "man_supervillain",
+      "Emoji": "🦹‍♂️"
+    },
+    {
+      "Alias": "woman_supervillain",
+      "Emoji": "🦹‍♀️"
+    },
+    {
+      "Alias": "mage",
+      "Emoji": "🧙"
+    },
+    {
+      "Alias": "man_mage",
+      "Emoji": "🧙‍♂️"
+    },
+    {
+      "Alias": "woman_mage",
+      "Emoji": "🧙‍♀️"
+    },
+    {
+      "Alias": "fairy",
+      "Emoji": "🧚"
+    },
+    {
+      "Alias": "man_fairy",
+      "Emoji": "🧚‍♂️"
+    },
+    {
+      "Alias": "woman_fairy",
+      "Emoji": "🧚‍♀️"
+    },
+    {
+      "Alias": "vampire",
+      "Emoji": "🧛"
+    },
+    {
+      "Alias": "man_vampire",
+      "Emoji": "🧛‍♂️"
+    },
+    {
+      "Alias": "woman_vampire",
+      "Emoji": "🧛‍♀️"
+    },
+    {
+      "Alias": "merperson",
+      "Emoji": "🧜"
+    },
+    {
+      "Alias": "merman",
+      "Emoji": "🧜‍♂️"
+    },
+    {
+      "Alias": "mermaid",
+      "Emoji": "🧜‍♀️"
+    },
+    {
+      "Alias": "elf",
+      "Emoji": "🧝"
+    },
+    {
+      "Alias": "man_elf",
+      "Emoji": "🧝‍♂️"
+    },
+    {
+      "Alias": "woman_elf",
+      "Emoji": "🧝‍♀️"
+    },
+    {
+      "Alias": "genie",
+      "Emoji": "🧞"
+    },
+    {
+      "Alias": "man_genie",
+      "Emoji": "🧞‍♂️"
+    },
+    {
+      "Alias": "woman_genie",
+      "Emoji": "🧞‍♀️"
+    },
+    {
+      "Alias": "zombie",
+      "Emoji": "🧟"
+    },
+    {
+      "Alias": "man_zombie",
+      "Emoji": "🧟‍♂️"
+    },
+    {
+      "Alias": "woman_zombie",
+      "Emoji": "🧟‍♀️"
+    },
+    {
+      "Alias": "troll",
+      "Emoji": "🧌"
+    },
+    {
+      "Alias": "people_with_bunny_ears",
+      "Emoji": "👯"
+    },
+    {
+      "Alias": "men_with_bunny_ears",
+      "Emoji": "👯‍♂️"
+    },
+    {
+      "Alias": "women_with_bunny_ears",
+      "Emoji": "👯‍♀️"
+    },
+    {
+      "Alias": "people_holding_hands",
+      "Emoji": "🧑‍🤝‍🧑"
+    },
+    {
+      "Alias": "two_women_holding_hands",
+      "Emoji": "👭"
+    },
+    {
+      "Alias": "woman_and_man_holding_hands",
+      "Emoji": "👫"
+    },
+    {
+      "Alias": "two_men_holding_hands",
+      "Emoji": "👬"
+    },
+    {
+      "Alias": "kiss",
+      "Emoji": "💏"
+    },
+    {
+      "Alias": "couplekiss_woman_man",
+      "Emoji": "👩‍❤️‍💋‍👨"
+    },
+    {
+      "Alias": "couplekiss_man_man",
+      "Emoji": "👨‍❤️‍💋‍👨"
+    },
+    {
+      "Alias": "couplekiss_woman_woman",
+      "Emoji": "👩‍❤️‍💋‍👩"
+    },
+    {
+      "Alias": "couple_with_heart",
+      "Emoji": "💑"
+    },
+    {
+      "Alias": "couple_with_heart_woman_man",
+      "Emoji": "👩‍❤️‍👨"
+    },
+    {
+      "Alias": "couple_with_heart_man_man",
+      "Emoji": "👨‍❤️‍👨"
+    },
+    {
+      "Alias": "couple_with_heart_woman_woman",
+      "Emoji": "👩‍❤️‍👩"
+    },
+    {
+      "Alias": "family_man_boy",
+      "Emoji": "👨‍👩‍👦"
+    },
+    {
+      "Alias": "family_man_girl",
+      "Emoji": "👨‍👩‍👧"
+    },
+    {
+      "Alias": "family_man_girl_boy",
+      "Emoji": "👨‍👩‍👧‍👦"
+    },
+    {
+      "Alias": "family_man_boy_boy",
+      "Emoji": "👨‍👩‍👦‍👦"
+    },
+    {
+      "Alias": "family_man_girl_girl",
+      "Emoji": "👨‍👩‍👧‍👧"
+    },
+    {
+      "Alias": "family_man_man_boy",
+      "Emoji": "👨‍👨‍👦"
+    },
+    {
+      "Alias": "family_man_man_girl",
+      "Emoji": "👨‍👨‍👧"
+    },
+    {
+      "Alias": "family_man_man_girl_boy",
+      "Emoji": "👨‍👨‍👧‍👦"
+    },
+    {
+      "Alias": "family_man_man_boy_boy",
+      "Emoji": "👨‍👨‍👦‍👦"
+    },
+    {
+      "Alias": "family_man_man_girl_girl",
+      "Emoji": "👨‍👨‍👧‍👧"
+    },
+    {
+      "Alias": "family_woman_woman_boy",
+      "Emoji": "👩‍👩‍👦"
+    },
+    {
+      "Alias": "family_woman_woman_girl",
+      "Emoji": "👩‍👩‍👧"
+    },
+    {
+      "Alias": "family_woman_woman_girl_boy",
+      "Emoji": "👩‍👩‍👧‍👦"
+    },
+    {
+      "Alias": "family_woman_woman_boy_boy",
+      "Emoji": "👩‍👩‍👦‍👦"
+    },
+    {
+      "Alias": "family_woman_woman_girl_girl",
+      "Emoji": "👩‍👩‍👧‍👧"
+    },
+    {
+      "Alias": "family_man_boy",
+      "Emoji": "👨‍👦"
+    },
+    {
+      "Alias": "family_man_boy_boy",
+      "Emoji": "👨‍👦‍👦"
+    },
+    {
+      "Alias": "family_man_girl",
+      "Emoji": "👨‍👧"
+    },
+    {
+      "Alias": "family_man_girl_boy",
+      "Emoji": "👨‍👧‍👦"
+    },
+    {
+      "Alias": "family_man_girl_girl",
+      "Emoji": "👨‍👧‍👧"
+    },
+    {
+      "Alias": "family_woman_boy",
+      "Emoji": "👩‍👦"
+    },
+    {
+      "Alias": "family_woman_boy_boy",
+      "Emoji": "👩‍👦‍👦"
+    },
+    {
+      "Alias": "family_woman_girl",
+      "Emoji": "👩‍👧"
+    },
+    {
+      "Alias": "family_woman_girl_boy",
+      "Emoji": "👩‍👧‍👦"
+    },
+    {
+      "Alias": "family_woman_girl_girl",
+      "Emoji": "👩‍👧‍👧"
+    },
+    {
+      "Alias": "family",
+      "Emoji": "👪"
+    },
+    {
+      "Alias": "two_women_and_boy",
+      "Emoji": "🧑‍🧑‍🧒"
+    },
+    {
+      "Alias": "two_women_and_2boys",
+      "Emoji": "🧑‍🧑‍🧒‍🧒"
+    },
+    {
+      "Alias": "woman_and_child",
+      "Emoji": "🧑‍🧒"
+    },
+    {
+      "Alias": "woman_and_2children",
+      "Emoji": "🧑‍🧒‍🧒"
+    },
+    {
+      "Alias": "monkey_face",
+      "Emoji": "🐵"
+    },
+    {
+      "Alias": "monkey",
+      "Emoji": "🐒"
+    },
+    {
+      "Alias": "gorilla",
+      "Emoji": "🦍"
+    },
+    {
+      "Alias": "orangutan",
+      "Emoji": "🦧"
+    },
+    {
+      "Alias": "dog",
+      "Emoji": "🐶"
+    },
+    {
+      "Alias": "dog2",
+      "Emoji": "🐕"
+    },
+    {
+      "Alias": "guide_dog",
+      "Emoji": "🦮"
+    },
+    {
+      "Alias": "service_dog",
+      "Emoji": "🐕‍🦺"
+    },
+    {
+      "Alias": "poodle",
+      "Emoji": "🐩"
+    },
+    {
+      "Alias": "wolf",
+      "Emoji": "🐺"
+    },
+    {
+      "Alias": "fox",
+      "Emoji": "🦊"
+    },
+    {
+      "Alias": "raccoon",
+      "Emoji": "🦝"
+    },
+    {
+      "Alias": "cat",
+      "Emoji": "🐱"
+    },
+    {
+      "Alias": "cat2",
+      "Emoji": "🐈"
+    },
+    {
+      "Alias": "black_cat",
+      "Emoji": "🐈‍⬛"
+    },
+    {
+      "Alias": "lion",
+      "Emoji": "🦁"
+    },
+    {
+      "Alias": "tiger_face",
+      "Emoji": "🐯"
+    },
+    {
+      "Alias": "tiger2",
+      "Emoji": "🐅"
+    },
+    {
+      "Alias": "leopard",
+      "Emoji": "🐆"
+    },
+    {
+      "Alias": "horse",
+      "Emoji": "🐴"
+    },
+    {
+      "Alias": "deer",
+      "Emoji": "🫎"
+    },
+    {
+      "Alias": "donkey",
+      "Emoji": "🫏"
+    },
+    {
+      "Alias": "racehorse",
+      "Emoji": "🐎"
+    },
+    {
+      "Alias": "unicorn",
+      "Emoji": "🦄"
+    },
+    {
+      "Alias": "zebra",
+      "Emoji": "🦓"
+    },
+    {
+      "Alias": "deer",
+      "Emoji": "🦌"
+    },
+    {
+      "Alias": "bison",
+      "Emoji": "🦬"
+    },
+    {
+      "Alias": "cow",
+      "Emoji": "🐮"
+    },
+    {
+      "Alias": "ox",
+      "Emoji": "🐂"
+    },
+    {
+      "Alias": "water_buffalo",
+      "Emoji": "🐃"
+    },
+    {
+      "Alias": "cow2",
+      "Emoji": "🐄"
+    },
+    {
+      "Alias": "pig",
+      "Emoji": "🐷"
+    },
+    {
+      "Alias": "pig2",
+      "Emoji": "🐖"
+    },
+    {
+      "Alias": "boar",
+      "Emoji": "🐗"
+    },
+    {
+      "Alias": "pig_nose",
+      "Emoji": "🐽"
+    },
+    {
+      "Alias": "ram",
+      "Emoji": "🐏"
+    },
+    {
+      "Alias": "sheep",
+      "Emoji": "🐑"
+    },
+    {
+      "Alias": "goat",
+      "Emoji": "🐐"
+    },
+    {
+      "Alias": "camel",
+      "Emoji": "🐪"
+    },
+    {
+      "Alias": "two_hump_camel",
+      "Emoji": "🐫"
+    },
+    {
+      "Alias": "llama",
+      "Emoji": "🦙"
+    },
+    {
+      "Alias": "giraffe",
+      "Emoji": "🦒"
+    },
+    {
+      "Alias": "elephant",
+      "Emoji": "🐘"
+    },
+    {
+      "Alias": "mammoth",
+      "Emoji": "🦣"
+    },
+    {
+      "Alias": "rhinoceros",
+      "Emoji": "🦏"
+    },
+    {
+      "Alias": "hippopotamus",
+      "Emoji": "🦛"
+    },
+    {
+      "Alias": "mouse_face",
+      "Emoji": "🐭"
+    },
+    {
+      "Alias": "mouse2",
+      "Emoji": "🐁"
+    },
+    {
+      "Alias": "rat",
+      "Emoji": "🐀"
+    },
+    {
+      "Alias": "hamster",
+      "Emoji": "🐹"
+    },
+    {
+      "Alias": "rabbit",
+      "Emoji": "🐰"
+    },
+    {
+      "Alias": "rabbit2",
+      "Emoji": "🐇"
+    },
+    {
+      "Alias": "chipmunk",
+      "Emoji": "🐿️"
+    },
+    {
+      "Alias": "beaver",
+      "Emoji": "🦫"
+    },
+    {
+      "Alias": "hedgehog",
+      "Emoji": "🦔"
+    },
+    {
+      "Alias": "bat",
+      "Emoji": "🦇"
+    },
+    {
+      "Alias": "bear",
+      "Emoji": "🐻"
+    },
+    {
+      "Alias": "polar_bear",
+      "Emoji": "🐻‍❄️"
+    },
+    {
+      "Alias": "koala",
+      "Emoji": "🐨"
+    },
+    {
+      "Alias": "panda_face",
+      "Emoji": "🐼"
+    },
+    {
+      "Alias": "sloth",
+      "Emoji": "🦥"
+    },
+    {
+      "Alias": "otter",
+      "Emoji": "🦦"
+    },
+    {
+      "Alias": "skunk",
+      "Emoji": "🦨"
+    },
+    {
+      "Alias": "kangaroo",
+      "Emoji": "🦘"
+    },
+    {
+      "Alias": "badger",
+      "Emoji": "🦡"
+    },
+    {
+      "Alias": "paw_prints",
+      "Emoji": "🐾"
+    },
+    {
+      "Alias": "turkey",
+      "Emoji": "🦃"
+    },
+    {
+      "Alias": "chicken",
+      "Emoji": "🐔"
+    },
+    {
+      "Alias": "rooster",
+      "Emoji": "🐓"
+    },
+    {
+      "Alias": "hatching_chick",
+      "Emoji": "🐣"
+    },
+    {
+      "Alias": "baby_chick",
+      "Emoji": "🐤"
+    },
+    {
+      "Alias": "hatched_chick",
+      "Emoji": "🐥"
+    },
+    {
+      "Alias": "bird",
+      "Emoji": "🐦"
+    },
+    {
+      "Alias": "penguin",
+      "Emoji": "🐧"
+    },
+    {
+      "Alias": "dove",
+      "Emoji": "🕊️"
+    },
+    {
+      "Alias": "eagle",
+      "Emoji": "🦅"
+    },
+    {
+      "Alias": "duck",
+      "Emoji": "🦆"
+    },
+    {
+      "Alias": "swan",
+      "Emoji": "🦢"
+    },
+    {
+      "Alias": "owl",
+      "Emoji": "🦉"
+    },
+    {
+      "Alias": "dodo",
+      "Emoji": "🦤"
+    },
+    {
+      "Alias": "feather",
+      "Emoji": "🪶"
+    },
+    {
+      "Alias": "flamingo",
+      "Emoji": "🦩"
+    },
+    {
+      "Alias": "peacock",
+      "Emoji": "🦚"
+    },
+    {
+      "Alias": "parrot",
+      "Emoji": "🦜"
+    },
+    {
+      "Alias": "wing",
+      "Emoji": "🪽"
+    },
+    {
+      "Alias": "black_bird",
+      "Emoji": "🐦‍⬛"
+    },
+    {
+      "Alias": "swan",
+      "Emoji": "🪿"
+    },
+    {
+      "Alias": "bird_fire",
+      "Emoji": "🐦‍🔥"
+    },
+    {
+      "Alias": "nest_with_eggs",
+      "Emoji": "🪺"
+    },
+    {
+      "Alias": "nest",
+      "Emoji": "🪹"
+    },
+    {
+      "Alias": "frog",
+      "Emoji": "🐸"
+    },
+    {
+      "Alias": "crocodile",
+      "Emoji": "🐊"
+    },
+    {
+      "Alias": "turtle",
+      "Emoji": "🐢"
+    },
+    {
+      "Alias": "lizard",
+      "Emoji": "🦎"
+    },
+    {
+      "Alias": "snake",
+      "Emoji": "🐍"
+    },
+    {
+      "Alias": "dragon_face",
+      "Emoji": "🐲"
+    },
+    {
+      "Alias": "dragon",
+      "Emoji": "🐉"
+    },
+    {
+      "Alias": "sauropod",
+      "Emoji": "🦕"
+    },
+    {
+      "Alias": "t_rex",
+      "Emoji": "🦖"
+    },
+    {
+      "Alias": "whale",
+      "Emoji": "🐳"
+    },
+    {
+      "Alias": "whale2",
+      "Emoji": "🐋"
+    },
+    {
+      "Alias": "dolphin",
+      "Emoji": "🐬"
+    },
+    {
+      "Alias": "seal",
+      "Emoji": "🦭"
+    },
+    {
+      "Alias": "fish",
+      "Emoji": "🐟"
+    },
+    {
+      "Alias": "tropical_fish",
+      "Emoji": "🐠"
+    },
+    {
+      "Alias": "blowfish",
+      "Emoji": "🐡"
+    },
+    {
+      "Alias": "shark",
+      "Emoji": "🦈"
+    },
+    {
+      "Alias": "octopus",
+      "Emoji": "🐙"
+    },
+    {
+      "Alias": "spiral_shell",
+      "Emoji": "🐚"
+    },
+    {
+      "Alias": "coral",
+      "Emoji": "🪸"
+    },
+    {
+      "Alias": "jellyfish",
+      "Emoji": "🪼"
+    },
+    {
+      "Alias": "crab",
+      "Emoji": "🦀"
+    },
+    {
+      "Alias": "lobster",
+      "Emoji": "🦞"
+    },
+    {
+      "Alias": "shrimp",
+      "Emoji": "🦐"
+    },
+    {
+      "Alias": "squid",
+      "Emoji": "🦑"
+    },
+    {
+      "Alias": "oyster",
+      "Emoji": "🦪"
+    },
+    {
+      "Alias": "snail",
+      "Emoji": "🐌"
+    },
+    {
+      "Alias": "butterfly",
+      "Emoji": "🦋"
+    },
+    {
+      "Alias": "bug",
+      "Emoji": "🐛"
+    },
+    {
+      "Alias": "ant",
+      "Emoji": "🐜"
+    },
+    {
+      "Alias": "honeybee",
+      "Emoji": "🐝"
+    },
+    {
+      "Alias": "beetle",
+      "Emoji": "🪲"
+    },
+    {
+      "Alias": "lady_beetle",
+      "Emoji": "🐞"
+    },
+    {
+      "Alias": "cricket",
+      "Emoji": "🦗"
+    },
+    {
+      "Alias": "cockroach",
+      "Emoji": "🪳"
+    },
+    {
+      "Alias": "spider",
+      "Emoji": "🕷️"
+    },
+    {
+      "Alias": "spider_web",
+      "Emoji": "🕸️"
+    },
+    {
+      "Alias": "scorpion",
+      "Emoji": "🦂"
+    },
+    {
+      "Alias": "mosquito",
+      "Emoji": "🦟"
+    },
+    {
+      "Alias": "fly",
+      "Emoji": "🪰"
+    },
+    {
+      "Alias": "worm",
+      "Emoji": "🪱"
+    },
+    {
+      "Alias": "microbe",
+      "Emoji": "🦠"
+    },
+    {
+      "Alias": "bouquet",
+      "Emoji": "💐"
+    },
+    {
+      "Alias": "cherry_blossom",
+      "Emoji": "🌸"
+    },
+    {
+      "Alias": "white_flower",
+      "Emoji": "💮"
+    },
+    {
+      "Alias": "lotus",
+      "Emoji": "🪷"
+    },
+    {
+      "Alias": "rosette",
+      "Emoji": "🏵️"
+    },
+    {
+      "Alias": "rose",
+      "Emoji": "🌹"
+    },
+    {
+      "Alias": "wilted_flower",
+      "Emoji": "🥀"
+    },
+    {
+      "Alias": "hibiscus",
+      "Emoji": "🌺"
+    },
+    {
+      "Alias": "sunflower",
+      "Emoji": "🌻"
+    },
+    {
+      "Alias": "blossom",
+      "Emoji": "🌼"
+    },
+    {
+      "Alias": "tulip",
+      "Emoji": "🌷"
+    },
+    {
+      "Alias": "hyacinth",
+      "Emoji": "🪻"
+    },
+    {
+      "Alias": "seedling",
+      "Emoji": "🌱"
+    },
+    {
+      "Alias": "potted_plant",
+      "Emoji": "🪴"
+    },
+    {
+      "Alias": "evergreen_tree",
+      "Emoji": "🌲"
+    },
+    {
+      "Alias": "deciduous_tree",
+      "Emoji": "🌳"
+    },
+    {
+      "Alias": "fallen_leaf",
+      "Emoji": "🍂"
+    },
+    {
+      "Alias": "palm_tree",
+      "Emoji": "🌴"
+    },
+    {
+      "Alias": "cactus",
+      "Emoji": "🌵"
+    },
+    {
+      "Alias": "sheaf_of_rice",
+      "Emoji": "🌾"
+    },
+    {
+      "Alias": "herb",
+      "Emoji": "🌿"
+    },
+    {
+      "Alias": "shamrock",
+      "Emoji": "☘️"
+    },
+    {
+      "Alias": "four_leaf_clover",
+      "Emoji": "🍀"
+    },
+    {
+      "Alias": "maple_leaf",
+      "Emoji": "🍁"
+    },
+    {
+      "Alias": "fallen_leaf",
+      "Emoji": "🍂"
+    },
+    {
+      "Alias": "leaf_fluttering_in_wind",
+      "Emoji": "🍃"
+    },
+    {
+      "Alias": "mushroom",
+      "Emoji": "🍄"
+    },
+    {
+      "Alias": "rock",
+      "Emoji": "🪨"
+    },
+    {
+      "Alias": "wood",
+      "Emoji": "🪵"
+    },
+    {
+      "Alias": "new_moon",
+      "Emoji": "🌑"
+    },
+    {
+      "Alias": "waxing_crescent_moon",
+      "Emoji": "🌒"
+    },
+    {
+      "Alias": "first_quarter_moon",
+      "Emoji": "🌓"
+    },
+    {
+      "Alias": "waxing_gibbous_moon",
+      "Emoji": "🌔"
+    },
+    {
+      "Alias": "full_moon",
+      "Emoji": "🌕"
+    },
+    {
+      "Alias": "waning_gibbous_moon",
+      "Emoji": "🌖"
+    },
+    {
+      "Alias": "last_quarter_moon",
+      "Emoji": "🌗"
+    },
+    {
+      "Alias": "waning_crescent_moon",
+      "Emoji": "🌘"
+    },
+    {
+      "Alias": "crescent_moon",
+      "Emoji": "🌙"
+    },
+    {
+      "Alias": "new_moon_face",
+      "Emoji": "🌚"
+    },
+    {
+      "Alias": "first_quarter_moon_face",
+      "Emoji": "🌛"
+    },
+    {
+      "Alias": "last_quarter_moon_face",
+      "Emoji": "🌜"
+    },
+    {
+      "Alias": "sunny",
+      "Emoji": "☀️"
+    },
+    {
+      "Alias": "full_moon_face",
+      "Emoji": "🌝"
+    },
+    {
+      "Alias": "sun_with_face",
+      "Emoji": "🌞"
+    },
+    {
+      "Alias": "ringed_planet",
+      "Emoji": "🪐"
+    },
+    {
+      "Alias": "star",
+      "Emoji": "⭐"
+    },
+    {
+      "Alias": "glowing_star",
+      "Emoji": "🌟"
+    },
+    {
+      "Alias": "shooting_star",
+      "Emoji": "🌠"
+    },
+    {
+      "Alias": "milky_way",
+      "Emoji": "🌌"
+    },
+    {
+      "Alias": "cloud",
+      "Emoji": "☁️"
+    },
+    {
+      "Alias": "partly_sunny",
+      "Emoji": "⛅"
+    },
+    {
+      "Alias": "thunder_cloud_and_rain",
+      "Emoji": "⛈️"
+    },
+    {
+      "Alias": "sun_behind_small_cloud",
+      "Emoji": "🌤️"
+    },
+    {
+      "Alias": "sun_behind_large_cloud",
+      "Emoji": "🌥️"
+    },
+    {
+      "Alias": "sun_behind_rain_cloud",
+      "Emoji": "🌦️"
+    },
+    {
+      "Alias": "cloud_with_rain",
+      "Emoji": "🌧️"
+    },
+    {
+      "Alias": "cloud_with_snow",
+      "Emoji": "🌨️"
+    },
+    {
+      "Alias": "cloud_with_lightning_and_rain",
+      "Emoji": "🌩️"
+    },
+    {
+      "Alias": "cloud_with_tornado",
+      "Emoji": "🌪️"
+    },
+    {
+      "Alias": "fog",
+      "Emoji": "🌫️"
+    },
+    {
+      "Alias": "wind_face",
+      "Emoji": "🌬️"
+    },
+    {
+      "Alias": "cyclone",
+      "Emoji": "🌀"
+    },
+    {
+      "Alias": "rainbow",
+      "Emoji": "🌈"
+    },
+    {
+      "Alias": "closed_umbrella",
+      "Emoji": "🌂"
+    },
+    {
+      "Alias": "umbrella",
+      "Emoji": "☂️"
+    },
+    {
+      "Alias": "umbrella_with_rain_drops",
+      "Emoji": "☔"
+    },
+    {
+      "Alias": "umbrella_on_ground",
+      "Emoji": "⛱️"
+    },
+    {
+      "Alias": "zap",
+      "Emoji": "⚡"
+    },
+    {
+      "Alias": "snowflake",
+      "Emoji": "❄️"
+    },
+    {
+      "Alias": "snowman",
+      "Emoji": "☃️"
+    },
+    {
+      "Alias": "snowman_without_snow",
+      "Emoji": "⛄"
+    },
+    {
+      "Alias": "comet",
+      "Emoji": "☄️"
+    },
+    {
+      "Alias": "fire",
+      "Emoji": "🔥"
+    },
+    {
+      "Alias": "droplet",
+      "Emoji": "💧"
+    },
+    {
+      "Alias": "water_wave",
+      "Emoji": "🌊"
+    },
+    {
+      "Alias": "grapes",
+      "Emoji": "🍇"
+    },
+    {
+      "Alias": "melon",
+      "Emoji": "🍈"
+    },
+    {
+      "Alias": "watermelon",
+      "Emoji": "🍉"
+    },
+    {
+      "Alias": "tangerine",
+      "Emoji": "🍊"
+    },
+    {
+      "Alias": "lemon",
+      "Emoji": "🍋"
+    },
+    {
+      "Alias": "lemon",
+      "Emoji": "🍋‍🟩"
+    },
+    {
+      "Alias": "banana",
+      "Emoji": "🍌"
+    },
+    {
+      "Alias": "pineapple",
+      "Emoji": "🍍"
+    },
+    {
+      "Alias": "mango",
+      "Emoji": "🥭"
+    },
+    {
+      "Alias": "apple",
+      "Emoji": "🍎"
+    },
+    {
+      "Alias": "green_apple",
+      "Emoji": "🍏"
+    },
+    {
+      "Alias": "pear",
+      "Emoji": "🍐"
+    },
+    {
+      "Alias": "peach",
+      "Emoji": "🍑"
+    },
+    {
+      "Alias": "cherries",
+      "Emoji": "🍒"
+    },
+    {
+      "Alias": "strawberry",
+      "Emoji": "🍓"
+    },
+    {
+      "Alias": "blueberries",
+      "Emoji": "🫐"
+    },
+    {
+      "Alias": "kiwi",
+      "Emoji": "🥝"
+    },
+    {
+      "Alias": "tomato",
+      "Emoji": "🍅"
+    },
+    {
+      "Alias": "olive",
+      "Emoji": "🫒"
+    },
+    {
+      "Alias": "coconut",
+      "Emoji": "🥥"
+    },
+    {
+      "Alias": "avocado",
+      "Emoji": "🥑"
+    },
+    {
+      "Alias": "eggplant",
+      "Emoji": "🍆"
+    },
+    {
+      "Alias": "potato",
+      "Emoji": "🥔"
+    },
+    {
+      "Alias": "carrot",
+      "Emoji": "🥕"
+    },
+    {
+      "Alias": "ear_of_corn",
+      "Emoji": "🌽"
+    },
+    {
+      "Alias": "hot_pepper",
+      "Emoji": "🌶️"
+    },
+    {
+      "Alias": "bell_pepper",
+      "Emoji": "🫑"
+    },
+    {
+      "Alias": "cucumber",
+      "Emoji": "🥒"
+    },
+    {
+      "Alias": "leafy_green",
+      "Emoji": "🥬"
+    },
+    {
+      "Alias": "broccoli",
+      "Emoji": "🥦"
+    },
+    {
+      "Alias": "garlic",
+      "Emoji": "🧄"
+    },
+    {
+      "Alias": "onion",
+      "Emoji": "🧅"
+    },
+    {
+      "Alias": "peanuts",
+      "Emoji": "🥜"
+    },
+    {
+      "Alias": "beans",
+      "Emoji": "🫘"
+    },
+    {
+      "Alias": "chestnut",
+      "Emoji": "🌰"
+    },
+    {
+      "Alias": "ginger",
+      "Emoji": "🫚"
+    },
+    {
+      "Alias": "peas",
+      "Emoji": "🫛"
+    },
+    {
+      "Alias": "lentil",
+      "Emoji": "🫜"
+    },
+    {
+      "Alias": "mushroom",
+      "Emoji": "🍄‍🟫"
+    },
+    {
+      "Alias": "bread",
+      "Emoji": "🍞"
+    },
+    {
+      "Alias": "croissant",
+      "Emoji": "🥐"
+    },
+    {
+      "Alias": "baguette_bread",
+      "Emoji": "🥖"
+    },
+    {
+      "Alias": "flatbread",
+      "Emoji": "🫓"
+    },
+    {
+      "Alias": "pretzel",
+      "Emoji": "🥨"
+    },
+    {
+      "Alias": "bagel",
+      "Emoji": "🥯"
+    },
+    {
+      "Alias": "pancakes",
+      "Emoji": "🥞"
+    },
+    {
+      "Alias": "waffle",
+      "Emoji": "🧇"
+    },
+    {
+      "Alias": "cheese",
+      "Emoji": "🧀"
+    },
+    {
+      "Alias": "meat_on_bone",
+      "Emoji": "🍖"
+    },
+    {
+      "Alias": "poultry_leg",
+      "Emoji": "🍗"
+    },
+    {
+      "Alias": "cut_of_meat",
+      "Emoji": "🥩"
+    },
+    {
+      "Alias": "bacon",
+      "Emoji": "🥓"
+    },
+    {
+      "Alias": "hamburger",
+      "Emoji": "🍔"
+    },
+    {
+      "Alias": "fries",
+      "Emoji": "🍟"
+    },
+    {
+      "Alias": "pizza",
+      "Emoji": "🍕"
+    },
+    {
+      "Alias": "hotdog",
+      "Emoji": "🌭"
+    },
+    {
+      "Alias": "sandwich",
+      "Emoji": "🥪"
+    },
+    {
+      "Alias": "taco",
+      "Emoji": "🌮"
+    },
+    {
+      "Alias": "burrito",
+      "Emoji": "🌯"
+    },
+    {
+      "Alias": "tamale",
+      "Emoji": "🫔"
+    },
+    {
+      "Alias": "stuffed_flatbread",
+      "Emoji": "🥙"
+    },
+    {
+      "Alias": "falafel",
+      "Emoji": "🧆"
+    },
+    {
+      "Alias": "egg",
+      "Emoji": "🥚"
+    },
+    {
+      "Alias": "cooking",
+      "Emoji": "🍳"
+    },
+    {
+      "Alias": "shallow_pan_of_food",
+      "Emoji": "🥘"
+    },
+    {
+      "Alias": "stew",
+      "Emoji": "🍲"
+    },
+    {
+      "Alias": "fondue",
+      "Emoji": "🫕"
+    },
+    {
+      "Alias": "bowl_with_spoon",
+      "Emoji": "🥣"
+    },
+    {
+      "Alias": "green_salad",
+      "Emoji": "🥗"
+    },
+    {
+      "Alias": "popcorn",
+      "Emoji": "🍿"
+    },
+    {
+      "Alias": "butter",
+      "Emoji": "🧈"
+    },
+    {
+      "Alias": "salt",
+      "Emoji": "🧂"
+    },
+    {
+      "Alias": "canned_food",
+      "Emoji": "🥫"
+    },
+    {
+      "Alias": "spaghetti",
+      "Emoji": "🍝"
+    },
+    {
+      "Alias": "bento",
+      "Emoji": "🍱"
+    },
+    {
+      "Alias": "rice_cracker",
+      "Emoji": "🍘"
+    },
+    {
+      "Alias": "rice_ball",
+      "Emoji": "🍙"
+    },
+    {
+      "Alias": "rice",
+      "Emoji": "🍚"
+    },
+    {
+      "Alias": "curry_rice",
+      "Emoji": "🍛"
+    },
+    {
+      "Alias": "steaming_bowl",
+      "Emoji": "🍜"
+    },
+    {
+      "Alias": "roasted_sweet_potato",
+      "Emoji": "🍠"
+    },
+    {
+      "Alias": "oden",
+      "Emoji": "🍢"
+    },
+    {
+      "Alias": "sushi",
+      "Emoji": "🍣"
+    },
+    {
+      "Alias": "fried_shrimp",
+      "Emoji": "🍤"
+    },
+    {
+      "Alias": "fish_cake",
+      "Emoji": "🍥"
+    },
+    {
+      "Alias": "moon_cake",
+      "Emoji": "🥮"
+    },
+    {
+      "Alias": "dango",
+      "Emoji": "🍡"
+    },
+    {
+      "Alias": "dumpling",
+      "Emoji": "🥟"
+    },
+    {
+      "Alias": "fortune_cookie",
+      "Emoji": "🥠"
+    },
+    {
+      "Alias": "takeout_box",
+      "Emoji": "🥡"
+    },
+    {
+      "Alias": "icecream",
+      "Emoji": "🍦"
+    },
+    {
+      "Alias": "shaved_ice",
+      "Emoji": "🍧"
+    },
+    {
+      "Alias": "ice_cream",
+      "Emoji": "🍨"
+    },
+    {
+      "Alias": "doughnut",
+      "Emoji": "🍩"
+    },
+    {
+      "Alias": "cookie",
+      "Emoji": "🍪"
+    },
+    {
+      "Alias": "birthday",
+      "Emoji": "🎂"
+    },
+    {
+      "Alias": "cake",
+      "Emoji": "🍰"
+    },
+    {
+      "Alias": "cupcake",
+      "Emoji": "🧁"
+    },
+    {
+      "Alias": "pie",
+      "Emoji": "🥧"
+    },
+    {
+      "Alias": "chocolate_bar",
+      "Emoji": "🍫"
+    },
+    {
+      "Alias": "candy",
+      "Emoji": "🍬"
+    },
+    {
+      "Alias": "lollipop",
+      "Emoji": "🍭"
+    },
+    {
+      "Alias": "custard",
+      "Emoji": "🍮"
+    },
+    {
+      "Alias": "honey_pot",
+      "Emoji": "🍯"
+    },
+    {
+      "Alias": "baby_bottle",
+      "Emoji": "🍼"
+    },
+    {
+      "Alias": "glass_of_milk",
+      "Emoji": "🥛"
+    },
+    {
+      "Alias": "coffee",
+      "Emoji": "☕"
+    },
+    {
+      "Alias": "teapot",
+      "Emoji": "🫖"
+    },
+    {
+      "Alias": "tea",
+      "Emoji": "🍵"
+    },
+    {
+      "Alias": "sake",
+      "Emoji": "🍶"
+    },
+    {
+      "Alias": "bottle_with_popping_cork",
+      "Emoji": "🍾"
+    },
+    {
+      "Alias": "wine_glass",
+      "Emoji": "🍷"
+    },
+    {
+      "Alias": "cocktail",
+      "Emoji": "🍸"
+    },
+    {
+      "Alias": "tropical_drink",
+      "Emoji": "🍹"
+    },
+    {
+      "Alias": "beer",
+      "Emoji": "🍺"
+    },
+    {
+      "Alias": "beers",
+      "Emoji": "🍻"
+    },
+    {
+      "Alias": "clinking_glasses",
+      "Emoji": "🥂"
+    },
+    {
+      "Alias": "tumbler_glass",
+      "Emoji": "🥃"
+    },
+    {
+      "Alias": "bubble_tea",
+      "Emoji": "🧋"
+    },
+    {
+      "Alias": "beverage_box",
+      "Emoji": "🧃"
+    },
+    {
+      "Alias": "mate",
+      "Emoji": "🧉"
+    },
+    {
+      "Alias": "cup_with_straw",
+      "Emoji": "🥤"
+    },
+    {
+      "Alias": "chopsticks",
+      "Emoji": "🥢"
+    },
+    {
+      "Alias": "plate_with_fork_and_knife",
+      "Emoji": "🍽️"
+    },
+    {
+      "Alias": "fork_and_knife",
+      "Emoji": "🍴"
+    },
+    {
+      "Alias": "spoon",
+      "Emoji": "🥄"
+    },
+    {
+      "Alias": "knife",
+      "Emoji": "🔪"
+    },
+    {
+      "Alias": "jar",
+      "Emoji": "🫙"
+    },
+    {
+      "Alias": "amphora",
+      "Emoji": "🏺"
+    },
+    {
+      "Alias": "jack_o_lantern",
+      "Emoji": "🎃"
+    },
+    {
+      "Alias": "christmas_tree",
+      "Emoji": "🎄"
+    },
+    {
+      "Alias": "fireworks",
+      "Emoji": "🎆"
+    },
+    {
+      "Alias": "sparkler",
+      "Emoji": "🎇"
+    },
+    {
+      "Alias": "firecracker",
+      "Emoji": "🧨"
+    },
+    {
+      "Alias": "sparkles",
+      "Emoji": "✨"
+    },
+    {
+      "Alias": "balloon",
+      "Emoji": "🎈"
+    },
+    {
+      "Alias": "tada",
+      "Emoji": "🎉"
+    },
+    {
+      "Alias": "confetti_ball",
+      "Emoji": "🎊"
+    },
+    {
+      "Alias": "tanabata_tree",
+      "Emoji": "🎋"
+    },
+    {
+      "Alias": "pine_decoration",
+      "Emoji": "🎍"
+    },
+    {
+      "Alias": "japanese_dolls",
+      "Emoji": "🎎"
+    },
+    {
+      "Alias": "carp_streamer",
+      "Emoji": "🎏"
+    },
+    {
+      "Alias": "wind_chime",
+      "Emoji": "🎐"
+    },
+    {
+      "Alias": "moon_viewing_ceremony",
+      "Emoji": "🎑"
+    },
+    {
+      "Alias": "red_envelope",
+      "Emoji": "🧧"
+    },
+    {
+      "Alias": "gift",
+      "Emoji": "🎁"
+    },
+    {
+      "Alias": "admission_tickets",
+      "Emoji": "🎟️"
+    },
+    {
+      "Alias": "ticket",
+      "Emoji": "🎫"
+    },
+    {
+      "Alias": "izakaya_lantern",
+      "Emoji": "🏮"
+    },
+    {
+      "Alias": "diya_lamp",
+      "Emoji": "🪔"
+    },
+    {
+      "Alias": "military_medal",
+      "Emoji": "🎖️"
+    },
+    {
+      "Alias": "trophy",
+      "Emoji": "🏆"
+    },
+    {
+      "Alias": "sports_medal",
+      "Emoji": "🏅"
+    },
+    {
+      "Alias": "first_place_medal",
+      "Emoji": "🥇"
+    },
+    {
+      "Alias": "second_place_medal",
+      "Emoji": "🥈"
+    },
+    {
+      "Alias": "third_place_medal",
+      "Emoji": "🥉"
+    },
+    {
+      "Alias": "soccer",
+      "Emoji": "⚽"
+    },
+    {
+      "Alias": "baseball",
+      "Emoji": "⚾"
+    },
+    {
+      "Alias": "softball",
+      "Emoji": "🥎"
+    },
+    {
+      "Alias": "basketball",
+      "Emoji": "🏀"
+    },
+    {
+      "Alias": "volleyball",
+      "Emoji": "🏐"
+    },
+    {
+      "Alias": "football",
+      "Emoji": "🏈"
+    },
+    {
+      "Alias": "rugby_football",
+      "Emoji": "🏉"
+    },
+    {
+      "Alias": "tennis",
+      "Emoji": "🎾"
+    },
+    {
+      "Alias": "flying_disc",
+      "Emoji": "🥏"
+    },
+    {
+      "Alias": "bowling",
+      "Emoji": "🎳"
+    },
+    {
+      "Alias": "cricket_bat_and_ball",
+      "Emoji": "🏏"
+    },
+    {
+      "Alias": "field_hockey",
+      "Emoji": "🏑"
+    },
+    {
+      "Alias": "ice_hockey",
+      "Emoji": "🏒"
+    },
+    {
+      "Alias": "lacrosse",
+      "Emoji": "🥍"
+    },
+    {
+      "Alias": "ping_pong",
+      "Emoji": "🏓"
+    },
+    {
+      "Alias": "badminton",
+      "Emoji": "🏸"
+    },
+    {
+      "Alias": "boxing_glove",
+      "Emoji": "🥊"
+    },
+    {
+      "Alias": "martial_arts_uniform",
+      "Emoji": "🥋"
+    },
+    {
+      "Alias": "goal_net",
+      "Emoji": "🥅"
+    },
+    {
+      "Alias": "golf",
+      "Emoji": "⛳"
+    },
+    {
+      "Alias": "ice_skate",
+      "Emoji": "⛸️"
+    },
+    {
+      "Alias": "fishing_pole",
+      "Emoji": "🎣"
+    },
+    {
+      "Alias": "diving_mask",
+      "Emoji": "🤿"
+    },
+    {
+      "Alias": "running_shirt",
+      "Emoji": "🎽"
+    },
+    {
+      "Alias": "ski",
+      "Emoji": "🎿"
+    },
+    {
+      "Alias": "sled",
+      "Emoji": "🛷"
+    },
+    {
+      "Alias": "curling_stone",
+      "Emoji": "🥌"
+    },
+    {
+      "Alias": "dart",
+      "Emoji": "🎯"
+    },
+    {
+      "Alias": "yo_yo",
+      "Emoji": "🪀"
+    },
+    {
+      "Alias": "kite",
+      "Emoji": "🪁"
+    },
+    {
+      "Alias": "water_gun",
+      "Emoji": "🔫"
+    },
+    {
+      "Alias": "billiards",
+      "Emoji": "🎱"
+    },
+    {
+      "Alias": "crystal_ball",
+      "Emoji": "🔮"
+    },
+    {
+      "Alias": "magic_wand",
+      "Emoji": "🪄"
+    },
+    {
+      "Alias": "video_game",
+      "Emoji": "🎮"
+    },
+    {
+      "Alias": "joystick",
+      "Emoji": "🕹️"
+    },
+    {
+      "Alias": "slot_machine",
+      "Emoji": "🎰"
+    },
+    {
+      "Alias": "game_die",
+      "Emoji": "🎲"
+    },
+    {
+      "Alias": "jigsaw",
+      "Emoji": "🧩"
+    },
+    {
+      "Alias": "piñata",
+      "Emoji": "🪅"
+    },
+    {
+      "Alias": "mirror_ball",
+      "Emoji": "🪩"
+    },
+    {
+      "Alias": "nesting_dolls",
+      "Emoji": "🪆"
+    },
+    {
+      "Alias": "spades",
+      "Emoji": "♠️"
+    },
+    {
+      "Alias": "hearts",
+      "Emoji": "♥️"
+    },
+    {
+      "Alias": "diamonds",
+      "Emoji": "♦️"
+    },
+    {
+      "Alias": "clubs",
+      "Emoji": "♣️"
+    },
+    {
+      "Alias": "chess_pawn",
+      "Emoji": "♟️"
+    },
+    {
+      "Alias": "joker",
+      "Emoji": "🃏"
+    },
+    {
+      "Alias": "mahjong_red_dragon",
+      "Emoji": "🀄"
+    },
+    {
+      "Alias": "flower_playing_cards",
+      "Emoji": "🎴"
+    },
+    {
+      "Alias": "performing_arts",
+      "Emoji": "🎭"
+    },
+    {
+      "Alias": "frame_with_picture",
+      "Emoji": "🖼️"
+    },
+    {
+      "Alias": "artist_palette",
+      "Emoji": "🎨"
+    },
+    {
+      "Alias": "earth_africa",
+      "Emoji": "🌍"
+    },
+    {
+      "Alias": "earth_americas",
+      "Emoji": "🌎"
+    },
+    {
+      "Alias": "earth_asia",
+      "Emoji": "🌏"
+    },
+    {
+      "Alias": "globe_with_meridians",
+      "Emoji": "🌐"
+    },
+    {
+      "Alias": "world_map",
+      "Emoji": "🗺️"
+    },
+    {
+      "Alias": "japan_map",
+      "Emoji": "🗾"
+    },
+    {
+      "Alias": "compass",
+      "Emoji": "🧭"
+    },
+    {
+      "Alias": "mountain",
+      "Emoji": "🏔️"
+    },
+    {
+      "Alias": "mountain_snow",
+      "Emoji": "⛰️"
+    },
+    {
+      "Alias": "volcano",
+      "Emoji": "🌋"
+    },
+    {
+      "Alias": "mount_fuji",
+      "Emoji": "🗻"
+    },
+    {
+      "Alias": "camping",
+      "Emoji": "🏕️"
+    },
+    {
+      "Alias": "beach_with_umbrella",
+      "Emoji": "🏖️"
+    },
+    {
+      "Alias": "desert",
+      "Emoji": "🏜️"
+    },
+    {
+      "Alias": "desert_island",
+      "Emoji": "🏝️"
+    },
+    {
+      "Alias": "national_park",
+      "Emoji": "🏞️"
+    },
+    {
+      "Alias": "stadium",
+      "Emoji": "🏟️"
+    },
+    {
+      "Alias": "classical_building",
+      "Emoji": "🏛️"
+    },
+    {
+      "Alias": "building_construction",
+      "Emoji": "🏗️"
+    },
+    {
+      "Alias": "bricks",
+      "Emoji": "🧱"
+    },
+    {
+      "Alias": "hut",
+      "Emoji": "🛖"
+    },
+    {
+      "Alias": "houses",
+      "Emoji": "🏘️"
+    },
+    {
+      "Alias": "derelict_house",
+      "Emoji": "🏚️"
+    },
+    {
+      "Alias": "house",
+      "Emoji": "🏠"
+    },
+    {
+      "Alias": "house_with_garden",
+      "Emoji": "🏡"
+    },
+    {
+      "Alias": "office",
+      "Emoji": "🏢"
+    },
+    {
+      "Alias": "post_office",
+      "Emoji": "🏣"
+    },
+    {
+      "Alias": "european_post_office",
+      "Emoji": "🏤"
+    },
+    {
+      "Alias": "hospital",
+      "Emoji": "🏥"
+    },
+    {
+      "Alias": "bank",
+      "Emoji": "🏦"
+    },
+    {
+      "Alias": "hotel",
+      "Emoji": "🏨"
+    },
+    {
+      "Alias": "love_hotel",
+      "Emoji": "🏩"
+    },
+    {
+      "Alias": "convenience_store",
+      "Emoji": "🏪"
+    },
+    {
+      "Alias": "school",
+      "Emoji": "🏫"
+    },
+    {
+      "Alias": "department_store",
+      "Emoji": "🏬"
+    },
+    {
+      "Alias": "factory",
+      "Emoji": "🏭"
+    },
+    {
+      "Alias": "japanese_castle",
+      "Emoji": "🏯"
+    },
+    {
+      "Alias": "castle",
+      "Emoji": "🏰"
+    },
+    {
+      "Alias": "church",
+      "Emoji": "⛪"
+    },
+    {
+      "Alias": "mosque",
+      "Emoji": "🕌"
+    },
+    {
+      "Alias": "hindu_temple",
+      "Emoji": "🛕"
+    },
+    {
+      "Alias": "synagogue",
+      "Emoji": "🕍"
+    },
+    {
+      "Alias": "shinto_shrine",
+      "Emoji": "⛩️"
+    },
+    {
+      "Alias": "kaaba",
+      "Emoji": "🕋"
+    },
+    {
+      "Alias": "fountain",
+      "Emoji": "⛲"
+    },
+    {
+      "Alias": "tent",
+      "Emoji": "⛺"
+    },
+    {
+      "Alias": "foggy",
+      "Emoji": "🌁"
+    },
+    {
+      "Alias": "night_with_stars",
+      "Emoji": "🌃"
+    },
+    {
+      "Alias": "cityscape",
+      "Emoji": "🏙️"
+    },
+    {
+      "Alias": "sunrise_over_mountains",
+      "Emoji": "🌄"
+    },
+    {
+      "Alias": "sunrise",
+      "Emoji": "🌅"
+    },
+    {
+      "Alias": "city_sunset",
+      "Emoji": "🌇"
+    },
+    {
+      "Alias": "bridge_at_night",
+      "Emoji": "🌉"
+    },
+    {
+      "Alias": "hotsprings",
+      "Emoji": "♨️"
+    },
+    {
+      "Alias": "carousel_horse",
+      "Emoji": "🎠"
+    },
+    {
+      "Alias": "playground_slide",
+      "Emoji": "🛝"
+    },
+    {
+      "Alias": "ferris_wheel",
+      "Emoji": "🎡"
+    },
+    {
+      "Alias": "roller_coaster",
+      "Emoji": "🎢"
+    },
+    {
+      "Alias": "barber",
+      "Emoji": "💈"
+    },
+    {
+      "Alias": "circus_tent",
+      "Emoji": "🎪"
+    },
+    {
+      "Alias": "bellhop_bell",
+      "Emoji": "🛎️"
+    },
+    {
+      "Alias": "moai",
+      "Emoji": "🗿"
+    },
+    {
+      "Alias": "steam_locomotive",
+      "Emoji": "🚂"
+    },
+    {
+      "Alias": "railway_car",
+      "Emoji": "🚃"
+    },
+    {
+      "Alias": "bullettrain_side",
+      "Emoji": "🚄"
+    },
+    {
+      "Alias": "bullettrain_front",
+      "Emoji": "🚅"
+    },
+    {
+      "Alias": "train2",
+      "Emoji": "🚆"
+    },
+    {
+      "Alias": "metro",
+      "Emoji": "🚇"
+    },
+    {
+      "Alias": "light_rail",
+      "Emoji": "🚈"
+    },
+    {
+      "Alias": "station",
+      "Emoji": "🚉"
+    },
+    {
+      "Alias": "train",
+      "Emoji": "🚊"
+    },
+    {
+      "Alias": "monorail",
+      "Emoji": "🚝"
+    },
+    {
+      "Alias": "mountain_railway",
+      "Emoji": "🚞"
+    },
+    {
+      "Alias": "tram",
+      "Emoji": "🚋"
+    },
+    {
+      "Alias": "oncoming_bus",
+      "Emoji": "🚍"
+    },
+    {
+      "Alias": "trolleybus",
+      "Emoji": "🚎"
+    },
+    {
+      "Alias": "minibus",
+      "Emoji": "🚐"
+    },
+    {
+      "Alias": "ambulance",
+      "Emoji": "🚑"
+    },
+    {
+      "Alias": "fire_engine",
+      "Emoji": "🚒"
+    },
+    {
+      "Alias": "police_car",
+      "Emoji": "🚓"
+    },
+    {
+      "Alias": "oncoming_police_car",
+      "Emoji": "🚔"
+    },
+    {
+      "Alias": "taxi",
+      "Emoji": "🚕"
+    },
+    {
+      "Alias": "oncoming_taxi",
+      "Emoji": "🚖"
+    },
+    {
+      "Alias": "automobile",
+      "Emoji": "🚗"
+    },
+    {
+      "Alias": "oncoming_automobile",
+      "Emoji": "🚘"
+    },
+    {
+      "Alias": "sport_utility_vehicle",
+      "Emoji": "🚙"
+    },
+    {
+      "Alias": "pickup_truck",
+      "Emoji": "🛻"
+    },
+    {
+      "Alias": "delivery_truck",
+      "Emoji": "🚚"
+    },
+    {
+      "Alias": "articulated_lorry",
+      "Emoji": "🚛"
+    },
+    {
+      "Alias": "tractor",
+      "Emoji": "🚜"
+    },
+    {
+      "Alias": "racing_car",
+      "Emoji": "🏎️"
+    },
+    {
+      "Alias": "motorcycle",
+      "Emoji": "🏍️"
+    },
+    {
+      "Alias": "motor_scooter",
+      "Emoji": "🛵"
+    },
+    {
+      "Alias": "wheelchair",
+      "Emoji": "🦽"
+    },
+    {
+      "Alias": "motorized_wheelchair",
+      "Emoji": "🦼"
+    },
+    {
+      "Alias": "auto_rickshaw",
+      "Emoji": "🛺"
+    },
+    {
+      "Alias": "bicycle",
+      "Emoji": "🚲"
+    },
+    {
+      "Alias": "kick_scooter",
+      "Emoji": "🛴"
+    },
+    {
+      "Alias": "roller_skate",
+      "Emoji": "🛼"
+    },
+    {
+      "Alias": "bus_stop",
+      "Emoji": "🚏"
+    },
+    {
+      "Alias": "motorway",
+      "Emoji": "🛣️"
+    },
+    {
+      "Alias": "railway_track",
+      "Emoji": "🛤️"
+    },
+    {
+      "Alias": "oil_drum",
+      "Emoji": "🛢️"
+    },
+    {
+      "Alias": "fuel_pump",
+      "Emoji": "⛽"
+    },
+    {
+      "Alias": "wheel",
+      "Emoji": "🛞"
+    },
+    {
+      "Alias": "police_car_light",
+      "Emoji": "🚨"
+    },
+    {
+      "Alias": "horizontal_traffic_light",
+      "Emoji": "🚥"
+    },
+    {
+      "Alias": "vertical_traffic_light",
+      "Emoji": "🚦"
+    },
+    {
+      "Alias": "stop_sign",
+      "Emoji": "🛑"
+    },
+    {
+      "Alias": "construction",
+      "Emoji": "🚧"
+    },
+    {
+      "Alias": "anchor",
+      "Emoji": "⚓"
+    },
+    {
+      "Alias": "ring_buoy",
+      "Emoji": "🛟"
+    },
+    {
+      "Alias": "sailboat",
+      "Emoji": "⛵"
+    },
+    {
+      "Alias": "canoe",
+      "Emoji": "🛶"
+    },
+    {
+      "Alias": "speedboat",
+      "Emoji": "🚤"
+    },
+    {
+      "Alias": "passenger_ship",
+      "Emoji": "🛳️"
+    },
+    {
+      "Alias": "ferry",
+      "Emoji": "⛴️"
+    },
+    {
+      "Alias": "motor_boat",
+      "Emoji": "🛥️"
+    },
+    {
+      "Alias": "ship",
+      "Emoji": "🚢"
+    },
+    {
+      "Alias": "airplane",
+      "Emoji": "✈️"
+    },
+    {
+      "Alias": "small_airplane",
+      "Emoji": "🛩️"
+    },
+    {
+      "Alias": "airplane_departure",
+      "Emoji": "🛫"
+    },
+    {
+      "Alias": "airplane_arriving",
+      "Emoji": "🛬"
+    },
+    {
+      "Alias": "parachute",
+      "Emoji": "🪂"
+    },
+    {
+      "Alias": "seat",
+      "Emoji": "💺"
+    },
+    {
+      "Alias": "helicopter",
+      "Emoji": "🚁"
+    },
+    {
+      "Alias": "suspension_railway",
+      "Emoji": "🚟"
+    },
+    {
+      "Alias": "mountain_cableway",
+      "Emoji": "🚠"
+    },
+    {
+      "Alias": "aerial_tramway",
+      "Emoji": "🚡"
+    },
+    {
+      "Alias": "satellite",
+      "Emoji": "🛰️"
+    },
+    {
+      "Alias": "rocket",
+      "Emoji": "🚀"
+    },
+    {
+      "Alias": "flying_saucer",
+      "Emoji": "🛸"
+    },
+    {
+      "Alias": "ribbon",
+      "Emoji": "🎀"
+    },
+    {
+      "Alias": "reminder_ribbon",
+      "Emoji": "🎗️"
+    },
+    {
+      "Alias": "eyeglasses",
+      "Emoji": "👓"
+    },
+    {
+      "Alias": "sunglasses",
+      "Emoji": "🕶️"
+    },
+    {
+      "Alias": "goggles",
+      "Emoji": "🥽"
+    },
+    {
+      "Alias": "lab_coat",
+      "Emoji": "🥼"
+    },
+    {
+      "Alias": "safety_vest",
+      "Emoji": "🦺"
+    },
+    {
+      "Alias": "necktie",
+      "Emoji": "👔"
+    },
+    {
+      "Alias": "tshirt",
+      "Emoji": "👕"
+    },
+    {
+      "Alias": "jeans",
+      "Emoji": "👖"
+    },
+    {
+      "Alias": "scarf",
+      "Emoji": "🧣"
+    },
+    {
+      "Alias": "gloves",
+      "Emoji": "🧤"
+    },
+    {
+      "Alias": "coat",
+      "Emoji": "🧥"
+    },
+    {
+      "Alias": "socks",
+      "Emoji": "🧦"
+    },
+    {
+      "Alias": "dress",
+      "Emoji": "👗"
+    },
+    {
+      "Alias": "kimono",
+      "Emoji": "👘"
+    },
+    {
+      "Alias": "sari",
+      "Emoji": "🥻"
+    },
+    {
+      "Alias": "one_piece_swimsuit",
+      "Emoji": "🩱"
+    },
+    {
+      "Alias": "briefs",
+      "Emoji": "🩲"
+    },
+    {
+      "Alias": "shorts",
+      "Emoji": "🩳"
+    },
+    {
+      "Alias": "bikini",
+      "Emoji": "👙"
+    },
+    {
+      "Alias": "blouse",
+      "Emoji": "👚"
+    },
+    {
+      "Alias": "hand_fan",
+      "Emoji": "🪭"
+    },
+    {
+      "Alias": "purse",
+      "Emoji": "👛"
+    },
+    {
+      "Alias": "handbag",
+      "Emoji": "👜"
+    },
+    {
+      "Alias": "clutch_bag",
+      "Emoji": "👝"
+    },
+    {
+      "Alias": "shopping_bags",
+      "Emoji": "🛍️"
+    },
+    {
+      "Alias": "backpack",
+      "Emoji": "🎒"
+    },
+    {
+      "Alias": "thong_sandal",
+      "Emoji": "🩴"
+    },
+    {
+      "Alias": "mans_shoe",
+      "Emoji": "👞"
+    },
+    {
+      "Alias": "running_shoe",
+      "Emoji": "👟"
+    },
+    {
+      "Alias": "hiking_boot",
+      "Emoji": "🥾"
+    },
+    {
+      "Alias": "flat_shoe",
+      "Emoji": "🥿"
+    },
+    {
+      "Alias": "high_heel",
+      "Emoji": "👠"
+    },
+    {
+      "Alias": "woman_sandal",
+      "Emoji": "👡"
+    },
+    {
+      "Alias": "ballet_shoes",
+      "Emoji": "🩰"
+    },
+    {
+      "Alias": "boot",
+      "Emoji": "👢"
+    },
+    {
+      "Alias": "razor",
+      "Emoji": "🪮"
+    },
+    {
+      "Alias": "crown",
+      "Emoji": "👑"
+    },
+    {
+      "Alias": "womans_hat",
+      "Emoji": "👒"
+    },
+    {
+      "Alias": "tophat",
+      "Emoji": "🎩"
+    },
+    {
+      "Alias": "graduation_cap",
+      "Emoji": "🎓"
+    },
+    {
+      "Alias": "billed_cap",
+      "Emoji": "🧢"
+    },
+    {
+      "Alias": "military_helmet",
+      "Emoji": "🪖"
+    },
+    {
+      "Alias": "rescue_worker_helmet",
+      "Emoji": "⛑️"
+    },
+    {
+      "Alias": "prayer_beads",
+      "Emoji": "📿"
+    },
+    {
+      "Alias": "lipstick",
+      "Emoji": "💄"
+    },
+    {
+      "Alias": "ring",
+      "Emoji": "💍"
+    },
+    {
+      "Alias": "gem",
+      "Emoji": "💎"
+    },
+    {
+      "Alias": "white_cane",
+      "Emoji": "🦯"
+    },
+    {
+      "Alias": "nazar_amulet",
+      "Emoji": "🧿"
+    },
+    {
+      "Alias": "mute",
+      "Emoji": "🔇"
+    },
+    {
+      "Alias": "speaker",
+      "Emoji": "🔈"
+    },
+    {
+      "Alias": "sound",
+      "Emoji": "🔉"
+    },
+    {
+      "Alias": "loud_sound",
+      "Emoji": "🔊"
+    },
+    {
+      "Alias": "megaphone",
+      "Emoji": "📢"
+    },
+    {
+      "Alias": "loudspeaker",
+      "Emoji": "📣"
+    },
+    {
+      "Alias": "postal_horn",
+      "Emoji": "📯"
+    },
+    {
+      "Alias": "bell",
+      "Emoji": "🔔"
+    },
+    {
+      "Alias": "no_bell",
+      "Emoji": "🔕"
+    },
+    {
+      "Alias": "musical_score",
+      "Emoji": "🎼"
+    },
+    {
+      "Alias": "musical_note",
+      "Emoji": "🎵"
+    },
+    {
+      "Alias": "musical_notes",
+      "Emoji": "🎶"
+    },
+    {
+      "Alias": "studio_microphone",
+      "Emoji": "🎙️"
+    },
+    {
+      "Alias": "level_slider",
+      "Emoji": "🎚️"
+    },
+    {
+      "Alias": "control_knobs",
+      "Emoji": "🎛️"
+    },
+    {
+      "Alias": "microphone",
+      "Emoji": "🎤"
+    },
+    {
+      "Alias": "headphone",
+      "Emoji": "🎧"
+    },
+    {
+      "Alias": "radio",
+      "Emoji": "📻"
+    },
+    {
+      "Alias": "saxophone",
+      "Emoji": "🎷"
+    },
+    {
+      "Alias": "accordion",
+      "Emoji": "🪗"
+    },
+    {
+      "Alias": "guitar",
+      "Emoji": "🎸"
+    },
+    {
+      "Alias": "musical_keyboard",
+      "Emoji": "🎹"
+    },
+    {
+      "Alias": "trumpet",
+      "Emoji": "🎺"
+    },
+    {
+      "Alias": "violin",
+      "Emoji": "🎻"
+    },
+    {
+      "Alias": "banjo",
+      "Emoji": "🪕"
+    },
+    {
+      "Alias": "drum",
+      "Emoji": "🥁"
+    },
+    {
+      "Alias": "long_drum",
+      "Emoji": "🪘"
+    },
+    {
+      "Alias": "maracas",
+      "Emoji": "🪇"
+    },
+    {
+      "Alias": "banjo_alt",
+      "Emoji": "🪈"
+    },
+    {
+      "Alias": "sitar",
+      "Emoji": "🪉"
+    },
+    {
+      "Alias": "iphone",
+      "Emoji": "📱"
+    },
+    {
+      "Alias": "calling",
+      "Emoji": "📲"
+    },
+    {
+      "Alias": "telephone_receiver",
+      "Emoji": "☎️"
+    },
+    {
+      "Alias": "telephone",
+      "Emoji": "📞"
+    },
+    {
+      "Alias": "pager",
+      "Emoji": "📟"
+    },
+    {
+      "Alias": "fax",
+      "Emoji": "📠"
+    },
+    {
+      "Alias": "battery",
+      "Emoji": "🔋"
+    },
+    {
+      "Alias": "low_battery",
+      "Emoji": "🪫"
+    },
+    {
+      "Alias": "electric_plug",
+      "Emoji": "🔌"
+    },
+    {
+      "Alias": "laptop",
+      "Emoji": "💻"
+    },
+    {
+      "Alias": "desktop",
+      "Emoji": "🖥️"
+    },
+    {
+      "Alias": "printer",
+      "Emoji": "🖨️"
+    },
+    {
+      "Alias": "keyboard",
+      "Emoji": "⌨️"
+    },
+    {
+      "Alias": "computer_mouse",
+      "Emoji": "🖱️"
+    },
+    {
+      "Alias": "trackball",
+      "Emoji": "🖲️"
+    },
+    {
+      "Alias": "minidisc",
+      "Emoji": "💽"
+    },
+    {
+      "Alias": "floppy_disk",
+      "Emoji": "💾"
+    },
+    {
+      "Alias": "optical_disk",
+      "Emoji": "💿"
+    },
+    {
+      "Alias": "dvd",
+      "Emoji": "📀"
+    },
+    {
+      "Alias": "movie_camera",
+      "Emoji": "🎥"
+    },
+    {
+      "Alias": "film_frames",
+      "Emoji": "🎞️"
+    },
+    {
+      "Alias": "film_projector",
+      "Emoji": "📽️"
+    },
+    {
+      "Alias": "clapper_board",
+      "Emoji": "🎬"
+    },
+    {
+      "Alias": "television",
+      "Emoji": "📺"
+    },
+    {
+      "Alias": "camera",
+      "Emoji": "📷"
+    },
+    {
+      "Alias": "camera_with_flash",
+      "Emoji": "📸"
+    },
+    {
+      "Alias": "video_camera",
+      "Emoji": "📹"
+    },
+    {
+      "Alias": "vhs",
+      "Emoji": "📼"
+    },
+    {
+      "Alias": "notebook_with_decorative_cover",
+      "Emoji": "📔"
+    },
+    {
+      "Alias": "closed_book",
+      "Emoji": "📕"
+    },
+    {
+      "Alias": "open_book",
+      "Emoji": "📖"
+    },
+    {
+      "Alias": "green_book",
+      "Emoji": "📗"
+    },
+    {
+      "Alias": "blue_book",
+      "Emoji": "📘"
+    },
+    {
+      "Alias": "orange_book",
+      "Emoji": "📙"
+    },
+    {
+      "Alias": "books",
+      "Emoji": "📚"
+    },
+    {
+      "Alias": "notebook",
+      "Emoji": "📓"
+    },
+    {
+      "Alias": "ledger",
+      "Emoji": "📒"
+    },
+    {
+      "Alias": "page_facing_up",
+      "Emoji": "📃"
+    },
+    {
+      "Alias": "scroll",
+      "Emoji": "📜"
+    },
+    {
+      "Alias": "page_with_curl",
+      "Emoji": "📄"
+    },
+    {
+      "Alias": "newspaper",
+      "Emoji": "📰"
+    },
+    {
+      "Alias": "rolled_newspaper",
+      "Emoji": "🗞️"
+    },
+    {
+      "Alias": "bookmark_tabs",
+      "Emoji": "📑"
+    },
+    {
+      "Alias": "bookmark",
+      "Emoji": "🔖"
+    },
+    {
+      "Alias": "label",
+      "Emoji": "🏷️"
+    },
+    {
+      "Alias": "envelope",
+      "Emoji": "✉️"
+    },
+    {
+      "Alias": "email",
+      "Emoji": "📧"
+    },
+    {
+      "Alias": "incoming_envelope",
+      "Emoji": "📨"
+    },
+    {
+      "Alias": "envelope_with_arrow",
+      "Emoji": "📩"
+    },
+    {
+      "Alias": "outbox_tray",
+      "Emoji": "📤"
+    },
+    {
+      "Alias": "inbox_tray",
+      "Emoji": "📥"
+    },
+    {
+      "Alias": "package",
+      "Emoji": "📦"
+    },
+    {
+      "Alias": "mailbox_closed",
+      "Emoji": "📫"
+    },
+    {
+      "Alias": "mailbox",
+      "Emoji": "📪"
+    },
+    {
+      "Alias": "mailbox_with_mail",
+      "Emoji": "📬"
+    },
+    {
+      "Alias": "mailbox_with_no_mail",
+      "Emoji": "📭"
+    },
+    {
+      "Alias": "postbox",
+      "Emoji": "📮"
+    },
+    {
+      "Alias": "ballot_box",
+      "Emoji": "🗳️"
+    },
+    {
+      "Alias": "pencil2",
+      "Emoji": "✏️"
+    },
+    {
+      "Alias": "black_nib",
+      "Emoji": "✒️"
+    },
+    {
+      "Alias": "fountain_pen",
+      "Emoji": "🖋️"
+    },
+    {
+      "Alias": "pen",
+      "Emoji": "🖊️"
+    },
+    {
+      "Alias": "paintbrush",
+      "Emoji": "🖌️"
+    },
+    {
+      "Alias": "crayon",
+      "Emoji": "🖍️"
+    },
+    {
+      "Alias": "memo",
+      "Emoji": "📝"
+    },
+    {
+      "Alias": "briefcase",
+      "Emoji": "💼"
+    },
+    {
+      "Alias": "file_folder",
+      "Emoji": "📁"
+    },
+    {
+      "Alias": "open_file_folder",
+      "Emoji": "📂"
+    },
+    {
+      "Alias": "card_index_dividers",
+      "Emoji": "🗂️"
+    },
+    {
+      "Alias": "calendar",
+      "Emoji": "📅"
+    },
+    {
+      "Alias": "tear-off_calendar",
+      "Emoji": "📆"
+    },
+    {
+      "Alias": "spiral_note_pad",
+      "Emoji": "🗒️"
+    },
+    {
+      "Alias": "spiral_calendar",
+      "Emoji": "🗓️"
+    },
+    {
+      "Alias": "card_index",
+      "Emoji": "📇"
+    },
+    {
+      "Alias": "chart_with_upwards_trend",
+      "Emoji": "📈"
+    },
+    {
+      "Alias": "chart_with_downwards_trend",
+      "Emoji": "📉"
+    },
+    {
+      "Alias": "bar_chart",
+      "Emoji": "📊"
+    },
+    {
+      "Alias": "clipboard",
+      "Emoji": "📋"
+    },
+    {
+      "Alias": "pushpin",
+      "Emoji": "📌"
+    },
+    {
+      "Alias": "round_pushpin",
+      "Emoji": "📍"
+    },
+    {
+      "Alias": "paperclip",
+      "Emoji": "📎"
+    },
+    {
+      "Alias": "linked_paperclips",
+      "Emoji": "🖇️"
+    },
+    {
+      "Alias": "straight_ruler",
+      "Emoji": "📏"
+    },
+    {
+      "Alias": "triangular_ruler",
+      "Emoji": "📐"
+    },
+    {
+      "Alias": "scissors",
+      "Emoji": "✂️"
+    },
+    {
+      "Alias": "file_cabinet",
+      "Emoji": "🗃️"
+    },
+    {
+      "Alias": "file_cabinet_side",
+      "Emoji": "🗄️"
+    },
+    {
+      "Alias": "wastebasket",
+      "Emoji": "🗑️"
+    },
+    {
+      "Alias": "id_button",
+      "Emoji": "🪪"
+    },
+    {
+      "Alias": "hourglass_not_done",
+      "Emoji": "⌛"
+    },
+    {
+      "Alias": "hourglass_done",
+      "Emoji": "⏳"
+    },
+    {
+      "Alias": "watch",
+      "Emoji": "⌚"
+    },
+    {
+      "Alias": "alarm_clock",
+      "Emoji": "⏰"
+    },
+    {
+      "Alias": "stopwatch",
+      "Emoji": "⏱️"
+    },
+    {
+      "Alias": "timer_clock",
+      "Emoji": "⏲️"
+    },
+    {
+      "Alias": "mantelpiece_clock",
+      "Emoji": "🕰️"
+    },
+    {
+      "Alias": "twelve_o’clock",
+      "Emoji": "🕛"
+    },
+    {
+      "Alias": "twelve_thirty",
+      "Emoji": "🕧"
+    },
+    {
+      "Alias": "one_o’clock",
+      "Emoji": "🕐"
+    },
+    {
+      "Alias": "one_thirty",
+      "Emoji": "🕜"
+    },
+    {
+      "Alias": "two_o’clock",
+      "Emoji": "🕑"
+    },
+    {
+      "Alias": "two_thirty",
+      "Emoji": "🕝"
+    },
+    {
+      "Alias": "three_o’clock",
+      "Emoji": "🕒"
+    },
+    {
+      "Alias": "three_thirty",
+      "Emoji": "🕞"
+    },
+    {
+      "Alias": "four_o’clock",
+      "Emoji": "🕓"
+    },
+    {
+      "Alias": "four_thirty",
+      "Emoji": "🕟"
+    },
+    {
+      "Alias": "five_o’clock",
+      "Emoji": "🕔"
+    },
+    {
+      "Alias": "five_thirty",
+      "Emoji": "🕠"
+    },
+    {
+      "Alias": "six_o’clock",
+      "Emoji": "🕕"
+    },
+    {
+      "Alias": "six_thirty",
+      "Emoji": "🕡"
+    },
+    {
+      "Alias": "seven_o’clock",
+      "Emoji": "🕖"
+    },
+    {
+      "Alias": "seven_thirty",
+      "Emoji": "🕢"
+    },
+    {
+      "Alias": "eight_o’clock",
+      "Emoji": "🕗"
+    },
+    {
+      "Alias": "eight_thirty",
+      "Emoji": "🕣"
+    },
+    {
+      "Alias": "nine_o’clock",
+      "Emoji": "🕘"
+    },
+    {
+      "Alias": "nine_thirty",
+      "Emoji": "🕤"
+    },
+    {
+      "Alias": "ten_o’clock",
+      "Emoji": "🕙"
+    },
+    {
+      "Alias": "ten_thirty",
+      "Emoji": "🕥"
+    },
+    {
+      "Alias": "eleven_o’clock",
+      "Emoji": "🕚"
+    },
+    {
+      "Alias": "eleven_thirty",
+      "Emoji": "🕦"
+    },
+    {
+      "Alias": "abacus",
+      "Emoji": "🧮"
+    },
+    {
+      "Alias": "moneybag",
+      "Emoji": "💰"
+    },
+    {
+      "Alias": "coin",
+      "Emoji": "🪙"
+    },
+    {
+      "Alias": "yen",
+      "Emoji": "💴"
+    },
+    {
+      "Alias": "dollar",
+      "Emoji": "💵"
+    },
+    {
+      "Alias": "euro",
+      "Emoji": "💶"
+    },
+    {
+      "Alias": "pound",
+      "Emoji": "💷"
+    },
+    {
+      "Alias": "money_with_wings",
+      "Emoji": "💸"
+    },
+    {
+      "Alias": "credit_card",
+      "Emoji": "💳"
+    },
+    {
+      "Alias": "receipt",
+      "Emoji": "🧾"
+    },
+    {
+      "Alias": "chart_increasing_with_yen",
+      "Emoji": "💹"
+    },
+    {
+      "Alias": "luggage",
+      "Emoji": "🧳"
+    },
+    {
+      "Alias": "thermometer",
+      "Emoji": "🌡️"
+    },
+    {
+      "Alias": "teddy_bear",
+      "Emoji": "🧸"
+    },
+    {
+      "Alias": "yarn",
+      "Emoji": "🧶"
+    },
+    {
+      "Alias": "knot",
+      "Emoji": "🪢"
+    },
+    {
+      "Alias": "magnifying_glass_tilted_left",
+      "Emoji": "🔍"
+    },
+    {
+      "Alias": "magnifying_glass_tilted_right",
+      "Emoji": "🔎"
+    },
+    {
+      "Alias": "candle",
+      "Emoji": "🕯️"
+    },
+    {
+      "Alias": "light_bulb",
+      "Emoji": "💡"
+    },
+    {
+      "Alias": "flashlight",
+      "Emoji": "🔦"
+    },
+    {
+      "Alias": "lock",
+      "Emoji": "🔒"
+    },
+    {
+      "Alias": "unlock",
+      "Emoji": "🔓"
+    },
+    {
+      "Alias": "lock_with_ink_pen",
+      "Emoji": "🔏"
+    },
+    {
+      "Alias": "lock_with_key",
+      "Emoji": "🔐"
+    },
+    {
+      "Alias": "key",
+      "Emoji": "🔑"
+    },
+    {
+      "Alias": "old_key",
+      "Emoji": "🗝️"
+    },
+    {
+      "Alias": "hammer",
+      "Emoji": "🔨"
+    },
+    {
+      "Alias": "axe",
+      "Emoji": "🪓"
+    },
+    {
+      "Alias": "pick",
+      "Emoji": "⛏️"
+    },
+    {
+      "Alias": "hammer_and_pick",
+      "Emoji": "⚒️"
+    },
+    {
+      "Alias": "hammer_and_wrench",
+      "Emoji": "🛠️"
+    },
+    {
+      "Alias": "dagger",
+      "Emoji": "🗡️"
+    },
+    {
+      "Alias": "crossed_swords",
+      "Emoji": "⚔️"
+    },
+    {
+      "Alias": "bomb",
+      "Emoji": "💣"
+    },
+    {
+      "Alias": "boomerang",
+      "Emoji": "🪃"
+    },
+    {
+      "Alias": "bow_and_arrow",
+      "Emoji": "🏹"
+    },
+    {
+      "Alias": "shield",
+      "Emoji": "🛡️"
+    },
+    {
+      "Alias": "carpentry_saw",
+      "Emoji": "🪚"
+    },
+    {
+      "Alias": "wrench",
+      "Emoji": "🔧"
+    },
+    {
+      "Alias": "screwdriver",
+      "Emoji": "🪛"
+    },
+    {
+      "Alias": "bolt",
+      "Emoji": "🔩"
+    },
+    {
+      "Alias": "gear",
+      "Emoji": "⚙️"
+    },
+    {
+      "Alias": "clamp",
+      "Emoji": "🗜️"
+    },
+    {
+      "Alias": "scale",
+      "Emoji": "⚖️"
+    },
+    {
+      "Alias": "link",
+      "Emoji": "🔗"
+    },
+    {
+      "Alias": "chains",
+      "Emoji": "⛓️"
+    },
+    {
+      "Alias": "hook",
+      "Emoji": "🪝"
+    },
+    {
+      "Alias": "toolbox",
+      "Emoji": "🧰"
+    },
+    {
+      "Alias": "magnet",
+      "Emoji": "🧲"
+    },
+    {
+      "Alias": "ladder",
+      "Emoji": "🪜"
+    },
+    {
+      "Alias": "pliers",
+      "Emoji": "🪏"
+    },
+    {
+      "Alias": "alembic",
+      "Emoji": "⚗️"
+    },
+    {
+      "Alias": "test_tube",
+      "Emoji": "🧪"
+    },
+    {
+      "Alias": "petri_dish",
+      "Emoji": "🧫"
+    },
+    {
+      "Alias": "microscope",
+      "Emoji": "🔬"
+    },
+    {
+      "Alias": "telescope",
+      "Emoji": "🔭"
+    },
+    {
+      "Alias": "satellite_antenna",
+      "Emoji": "📡"
+    },
+    {
+      "Alias": "syringe",
+      "Emoji": "💉"
+    },
+    {
+      "Alias": "adhesive_bandage",
+      "Emoji": "🩹"
+    },
+    {
+      "Alias": "manual_wheelchair",
+      "Emoji": "🩼"
+    },
+    {
+      "Alias": "stethoscope",
+      "Emoji": "🩺"
+    },
+    {
+      "Alias": "x_ray",
+      "Emoji": "🩻"
+    },
+    {
+      "Alias": "door",
+      "Emoji": "🚪"
+    },
+    {
+      "Alias": "mirror",
+      "Emoji": "🪞"
+    },
+    {
+      "Alias": "window",
+      "Emoji": "🪟"
+    },
+    {
+      "Alias": "bed",
+      "Emoji": "🛏️"
+    },
+    {
+      "Alias": "couch_and_lamp",
+      "Emoji": "🛋️"
+    },
+    {
+      "Alias": "chair",
+      "Emoji": "🪑"
+    },
+    {
+      "Alias": "toilet",
+      "Emoji": "🚽"
+    },
+    {
+      "Alias": "plunger",
+      "Emoji": "🪠"
+    },
+    {
+      "Alias": "shower",
+      "Emoji": "🚿"
+    },
+    {
+      "Alias": "bathtub",
+      "Emoji": "🛁"
+    },
+    {
+      "Alias": "mouse_trap",
+      "Emoji": "🪤"
+    },
+    {
+      "Alias": "razor",
+      "Emoji": "🪒"
+    },
+    {
+      "Alias": "lotion_bottle",
+      "Emoji": "🧴"
+    },
+    {
+      "Alias": "safety_pin",
+      "Emoji": "🧷"
+    },
+    {
+      "Alias": "broom",
+      "Emoji": "🧹"
+    },
+    {
+      "Alias": "basket",
+      "Emoji": "🧺"
+    },
+    {
+      "Alias": "roll_of_paper",
+      "Emoji": "🧻"
+    },
+    {
+      "Alias": "bucket",
+      "Emoji": "🪣"
+    },
+    {
+      "Alias": "soap",
+      "Emoji": "🧼"
+    },
+    {
+      "Alias": "bubbles",
+      "Emoji": "🫧"
+    },
+    {
+      "Alias": "toothbrush",
+      "Emoji": "🪥"
+    },
+    {
+      "Alias": "sponge",
+      "Emoji": "🧽"
+    },
+    {
+      "Alias": "fire_extinguisher",
+      "Emoji": "🧯"
+    },
+    {
+      "Alias": "shopping_cart",
+      "Emoji": "🛒"
+    },
+    {
+      "Alias": "coffin",
+      "Emoji": "⚰️"
+    },
+    {
+      "Alias": "headstone",
+      "Emoji": "🪦"
+    },
+    {
+      "Alias": "funeral_urn",
+      "Emoji": "⚱️"
+    },
+    {
+      "Alias": "placard",
+      "Emoji": "🪧"
+    },
+    {
+      "Alias": "love_letter",
+      "Emoji": "💌"
+    },
+    {
+      "Alias": "heart_with_arrow",
+      "Emoji": "💘"
+    },
+    {
+      "Alias": "heart_with_ribbon",
+      "Emoji": "💝"
+    },
+    {
+      "Alias": "sparkling_heart",
+      "Emoji": "💖"
+    },
+    {
+      "Alias": "growing_heart",
+      "Emoji": "💗"
+    },
+    {
+      "Alias": "beating_heart",
+      "Emoji": "💓"
+    },
+    {
+      "Alias": "revolving_hearts",
+      "Emoji": "💞"
+    },
+    {
+      "Alias": "two_hearts",
+      "Emoji": "💕"
+    },
+    {
+      "Alias": "heart_decoration",
+      "Emoji": "💟"
+    },
+    {
+      "Alias": "heavy_heart_exclamation",
+      "Emoji": "❣️"
+    },
+    {
+      "Alias": "broken_heart",
+      "Emoji": "💔"
+    },
+    {
+      "Alias": "heart_on_fire",
+      "Emoji": "❤️‍🔥"
+    },
+    {
+      "Alias": "mending_heart",
+      "Emoji": "❤️‍🩹"
+    },
+    {
+      "Alias": "red_heart",
+      "Emoji": "❤️"
+    },
+    {
+      "Alias": "pink_heart",
+      "Emoji": "🩷"
+    },
+    {
+      "Alias": "orange_heart",
+      "Emoji": "🧡"
+    },
+    {
+      "Alias": "yellow_heart",
+      "Emoji": "💛"
+    },
+    {
+      "Alias": "green_heart",
+      "Emoji": "💚"
+    },
+    {
+      "Alias": "blue_heart",
+      "Emoji": "💙"
+    },
+    {
+      "Alias": "light_blue_heart",
+      "Emoji": "🩵"
+    },
+    {
+      "Alias": "purple_heart",
+      "Emoji": "💜"
+    },
+    {
+      "Alias": "brown_heart",
+      "Emoji": "🤎"
+    },
+    {
+      "Alias": "black_heart",
+      "Emoji": "🖤"
+    },
+    {
+      "Alias": "grey_heart",
+      "Emoji": "🩶"
+    },
+    {
+      "Alias": "white_heart",
+      "Emoji": "🤍"
+    },
+    {
+      "Alias": "kiss_mark",
+      "Emoji": "💋"
+    },
+    {
+      "Alias": "hundred_points",
+      "Emoji": "💯"
+    },
+    {
+      "Alias": "anger_symbol",
+      "Emoji": "💢"
+    },
+    {
+      "Alias": "collision",
+      "Emoji": "💥"
+    },
+    {
+      "Alias": "sweat_drops",
+      "Emoji": "💦"
+    },
+    {
+      "Alias": "dashing_away",
+      "Emoji": "💨"
+    },
+    {
+      "Alias": "hole",
+      "Emoji": "🕳️"
+    },
+    {
+      "Alias": "speech_balloon",
+      "Emoji": "💬"
+    },
+    {
+      "Alias": "eye_speech_bubble",
+      "Emoji": "👁️‍🗨️"
+    },
+    {
+      "Alias": "left_speech_bubble",
+      "Emoji": "🗨️"
+    },
+    {
+      "Alias": "right_anger_bubble",
+      "Emoji": "🗯️"
+    },
+    {
+      "Alias": "thought_balloon",
+      "Emoji": "💭"
+    },
+    {
+      "Alias": "zzz",
+      "Emoji": "💤"
+    },
+    {
+      "Alias": "loudly_crying_face",
+      "Emoji": "🫟"
+    },
+    {
+      "Alias": "red_circle",
+      "Emoji": "🔴"
+    },
+    {
+      "Alias": "orange_circle",
+      "Emoji": "🟠"
+    },
+    {
+      "Alias": "yellow_circle",
+      "Emoji": "🟡"
+    },
+    {
+      "Alias": "green_circle",
+      "Emoji": "🟢"
+    },
+    {
+      "Alias": "blue_circle",
+      "Emoji": "🔵"
+    },
+    {
+      "Alias": "purple_circle",
+      "Emoji": "🟣"
+    },
+    {
+      "Alias": "brown_circle",
+      "Emoji": "🟤"
+    },
+    {
+      "Alias": "black_circle",
+      "Emoji": "⚫"
+    },
+    {
+      "Alias": "white_circle",
+      "Emoji": "⚪"
+    },
+    {
+      "Alias": "red_square",
+      "Emoji": "🟥"
+    },
+    {
+      "Alias": "orange_square",
+      "Emoji": "🟧"
+    },
+    {
+      "Alias": "yellow_square",
+      "Emoji": "🟨"
+    },
+    {
+      "Alias": "green_square",
+      "Emoji": "🟩"
+    },
+    {
+      "Alias": "blue_square",
+      "Emoji": "🟦"
+    },
+    {
+      "Alias": "purple_square",
+      "Emoji": "🟪"
+    },
+    {
+      "Alias": "brown_square",
+      "Emoji": "🟫"
+    },
+    {
+      "Alias": "black_large_square",
+      "Emoji": "⬛"
+    },
+    {
+      "Alias": "white_large_square",
+      "Emoji": "⬜"
+    },
+    {
+      "Alias": "black_medium_square",
+      "Emoji": "◼️"
+    },
+    {
+      "Alias": "white_medium_square",
+      "Emoji": "◻️"
+    },
+    {
+      "Alias": "black_medium_small_square",
+      "Emoji": "◾"
+    },
+    {
+      "Alias": "white_medium_small_square",
+      "Emoji": "◽"
+    },
+    {
+      "Alias": "black_small_square",
+      "Emoji": "▪️"
+    },
+    {
+      "Alias": "white_small_square",
+      "Emoji": "▫️"
+    },
+    {
+      "Alias": "large_orange_diamond",
+      "Emoji": "🔶"
+    },
+    {
+      "Alias": "large_blue_diamond",
+      "Emoji": "🔷"
+    },
+    {
+      "Alias": "small_orange_diamond",
+      "Emoji": "🔸"
+    },
+    {
+      "Alias": "small_blue_diamond",
+      "Emoji": "🔹"
+    },
+    {
+      "Alias": "up_pointing_red_triangle",
+      "Emoji": "🔺"
+    },
+    {
+      "Alias": "down_pointing_red_triangle",
+      "Emoji": "🔻"
+    },
+    {
+      "Alias": "diamond_shape_with_a_dot_inside",
+      "Emoji": "💠"
+    },
+    {
+      "Alias": "radio_button",
+      "Emoji": "🔘"
+    },
+    {
+      "Alias": "white_square_button",
+      "Emoji": "🔳"
+    },
+    {
+      "Alias": "black_square_button",
+      "Emoji": "🔲"
+    },
+    {
+      "Alias": "elevator",
+      "Emoji": "🛗"
+    },
+    {
+      "Alias": "atm",
+      "Emoji": "🏧"
+    },
+    {
+      "Alias": "put_litter_in_its_place",
+      "Emoji": "🚮"
+    },
+    {
+      "Alias": "potable_water",
+      "Emoji": "🚰"
+    },
+    {
+      "Alias": "wheelchair",
+      "Emoji": "♿"
+    },
+    {
+      "Alias": "mens",
+      "Emoji": "🚹"
+    },
+    {
+      "Alias": "womens",
+      "Emoji": "🚺"
+    },
+    {
+      "Alias": "restroom",
+      "Emoji": "🚻"
+    },
+    {
+      "Alias": "baby_symbol",
+      "Emoji": "🚼"
+    },
+    {
+      "Alias": "wc",
+      "Emoji": "🚾"
+    },
+    {
+      "Alias": "passport_control",
+      "Emoji": "🛂"
+    },
+    {
+      "Alias": "customs",
+      "Emoji": "🛃"
+    },
+    {
+      "Alias": "baggage_claim",
+      "Emoji": "🛄"
+    },
+    {
+      "Alias": "left_luggage",
+      "Emoji": "🛅"
+    },
+    {
+      "Alias": "warning",
+      "Emoji": "⚠️"
+    },
+    {
+      "Alias": "children_crossing",
+      "Emoji": "🚸"
+    },
+    {
+      "Alias": "no_entry",
+      "Emoji": "⛔"
+    },
+    {
+      "Alias": "prohibited",
+      "Emoji": "🚫"
+    },
+    {
+      "Alias": "no_bicycles",
+      "Emoji": "🚳"
+    },
+    {
+      "Alias": "no_smoking",
+      "Emoji": "🚭"
+    },
+    {
+      "Alias": "no_littering",
+      "Emoji": "🚯"
+    },
+    {
+      "Alias": "non-potable_water",
+      "Emoji": "🚱"
+    },
+    {
+      "Alias": "no_pedestrians",
+      "Emoji": "🚷"
+    },
+    {
+      "Alias": "no_mobile_phones",
+      "Emoji": "📵"
+    },
+    {
+      "Alias": "under_18",
+      "Emoji": "🔞"
+    },
+    {
+      "Alias": "radioactive",
+      "Emoji": "☢️"
+    },
+    {
+      "Alias": "biohazard",
+      "Emoji": "☣️"
+    },
+    {
+      "Alias": "arrow_up",
+      "Emoji": "⬆️"
+    },
+    {
+      "Alias": "arrow_upper_right",
+      "Emoji": "↗️"
+    },
+    {
+      "Alias": "arrow_right",
+      "Emoji": "➡️"
+    },
+    {
+      "Alias": "arrow_lower_right",
+      "Emoji": "↘️"
+    },
+    {
+      "Alias": "arrow_down",
+      "Emoji": "⬇️"
+    },
+    {
+      "Alias": "arrow_lower_left",
+      "Emoji": "↙️"
+    },
+    {
+      "Alias": "arrow_left",
+      "Emoji": "⬅️"
+    },
+    {
+      "Alias": "arrow_upper_left",
+      "Emoji": "↖️"
+    },
+    {
+      "Alias": "arrow_up_down",
+      "Emoji": "↕️"
+    },
+    {
+      "Alias": "arrow_left_right",
+      "Emoji": "↔️"
+    },
+    {
+      "Alias": "arrow_right_hook",
+      "Emoji": "↩️"
+    },
+    {
+      "Alias": "arrow_left_hook",
+      "Emoji": "↪️"
+    },
+    {
+      "Alias": "arrow_heading_up",
+      "Emoji": "⤴️"
+    },
+    {
+      "Alias": "arrow_heading_down",
+      "Emoji": "⤵️"
+    },
+    {
+      "Alias": "clockwise_vertical_arrows",
+      "Emoji": "🔃"
+    },
+    {
+      "Alias": "arrows_clockwise",
+      "Emoji": "🔄"
+    },
+    {
+      "Alias": "back",
+      "Emoji": "🔙"
+    },
+    {
+      "Alias": "end",
+      "Emoji": "🔚"
+    },
+    {
+      "Alias": "on",
+      "Emoji": "🔛"
+    },
+    {
+      "Alias": "soon",
+      "Emoji": "🔜"
+    },
+    {
+      "Alias": "top",
+      "Emoji": "🔝"
+    },
+    {
+      "Alias": "shuffle",
+      "Emoji": "🔀"
+    },
+    {
+      "Alias": "repeat",
+      "Emoji": "🔁"
+    },
+    {
+      "Alias": "repeat_one",
+      "Emoji": "🔂"
+    },
+    {
+      "Alias": "play_button",
+      "Emoji": "▶️"
+    },
+    {
+      "Alias": "fast_forward",
+      "Emoji": "⏩"
+    },
+    {
+      "Alias": "next_track",
+      "Emoji": "⏭️"
+    },
+    {
+      "Alias": "play_or_pause_button",
+      "Emoji": "⏯️"
+    },
+    {
+      "Alias": "reverse_button",
+      "Emoji": "◀️"
+    },
+    {
+      "Alias": "fast_reverse",
+      "Emoji": "⏪"
+    },
+    {
+      "Alias": "last_track",
+      "Emoji": "⏮️"
+    },
+    {
+      "Alias": "arrow_up_small",
+      "Emoji": "🔼"
+    },
+    {
+      "Alias": "arrow_double_up",
+      "Emoji": "⏫"
+    },
+    {
+      "Alias": "arrow_down_small",
+      "Emoji": "🔽"
+    },
+    {
+      "Alias": "arrow_double_down",
+      "Emoji": "⏬"
+    },
+    {
+      "Alias": "pause_button",
+      "Emoji": "⏸️"
+    },
+    {
+      "Alias": "stop_button",
+      "Emoji": "⏹️"
+    },
+    {
+      "Alias": "record_button",
+      "Emoji": "⏺️"
+    },
+    {
+      "Alias": "eject_button",
+      "Emoji": "⏏️"
+    },
+    {
+      "Alias": "cinema",
+      "Emoji": "🎦"
+    },
+    {
+      "Alias": "low_brightness",
+      "Emoji": "🔅"
+    },
+    {
+      "Alias": "high_brightness",
+      "Emoji": "🔆"
+    },
+    {
+      "Alias": "antenna_bars",
+      "Emoji": "📶"
+    },
+    {
+      "Alias": "vibration_mode",
+      "Emoji": "🛜"
+    },
+    {
+      "Alias": "mobile_phone_off",
+      "Emoji": "📳"
+    },
+    {
+      "Alias": "no_mobile_phones",
+      "Emoji": "📴"
+    },
+    {
+      "Alias": "place_of_worship",
+      "Emoji": "🛐"
+    },
+    {
+      "Alias": "om",
+      "Emoji": "🕉️"
+    },
+    {
+      "Alias": "star_of_david",
+      "Emoji": "✡️"
+    },
+    {
+      "Alias": "wheel_of_dharma",
+      "Emoji": "☸️"
+    },
+    {
+      "Alias": "yin_yang",
+      "Emoji": "☯️"
+    },
+    {
+      "Alias": "latin_cross",
+      "Emoji": "✝️"
+    },
+    {
+      "Alias": "orthodox_cross",
+      "Emoji": "☦️"
+    },
+    {
+      "Alias": "star_and_crescent",
+      "Emoji": "☪️"
+    },
+    {
+      "Alias": "peace",
+      "Emoji": "☮️"
+    },
+    {
+      "Alias": "menorah",
+      "Emoji": "🕎"
+    },
+    {
+      "Alias": "six_pointed_star",
+      "Emoji": "🔯"
+    },
+    {
+      "Alias": "khanda",
+      "Emoji": "🪯"
+    },
+    {
+      "Alias": "aries",
+      "Emoji": "♈"
+    },
+    {
+      "Alias": "taurus",
+      "Emoji": "♉"
+    },
+    {
+      "Alias": "gemini",
+      "Emoji": "♊"
+    },
+    {
+      "Alias": "cancer",
+      "Emoji": "♋"
+    },
+    {
+      "Alias": "leo",
+      "Emoji": "♌"
+    },
+    {
+      "Alias": "virgo",
+      "Emoji": "♍"
+    },
+    {
+      "Alias": "libra",
+      "Emoji": "♎"
+    },
+    {
+      "Alias": "scorpius",
+      "Emoji": "♏"
+    },
+    {
+      "Alias": "sagittarius",
+      "Emoji": "♐"
+    },
+    {
+      "Alias": "capricorn",
+      "Emoji": "♑"
+    },
+    {
+      "Alias": "aquarius",
+      "Emoji": "♒"
+    },
+    {
+      "Alias": "pisces",
+      "Emoji": "♓"
+    },
+    {
+      "Alias": "ophiuchus",
+      "Emoji": "⛎"
+    },
+    {
+      "Alias": "female_sign",
+      "Emoji": "♀️"
+    },
+    {
+      "Alias": "male_sign",
+      "Emoji": "♂️"
+    },
+    {
+      "Alias": "transgender_symbol",
+      "Emoji": "⚧️"
+    },
+    {
+      "Alias": "heavy_multiplication_x",
+      "Emoji": "✖️"
+    },
+    {
+      "Alias": "heavy_plus_sign",
+      "Emoji": "➕"
+    },
+    {
+      "Alias": "heavy_minus_sign",
+      "Emoji": "➖"
+    },
+    {
+      "Alias": "heavy_division_sign",
+      "Emoji": "➗"
+    },
+    {
+      "Alias": "heavy_equals_sign",
+      "Emoji": "🟰"
+    },
+    {
+      "Alias": "infinity",
+      "Emoji": "♾️"
+    },
+    {
+      "Alias": "bangbang",
+      "Emoji": "‼️"
+    },
+    {
+      "Alias": "interrobang",
+      "Emoji": "⁉️"
+    },
+    {
+      "Alias": "question",
+      "Emoji": "❓"
+    },
+    {
+      "Alias": "white_question_mark",
+      "Emoji": "❔"
+    },
+    {
+      "Alias": "white_exclamation_mark",
+      "Emoji": "❕"
+    },
+    {
+      "Alias": "exclamation",
+      "Emoji": "❗"
+    },
+    {
+      "Alias": "wavy_dash",
+      "Emoji": "〰️"
+    },
+    {
+      "Alias": "currency_exchange",
+      "Emoji": "💱"
+    },
+    {
+      "Alias": "heavy_dollar_sign",
+      "Emoji": "💲"
+    },
+    {
+      "Alias": "keycap_hash",
+      "Emoji": "#️⃣"
+    },
+    {
+      "Alias": "keycap_star",
+      "Emoji": "*️⃣"
+    },
+    {
+      "Alias": "zero",
+      "Emoji": "0️⃣"
+    },
+    {
+      "Alias": "one",
+      "Emoji": "1️⃣"
+    },
+    {
+      "Alias": "two",
+      "Emoji": "2️⃣"
+    },
+    {
+      "Alias": "three",
+      "Emoji": "3️⃣"
+    },
+    {
+      "Alias": "four",
+      "Emoji": "4️⃣"
+    },
+    {
+      "Alias": "five",
+      "Emoji": "5️⃣"
+    },
+    {
+      "Alias": "six",
+      "Emoji": "6️⃣"
+    },
+    {
+      "Alias": "seven",
+      "Emoji": "7️⃣"
+    },
+    {
+      "Alias": "eight",
+      "Emoji": "8️⃣"
+    },
+    {
+      "Alias": "nine",
+      "Emoji": "9️⃣"
+    },
+    {
+      "Alias": "keycap_ten",
+      "Emoji": "🔟"
+    },
+    {
+      "Alias": "capital_abcd",
+      "Emoji": "🔠"
+    },
+    {
+      "Alias": "abcd",
+      "Emoji": "🔡"
+    },
+    {
+      "Alias": "1234",
+      "Emoji": "🔢"
+    },
+    {
+      "Alias": "symbols",
+      "Emoji": "🔣"
+    },
+    {
+      "Alias": "abc",
+      "Emoji": "🔤"
+    },
+    {
+      "Alias": "a",
+      "Emoji": "🅰️"
+    },
+    {
+      "Alias": "ab",
+      "Emoji": "🆎"
+    },
+    {
+      "Alias": "b",
+      "Emoji": "🅱️"
+    },
+    {
+      "Alias": "cl",
+      "Emoji": "🆑"
+    },
+    {
+      "Alias": "cool",
+      "Emoji": "🆒"
+    },
+    {
+      "Alias": "free",
+      "Emoji": "🆓"
+    },
+    {
+      "Alias": "information_source",
+      "Emoji": "ℹ️"
+    },
+    {
+      "Alias": "id",
+      "Emoji": "🆔"
+    },
+    {
+      "Alias": "m",
+      "Emoji": "Ⓜ️"
+    },
+    {
+      "Alias": "new",
+      "Emoji": "🆕"
+    },
+    {
+      "Alias": "ng",
+      "Emoji": "🆖"
+    },
+    {
+      "Alias": "o2",
+      "Emoji": "🅾️"
+    },
+    {
+      "Alias": "ok",
+      "Emoji": "🆗"
+    },
+    {
+      "Alias": "sos",
+      "Emoji": "🆘"
+    },
+    {
+      "Alias": "up!",
+      "Emoji": "🆙"
+    },
+    {
+      "Alias": "vs",
+      "Emoji": "🆚"
+    },
+    {
+      "Alias": "koko",
+      "Emoji": "🈁"
+    },
+    {
+      "Alias": "sa",
+      "Emoji": "🈂️"
+    },
+    {
+      "Alias": "u6708",
+      "Emoji": "🈷️"
+    },
+    {
+      "Alias": "u6709",
+      "Emoji": "🈶"
+    },
+    {
+      "Alias": "u6307",
+      "Emoji": "🈯"
+    },
+    {
+      "Alias": "ideograph_advantage",
+      "Emoji": "🉐"
+    },
+    {
+      "Alias": "u5272",
+      "Emoji": "🈹"
+    },
+    {
+      "Alias": "u7121",
+      "Emoji": "🈚"
+    },
+    {
+      "Alias": "u7981",
+      "Emoji": "🈲"
+    },
+    {
+      "Alias": "accept",
+      "Emoji": "🉑"
+    },
+    {
+      "Alias": "u7533",
+      "Emoji": "🈸"
+    },
+    {
+      "Alias": "u5408",
+      "Emoji": "🈴"
+    },
+    {
+      "Alias": "u7a7a",
+      "Emoji": "🈳"
+    },
+    {
+      "Alias": "congratulations",
+      "Emoji": "㊗️"
+    },
+    {
+      "Alias": "secret",
+      "Emoji": "㊙️"
+    },
+    {
+      "Alias": "u55b6",
+      "Emoji": "🈺"
+    },
+    {
+      "Alias": "u6e80",
+      "Emoji": "🈵"
+    },
+    {
+      "Alias": "medical_symbol",
+      "Emoji": "⚕️"
+    },
+    {
+      "Alias": "recycle",
+      "Emoji": "♻️"
+    },
+    {
+      "Alias": "fleur_de_lis",
+      "Emoji": "⚜️"
+    },
+    {
+      "Alias": "name_badge",
+      "Emoji": "📛"
+    },
+    {
+      "Alias": "beginner",
+      "Emoji": "🔰"
+    },
+    {
+      "Alias": "hollow_red_circle",
+      "Emoji": "⭕"
+    },
+    {
+      "Alias": "white_check_mark",
+      "Emoji": "✅"
+    },
+    {
+      "Alias": "ballot_box_with_check",
+      "Emoji": "☑️"
+    },
+    {
+      "Alias": "heavy_check_mark",
+      "Emoji": "✔️"
+    },
+    {
+      "Alias": "cross_mark",
+      "Emoji": "❌"
+    },
+    {
+      "Alias": "cross_mark_button",
+      "Emoji": "❎"
+    },
+    {
+      "Alias": "curly_loop",
+      "Emoji": "➰"
+    },
+    {
+      "Alias": "double_curly_loop",
+      "Emoji": "➿"
+    },
+    {
+      "Alias": "part_alternation_mark",
+      "Emoji": "〽️"
+    },
+    {
+      "Alias": "eight_spoked_asterisk",
+      "Emoji": "✳️"
+    },
+    {
+      "Alias": "eight_pointed_black_star",
+      "Emoji": "✴️"
+    },
+    {
+      "Alias": "sparkle",
+      "Emoji": "❇️"
+    },
+    {
+      "Alias": "copyright",
+      "Emoji": "©️"
+    },
+    {
+      "Alias": "registered",
+      "Emoji": "®️"
+    },
+    {
+      "Alias": "tm",
+      "Emoji": "™️"
+    },
+    {
+      "Alias": "chequered_flag",
+      "Emoji": "🏁"
+    },
+    {
+      "Alias": "triangular_flag_on_post",
+      "Emoji": "🚩"
+    },
+    {
+      "Alias": "crossed_flags",
+      "Emoji": "🎌"
+    },
+    {
+      "Alias": "black_flag",
+      "Emoji": "🏴"
+    },
+    {
+      "Alias": "white_flag",
+      "Emoji": "🏳️"
+    },
+    {
+      "Alias": "rainbow_flag",
+      "Emoji": "🏳️‍🌈"
+    },
+    {
+      "Alias": "transgender_flag",
+      "Emoji": "🏳️‍⚧️"
+    },
+    {
+      "Alias": "pirate_flag",
+      "Emoji": "🏴‍☠️"
+    },
+    {
+      "Alias": "united_nations",
+      "Emoji": "🇺🇳"
+    },
+    {
+      "Alias": "angola",
+      "Emoji": "🇦🇴"
+    },
+    {
+      "Alias": "burkina_faso",
+      "Emoji": "🇧🇫"
+    },
+    {
+      "Alias": "burundi",
+      "Emoji": "🇧🇮"
+    },
+    {
+      "Alias": "benin",
+      "Emoji": "🇧🇯"
+    },
+    {
+      "Alias": "botswana",
+      "Emoji": "🇧🇼"
+    },
+    {
+      "Alias": "congo_kinshasa",
+      "Emoji": "🇨🇩"
+    },
+    {
+      "Alias": "central_african_republic",
+      "Emoji": "🇨🇫"
+    },
+    {
+      "Alias": "congo_brazzaville",
+      "Emoji": "🇨🇬"
+    },
+    {
+      "Alias": "cote_divoire",
+      "Emoji": "🇨🇮"
+    },
+    {
+      "Alias": "cameroon",
+      "Emoji": "🇨🇲"
+    },
+    {
+      "Alias": "cape_verde",
+      "Emoji": "🇨🇻"
+    },
+    {
+      "Alias": "djibouti",
+      "Emoji": "🇩🇯"
+    },
+    {
+      "Alias": "algeria",
+      "Emoji": "🇩🇿"
+    },
+    {
+      "Alias": "egypt",
+      "Emoji": "🇪🇬"
+    },
+    {
+      "Alias": "western_sahara",
+      "Emoji": "🇪🇭"
+    },
+    {
+      "Alias": "eritrea",
+      "Emoji": "🇪🇷"
+    },
+    {
+      "Alias": "ethiopia",
+      "Emoji": "🇪🇹"
+    },
+    {
+      "Alias": "gabon",
+      "Emoji": "🇬🇦"
+    },
+    {
+      "Alias": "ghana",
+      "Emoji": "🇬🇭"
+    },
+    {
+      "Alias": "gambia",
+      "Emoji": "🇬🇲"
+    },
+    {
+      "Alias": "guinea",
+      "Emoji": "🇬🇳"
+    },
+    {
+      "Alias": "equatorial_guinea",
+      "Emoji": "🇬🇶"
+    },
+    {
+      "Alias": "guinea_bissau",
+      "Emoji": "🇬🇼"
+    },
+    {
+      "Alias": "kenya",
+      "Emoji": "🇰🇪"
+    },
+    {
+      "Alias": "comoros",
+      "Emoji": "🇰🇲"
+    },
+    {
+      "Alias": "liberia",
+      "Emoji": "🇱🇷"
+    },
+    {
+      "Alias": "lesotho",
+      "Emoji": "🇱🇸"
+    },
+    {
+      "Alias": "libya",
+      "Emoji": "🇱🇾"
+    },
+    {
+      "Alias": "morocco",
+      "Emoji": "🇲🇦"
+    },
+    {
+      "Alias": "madagascar",
+      "Emoji": "🇲🇬"
+    },
+    {
+      "Alias": "mali",
+      "Emoji": "🇲🇱"
+    },
+    {
+      "Alias": "mauritania",
+      "Emoji": "🇲🇷"
+    },
+    {
+      "Alias": "mauritius",
+      "Emoji": "🇲🇺"
+    },
+    {
+      "Alias": "malawi",
+      "Emoji": "🇲🇼"
+    },
+    {
+      "Alias": "mozambique",
+      "Emoji": "🇲🇿"
+    },
+    {
+      "Alias": "namibia",
+      "Emoji": "🇳🇦"
+    },
+    {
+      "Alias": "niger",
+      "Emoji": "🇳🇪"
+    },
+    {
+      "Alias": "nigeria",
+      "Emoji": "🇳🇬"
+    },
+    {
+      "Alias": "rwanda",
+      "Emoji": "🇷🇼"
+    },
+    {
+      "Alias": "seychelles",
+      "Emoji": "🇸🇨"
+    },
+    {
+      "Alias": "sudan",
+      "Emoji": "🇸🇩"
+    },
+    {
+      "Alias": "sierra_leone",
+      "Emoji": "🇸🇱"
+    },
+    {
+      "Alias": "senegal",
+      "Emoji": "🇸🇳"
+    },
+    {
+      "Alias": "somalia",
+      "Emoji": "🇸🇴"
+    },
+    {
+      "Alias": "south_sudan",
+      "Emoji": "🇸🇸"
+    },
+    {
+      "Alias": "eswatini",
+      "Emoji": "🇸🇿"
+    },
+    {
+      "Alias": "chad",
+      "Emoji": "🇹🇩"
+    },
+    {
+      "Alias": "togo",
+      "Emoji": "🇹🇬"
+    },
+    {
+      "Alias": "tunisia",
+      "Emoji": "🇹🇳"
+    },
+    {
+      "Alias": "tanzania",
+      "Emoji": "🇹🇿"
+    },
+    {
+      "Alias": "uganda",
+      "Emoji": "🇺🇬"
+    },
+    {
+      "Alias": "south_africa",
+      "Emoji": "🇿🇦"
+    },
+    {
+      "Alias": "zambia",
+      "Emoji": "🇿🇲"
+    },
+    {
+      "Alias": "zimbabwe",
+      "Emoji": "🇿🇼"
+    },
+    {
+      "Alias": "antigua_barbuda",
+      "Emoji": "🇦🇬"
+    },
+    {
+      "Alias": "anguilla",
+      "Emoji": "🇦🇮"
+    },
+    {
+      "Alias": "argentina",
+      "Emoji": "🇦🇷"
+    },
+    {
+      "Alias": "aruba",
+      "Emoji": "🇦🇼"
+    },
+    {
+      "Alias": "barbados",
+      "Emoji": "🇧🇧"
+    },
+    {
+      "Alias": "saint_barthelemy",
+      "Emoji": "🇧🇱"
+    },
+    {
+      "Alias": "bermuda",
+      "Emoji": "🇧🇲"
+    },
+    {
+      "Alias": "bolivia",
+      "Emoji": "🇧🇴"
+    },
+    {
+      "Alias": "bonaire",
+      "Emoji": "🇧🇶"
+    },
+    {
+      "Alias": "brazil",
+      "Emoji": "🇧🇷"
+    },
+    {
+      "Alias": "bahamas",
+      "Emoji": "🇧🇸"
+    },
+    {
+      "Alias": "belize",
+      "Emoji": "🇧🇿"
+    },
+    {
+      "Alias": "canada",
+      "Emoji": "🇨🇦"
+    },
+    {
+      "Alias": "chile",
+      "Emoji": "🇨🇱"
+    },
+    {
+      "Alias": "colombia",
+      "Emoji": "🇨🇴"
+    },
+    {
+      "Alias": "costa_rica",
+      "Emoji": "🇨🇷"
+    },
+    {
+      "Alias": "cuba",
+      "Emoji": "🇨🇺"
+    },
+    {
+      "Alias": "curacao",
+      "Emoji": "🇨🇼"
+    },
+    {
+      "Alias": "dominica",
+      "Emoji": "🇩🇲"
+    },
+    {
+      "Alias": "dominican_republic",
+      "Emoji": "🇩🇴"
+    },
+    {
+      "Alias": "ecuador",
+      "Emoji": "🇪🇨"
+    },
+    {
+      "Alias": "falkland_islands",
+      "Emoji": "🇫🇰"
+    },
+    {
+      "Alias": "grenada",
+      "Emoji": "🇬🇩"
+    },
+    {
+      "Alias": "french_guiana",
+      "Emoji": "🇬🇫"
+    },
+    {
+      "Alias": "guadeloupe",
+      "Emoji": "🇬🇵"
+    },
+    {
+      "Alias": "guatemala",
+      "Emoji": "🇬🇹"
+    },
+    {
+      "Alias": "guyana",
+      "Emoji": "🇬🇾"
+    },
+    {
+      "Alias": "honduras",
+      "Emoji": "🇭🇳"
+    },
+    {
+      "Alias": "haiti",
+      "Emoji": "🇭🇹"
+    },
+    {
+      "Alias": "jamaica",
+      "Emoji": "🇯🇲"
+    },
+    {
+      "Alias": "saint_kitts_nevis",
+      "Emoji": "🇰🇳"
+    },
+    {
+      "Alias": "cayman_islands",
+      "Emoji": "🇰🇾"
+    },
+    {
+      "Alias": "saint_lucia",
+      "Emoji": "🇱🇨"
+    },
+    {
+      "Alias": "saint_martin",
+      "Emoji": "🇲🇫"
+    },
+    {
+      "Alias": "martinique",
+      "Emoji": "🇲🇶"
+    },
+    {
+      "Alias": "Montserrat",
+      "Emoji": "🇲🇸"
+    },
+    {
+      "Alias": "mexico",
+      "Emoji": "🇲🇽"
+    },
+    {
+      "Alias": "nicaragua",
+      "Emoji": "🇳🇮"
+    },
+    {
+      "Alias": "panama",
+      "Emoji": "🇵🇦"
+    },
+    {
+      "Alias": "peru",
+      "Emoji": "🇵🇪"
+    },
+    {
+      "Alias": "saint_pierre_miquelon",
+      "Emoji": "🇵🇲"
+    },
+    {
+      "Alias": "puerto_rico",
+      "Emoji": "🇵🇷"
+    },
+    {
+      "Alias": "paraguay",
+      "Emoji": "🇵🇾"
+    },
+    {
+      "Alias": "suriname",
+      "Emoji": "🇸🇷"
+    },
+    {
+      "Alias": "el_salvador",
+      "Emoji": "🇸🇻"
+    },
+    {
+      "Alias": "sint_maarten",
+      "Emoji": "🇸🇽"
+    },
+    {
+      "Alias": "turks_caicos",
+      "Emoji": "🇹🇨"
+    },
+    {
+      "Alias": "trinidad_tobago",
+      "Emoji": "🇹🇹"
+    },
+    {
+      "Alias": "us",
+      "Emoji": "🇺🇸"
+    },
+    {
+      "Alias": "uruguay",
+      "Emoji": "🇺🇾"
+    },
+    {
+      "Alias": "venezuela",
+      "Emoji": "🇻🇪"
+    },
+    {
+      "Alias": "british_virgin_islands",
+      "Emoji": "🇻🇬"
+    },
+    {
+      "Alias": "us_virgin_islands",
+      "Emoji": "🇻🇮"
+    },
+    {
+      "Alias": "uae",
+      "Emoji": "🇦🇪"
+    },
+    {
+      "Alias": "afghanistan",
+      "Emoji": "🇦🇫"
+    },
+    {
+      "Alias": "azerbaijan",
+      "Emoji": "🇦🇿"
+    },
+    {
+      "Alias": "bangladesh",
+      "Emoji": "🇧🇩"
+    },
+    {
+      "Alias": "bahrain",
+      "Emoji": "🇧🇭"
+    },
+    {
+      "Alias": "brunei",
+      "Emoji": "🇧🇳"
+    },
+    {
+      "Alias": "bhutan",
+      "Emoji": "🇧🇹"
+    },
+    {
+      "Alias": "china",
+      "Emoji": "🇨🇳"
+    },
+    {
+      "Alias": "hong_kong",
+      "Emoji": "🇭🇰"
+    },
+    {
+      "Alias": "indonesia",
+      "Emoji": "🇮🇩"
+    },
+    {
+      "Alias": "israel",
+      "Emoji": "🇮🇱"
+    },
+    {
+      "Alias": "india",
+      "Emoji": "🇮🇳"
+    },
+    {
+      "Alias": "iraq",
+      "Emoji": "🇮🇶"
+    },
+    {
+      "Alias": "iran",
+      "Emoji": "🇮🇷"
+    },
+    {
+      "Alias": "jordan",
+      "Emoji": "🇯🇴"
+    },
+    {
+      "Alias": "japan",
+      "Emoji": "🇯🇵"
+    },
+    {
+      "Alias": "kyrgyzstan",
+      "Emoji": "🇰🇬"
+    },
+    {
+      "Alias": "cambodia",
+      "Emoji": "🇰🇭"
+    },
+    {
+      "Alias": "north_korea",
+      "Emoji": "🇰🇵"
+    },
+    {
+      "Alias": "south_korea",
+      "Emoji": "🇰🇷"
+    },
+    {
+      "Alias": "kuwait",
+      "Emoji": "🇰🇼"
+    },
+    {
+      "Alias": "kazakhstan",
+      "Emoji": "🇰🇿"
+    },
+    {
+      "Alias": "laos",
+      "Emoji": "🇱🇦"
+    },
+    {
+      "Alias": "lebanon",
+      "Emoji": "🇱🇧"
+    },
+    {
+      "Alias": "sri_lanka",
+      "Emoji": "🇱🇰"
+    },
+    {
+      "Alias": "myanmar",
+      "Emoji": "🇲🇲"
+    },
+    {
+      "Alias": "mongolia",
+      "Emoji": "🇲🇳"
+    },
+    {
+      "Alias": "macau",
+      "Emoji": "🇲🇴"
+    },
+    {
+      "Alias": "maldives",
+      "Emoji": "🇲🇻"
+    },
+    {
+      "Alias": "malaysia",
+      "Emoji": "🇲🇾"
+    },
+    {
+      "Alias": "nepal",
+      "Emoji": "🇳🇵"
+    },
+    {
+      "Alias": "oman",
+      "Emoji": "🇴🇲"
+    },
+    {
+      "Alias": "philippines",
+      "Emoji": "🇵🇭"
+    },
+    {
+      "Alias": "pakistan",
+      "Emoji": "🇵🇰"
+    },
+    {
+      "Alias": "palestine",
+      "Emoji": "🇵🇸"
+    },
+    {
+      "Alias": "qatar",
+      "Emoji": "🇶🇦"
+    },
+    {
+      "Alias": "russia",
+      "Emoji": "🇷🇺"
+    },
+    {
+      "Alias": "saudi_arabia",
+      "Emoji": "🇸🇦"
+    },
+    {
+      "Alias": "singapore",
+      "Emoji": "🇸🇬"
+    },
+    {
+      "Alias": "syria",
+      "Emoji": "🇸🇾"
+    },
+    {
+      "Alias": "thailand",
+      "Emoji": "🇹🇭"
+    },
+    {
+      "Alias": "tajikistan",
+      "Emoji": "🇹🇯"
+    },
+    {
+      "Alias": "timor_leste",
+      "Emoji": "🇹🇱"
+    },
+    {
+      "Alias": "turkmenistan",
+      "Emoji": "🇹🇲"
+    },
+    {
+      "Alias": "turkey",
+      "Emoji": "🇹🇷"
+    },
+    {
+      "Alias": "taiwan",
+      "Emoji": "🇹🇼"
+    },
+    {
+      "Alias": "uzbekistan",
+      "Emoji": "🇺🇿"
+    },
+    {
+      "Alias": "vietnam",
+      "Emoji": "🇻🇳"
+    },
+    {
+      "Alias": "yemen",
+      "Emoji": "🇾🇪"
+    },
+    {
+      "Alias": "andorra",
+      "Emoji": "🇦🇩"
+    },
+    {
+      "Alias": "albania",
+      "Emoji": "🇦🇱"
+    },
+    {
+      "Alias": "armenia",
+      "Emoji": "🇦🇲"
+    },
+    {
+      "Alias": "austria",
+      "Emoji": "🇦🇹"
+    },
+    {
+      "Alias": "bosnia_herzegovina",
+      "Emoji": "🇧🇦"
+    },
+    {
+      "Alias": "belgium",
+      "Emoji": "🇧🇪"
+    },
+    {
+      "Alias": "bulgaria",
+      "Emoji": "🇧🇬"
+    },
+    {
+      "Alias": "belarus",
+      "Emoji": "🇧🇾"
+    },
+    {
+      "Alias": "switzerland",
+      "Emoji": "🇨🇭"
+    },
+    {
+      "Alias": "chad",
+      "Emoji": "🇨🇶"
+    },
+    {
+      "Alias": "cyprus",
+      "Emoji": "🇨🇾"
+    },
+    {
+      "Alias": "czech_republic",
+      "Emoji": "🇨🇿"
+    },
+    {
+      "Alias": "germany",
+      "Emoji": "🇩🇪"
+    },
+    {
+      "Alias": "denmark",
+      "Emoji": "🇩🇰"
+    },
+    {
+      "Alias": "ceuta_melilla",
+      "Emoji": "🇪🇦"
+    },
+    {
+      "Alias": "estonia",
+      "Emoji": "🇪🇪"
+    },
+    {
+      "Alias": "spain",
+      "Emoji": "🇪🇸"
+    },
+    {
+      "Alias": "european_union",
+      "Emoji": "🇪🇺"
+    },
+    {
+      "Alias": "finland",
+      "Emoji": "🇫🇮"
+    },
+    {
+      "Alias": "france",
+      "Emoji": "🇫🇷"
+    },
+    {
+      "Alias": "uk",
+      "Emoji": "🇬🇧"
+    },
+    {
+      "Alias": "georgia",
+      "Emoji": "🇬🇪"
+    },
+    {
+      "Alias": "guernsey",
+      "Emoji": "🇬🇬"
+    },
+    {
+      "Alias": "gibraltar",
+      "Emoji": "🇬🇮"
+    },
+    {
+      "Alias": "greece",
+      "Emoji": "🇬🇷"
+    },
+    {
+      "Alias": "croatia",
+      "Emoji": "🇭🇷"
+    },
+    {
+      "Alias": "hungary",
+      "Emoji": "🇭🇺"
+    },
+    {
+      "Alias": "ireland",
+      "Emoji": "🇮🇪"
+    },
+    {
+      "Alias": "isle_of_man",
+      "Emoji": "🇮🇲"
+    },
+    {
+      "Alias": "iceland",
+      "Emoji": "🇮🇸"
+    },
+    {
+      "Alias": "italy",
+      "Emoji": "🇮🇹"
+    },
+    {
+      "Alias": "jersey",
+      "Emoji": "🇯🇪"
+    },
+    {
+      "Alias": "liechtenstein",
+      "Emoji": "🇱🇮"
+    },
+    {
+      "Alias": "lithuania",
+      "Emoji": "🇱🇹"
+    },
+    {
+      "Alias": "luxembourg",
+      "Emoji": "🇱🇺"
+    },
+    {
+      "Alias": "latvia",
+      "Emoji": "🇱🇻"
+    },
+    {
+      "Alias": "monaco",
+      "Emoji": "🇲🇨"
+    },
+    {
+      "Alias": "moldova",
+      "Emoji": "🇲🇩"
+    },
+    {
+      "Alias": "montenegro",
+      "Emoji": "🇲🇪"
+    },
+    {
+      "Alias": "north_macedonia",
+      "Emoji": "🇲🇰"
+    },
+    {
+      "Alias": "malta",
+      "Emoji": "🇲🇹"
+    },
+    {
+      "Alias": "netherlands",
+      "Emoji": "🇳🇱"
+    },
+    {
+      "Alias": "norway",
+      "Emoji": "🇳🇴"
+    },
+    {
+      "Alias": "poland",
+      "Emoji": "🇵🇱"
+    },
+    {
+      "Alias": "portugal",
+      "Emoji": "🇵🇹"
+    },
+    {
+      "Alias": "romania",
+      "Emoji": "🇷🇴"
+    },
+    {
+      "Alias": "serbia",
+      "Emoji": "🇷🇸"
+    },
+    {
+      "Alias": "russia",
+      "Emoji": "🇷🇺"
+    },
+    {
+      "Alias": "sweden",
+      "Emoji": "🇸🇪"
+    },
+    {
+      "Alias": "slovenia",
+      "Emoji": "🇸🇮"
+    },
+    {
+      "Alias": "slovakia",
+      "Emoji": "🇸🇰"
+    },
+    {
+      "Alias": "san_marino",
+      "Emoji": "🇸🇲"
+    },
+    {
+      "Alias": "ukraine",
+      "Emoji": "🇺🇦"
+    },
+    {
+      "Alias": "vatican_city",
+      "Emoji": "🇻🇦"
+    },
+    {
+      "Alias": "kosovo",
+      "Emoji": "🇽🇰"
+    },
+    {
+      "Alias": "black_flag",
+      "Emoji": "🏴"
+    },
+    {
+      "Alias": "white_flag",
+      "Emoji": "🏳️"
+    },
+    {
+      "Alias": "pirate_flag",
+      "Emoji": "🏴‍☠️"
+    },
+    {
+      "Alias": "ascension_island",
+      "Emoji": "🇦🇨"
+    },
+    {
+      "Alias": "antarctica",
+      "Emoji": "🇦🇶"
+    },
+    {
+      "Alias": "american_samoa",
+      "Emoji": "🇦🇸"
+    },
+    {
+      "Alias": "australia",
+      "Emoji": "🇦🇺"
+    },
+    {
+      "Alias": "aland_islands",
+      "Emoji": "🇦🇽"
+    },
+    {
+      "Alias": "bouvet_island",
+      "Emoji": "🇧🇻"
+    },
+    {
+      "Alias": "cocos_islands",
+      "Emoji": "🇨🇨"
+    },
+    {
+      "Alias": "cook_islands",
+      "Emoji": "🇨🇰"
+    },
+    {
+      "Alias": "french_polynesia",
+      "Emoji": "🇨🇵"
+    },
+    {
+      "Alias": "christmas_island",
+      "Emoji": "🇨🇽"
+    },
+    {
+      "Alias": "diego_garcia",
+      "Emoji": "🇩🇬"
+    },
+    {
+      "Alias": "fiji",
+      "Emoji": "🇫🇯"
+    },
+    {
+      "Alias": "micronesia",
+      "Emoji": "🇫🇲"
+    },
+    {
+      "Alias": "greenland",
+      "Emoji": "🇬🇱"
+    },
+    {
+      "Alias": "guam",
+      "Emoji": "🇬🇸"
+    },
+    {
+      "Alias": "guernsey",
+      "Emoji": "🇬🇮"
+    },
+    {
+      "Alias": "heard_mc_donald",
+      "Emoji": "🇭🇲"
+    },
+    {
+      "Alias": "canary_islands",
+      "Emoji": "🇮🇨"
+    },
+    {
+      "Alias": "norfolk_island",
+      "Emoji": "🇳🇫"
+    },
+    {
+      "Alias": "niue",
+      "Emoji": "🇳🇺"
+    },
+    {
+      "Alias": "new_zealand",
+      "Emoji": "🇳🇿"
+    },
+    {
+      "Alias": "french_polynesia",
+      "Emoji": "🇵🇫"
+    },
+    {
+      "Alias": "papua_new_guinea",
+      "Emoji": "🇵🇬"
+    },
+    {
+      "Alias": "pitcairn_islands",
+      "Emoji": "🇵🇳"
+    },
+    {
+      "Alias": "palau",
+      "Emoji": "🇵🇼"
+    },
+    {
+      "Alias": "reunion",
+      "Emoji": "🇷🇪"
+    },
+    {
+      "Alias": "solomon_islands",
+      "Emoji": "🇸🇧"
+    },
+    {
+      "Alias": "saint_helena",
+      "Emoji": "🇸🇭"
+    },
+    {
+      "Alias": "svalbard_jan_mayen",
+      "Emoji": "🇸🇯"
+    },
+    {
+      "Alias": "saint_martin",
+      "Emoji": "🇸🇹"
+    },
+    {
+      "Alias": "tristan_da_cunha",
+      "Emoji": "🇹🇦"
+    },
+    {
+      "Alias": "french_southern_territories",
+      "Emoji": "🇹🇫"
+    },
+    {
+      "Alias": "tokelau",
+      "Emoji": "🇹🇰"
+    },
+    {
+      "Alias": "tonga",
+      "Emoji": "🇹🇴"
+    },
+    {
+      "Alias": "tuvalu",
+      "Emoji": "🇹🇻"
+    },
+    {
+      "Alias": "united_states_minor_outlying_islands",
+      "Emoji": "🇺🇲"
+    },
+    {
+      "Alias": "saint_vincent_grenadines",
+      "Emoji": "🇻🇨"
+    },
+    {
+      "Alias": "vanuatu",
+      "Emoji": "🇻🇺"
+    },
+    {
+      "Alias": "wallis_futuna",
+      "Emoji": "🇼🇫"
+    },
+    {
+      "Alias": "samoa",
+      "Emoji": "🇼🇸"
+    },
+    {
+      "Alias": "mayotte",
+      "Emoji": "🇾🇹"
+    }
+  ]
+}

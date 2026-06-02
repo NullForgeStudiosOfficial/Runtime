@@ -1,0 +1,31 @@
+{
+    "Commands": {
+        "jq": "jq",
+        "inotifywait": "inotify-tools",
+
+        "pactl": "pipewire",
+        "pw-link": "pipewire",
+        "pw-dump": "pipewire",
+        "wpctl": "pipewire",
+
+        "xdotool": "xdotool",
+        "xclip": "xclip",
+        "xrandr": "x11-xserver-utils",
+        "wmctrl": "wmctrl",
+        "feh": "feh",
+
+        "HandBrakeCLI": "handbrake-cli",
+        "7z": "p7zip-full",
+        "vlc": "vlc"
+    },
+
+    "Modules": {
+        "setproctitle": "setproctitle",
+        "pygame": "pygame",
+        "mido": "mido",
+        "rtmidi": "python-rtmidi",
+        "uinput": "python-uinput",
+        "PIL": "pillow",
+        "pynput": "pynput"
+    }
+}
