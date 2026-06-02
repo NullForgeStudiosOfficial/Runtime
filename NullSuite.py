@@ -230,6 +230,7 @@ IgnoreSources = [
 # ------------------------------
 Overlays = None
 OverlayWindows = []
+NullMonitorSetActiveCheckBoxes = []
 HideJob = None
 ScanForMouse = False
 XdotoolPath = shutil.which("xdotool") or "xdotool"
@@ -2139,6 +2140,8 @@ def SetActiveProfile(Name, Apply=True):
     SaveConfig("NullMonitor")
 
 def ApplyProfileLayout(Name):
+    global NullMonitorSetActiveCheckBoxes
+
     if Name not in Profiles:
         return
     Layout = Profiles[Name]["Layout"]
@@ -2166,13 +2169,37 @@ def ApplyProfileLayout(Name):
                 "--off"
             ])
 
+
+
+
     try:
-        print("Applying Profile:")
-        print(" ".join(Commands))
+        def DisableProfileSwitches():
+            for item in NullMonitorSetActiveCheckBoxes:
+                item.config(state="disabled")
+            return
+
+        DisableProfileSwitches()
+
         subprocess.run(
             Commands,
             check=True
         )
+        
+
+        def EnableProfileSwitches():
+            for item in NullMonitorSetActiveCheckBoxes:
+                item.config(state="normal")
+            return
+
+        if Profiles[Name].get("EnabledWallPapers"):
+            Root.after(10000, lambda:UpdateLockScreenWallPapers(Name))
+            Root.after(5000, lambda: EnableProfileSwitches())
+        else:
+            Root.after(15000, lambda: EnableProfileSwitches())
+
+        
+
+
     except Exception as E:
         print("ApplyProfileLayout Error:", E)
 
@@ -2434,6 +2461,10 @@ def OpenAddWarp(Name):
     StartWarpSelection(Name)
 
 def BuildUIFromProfiles():
+    global NullMonitorSetActiveCheckBoxes
+
+    NullMonitorSetActiveCheckBoxes.clear()
+    
     for w in NullMonitorProfileContainer.winfo_children():
         w.destroy()
 
@@ -2606,7 +2637,7 @@ def ToggleNullMonitor():
         )
     SaveConfig("NullMonitor")
 
-def UpdateWallPapers(ProfileName):
+def UpdateDesktopWallPapers(ProfileName):
 
     Profile = Profiles[ProfileName]
     Layout = Profile["Layout"]
@@ -2632,8 +2663,8 @@ def UpdateWallPapers(ProfileName):
         MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
         MonitorWidth, MonitorHeight = map(int,Monitor["Resolution"].split("x"))
         WallpaperData = Wallpapers.get(ID, {})
-        Path = WallpaperData.get("Path", "")
-        WallpaperMode = WallpaperData.get("Mode", "Fill")
+        Path = WallpaperData.get("DTPath", "")
+        WallpaperMode = WallpaperData.get("DTMode", "Fill")
         if not Path or not os.path.exists(Path):
             continue
         Wallpaper = Image.open(Path).convert("RGB")
@@ -2704,6 +2735,134 @@ def UpdateWallPapers(ProfileName):
         stderr=subprocess.DEVNULL
     )
 
+def UpdateLockScreenWallPapers(ProfileName):
+
+    Profile = Profiles[ProfileName]
+    Layout = Profile["Layout"]
+    Wallpapers = Profile["Wallpapers"]
+
+    if not Layout:
+        return
+
+    MinX = min(int(M["Pos"].split("x")[0]) for M in Layout)
+    MinY = min(int(M["Pos"].split("x")[1]) for M in Layout)
+
+    MaxX = max(int(M["Pos"].split("x")[0]) +int(M["Resolution"].split("x")[0])for M in Layout)
+
+    MaxY = max(int(M["Pos"].split("x")[1]) +int(M["Resolution"].split("x")[1])for M in Layout)
+
+    CanvasWidth = MaxX - MinX
+    CanvasHeight = MaxY - MinY
+
+    Canvas = Image.new("RGB",(CanvasWidth, CanvasHeight),"black")
+
+    for Monitor in Layout:
+        ID = Monitor["ID"]
+        MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
+        MonitorWidth, MonitorHeight = map(int,Monitor["Resolution"].split("x"))
+        WallpaperData = Wallpapers.get(ID, {})
+        Path = WallpaperData.get("LSPath", "")
+        WallpaperMode = WallpaperData.get("LSMode", "Fill")
+        if not Path or not os.path.exists(Path):
+            continue
+        Wallpaper = Image.open(Path).convert("RGB")
+        PasteX = MonitorX - MinX
+        PasteY = MonitorY - MinY
+
+        if WallpaperMode == "Stretch":
+            Wallpaper = Wallpaper.resize((MonitorWidth, MonitorHeight))
+
+            Canvas.paste(Wallpaper,(PasteX, PasteY))
+
+        # CENTER
+        elif WallpaperMode == "Center":
+            X = PasteX + (MonitorWidth - Wallpaper.width) // 2
+            Y = PasteY + (MonitorHeight - Wallpaper.height) // 2
+            Canvas.paste(Wallpaper,(X, Y))
+
+        # TILE
+        elif WallpaperMode == "Tile":
+
+            for TileX in range(0,MonitorWidth,Wallpaper.width):
+                for TileY in range(0,MonitorHeight,Wallpaper.height):
+                    Canvas.paste(Wallpaper,(PasteX + TileX,PasteY + TileY))
+
+        # MAX
+        elif WallpaperMode == "Max":
+            Scale = min(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
+            NewWidth = int(Wallpaper.width * Scale)
+            NewHeight = int(Wallpaper.height * Scale)
+            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
+            X = PasteX + (MonitorWidth - NewWidth) // 2
+            Y = PasteY + (MonitorHeight - NewHeight) // 2
+            Canvas.paste(Wallpaper,(X, Y))
+        # FILL
+        else:
+            Scale = max(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
+            NewWidth = int(Wallpaper.width * Scale)
+            NewHeight = int(Wallpaper.height * Scale)
+            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
+            CropX = max(0,(NewWidth - MonitorWidth) // 2)
+            CropY = max(0,(NewHeight - MonitorHeight) // 2)
+            Wallpaper = Wallpaper.crop(
+                (
+                    CropX,
+                    CropY,
+                    CropX + MonitorWidth,
+                    CropY + MonitorHeight
+                )
+            )
+
+            Canvas.paste(Wallpaper,(PasteX, PasteY))
+
+    TempPath = os.path.join(
+        tempfile.gettempdir(),
+        "nullmonitor_lockscreen_wallpaper.png"
+    )
+
+    Canvas.save(TempPath)
+
+    try:
+        subprocess.run([
+            "gsettings",
+            "set",
+            "org.cinnamon.desktop.background",
+            "picture-uri",
+            f"file://{TempPath}"
+        ], check=True)
+
+        subprocess.run([
+            "gsettings",
+            "set",
+            "org.cinnamon.desktop.background",
+            "picture-options",
+            "spanned"
+        ], check=True)
+
+    except Exception:
+        try:
+            subprocess.run([
+                "gsettings",
+                "set",
+                "org.cinnamon.desktop.background",
+                "picture-uri-dark",
+                f"file://{TempPath}"
+            ], check=True)
+
+            subprocess.run([
+                "gsettings",
+                "set",
+                "org.cinnamon.desktop.background",
+                "picture-options",
+                "spanned"
+            ], check=True)
+
+        except Exception as e:
+            print(e)
+    
+    Root.after(500, lambda: UpdateDesktopWallPapers(ProfileName))
+    return
+
 def ManageWallPapers(Name):
 
     global MonitorLayoutObjects, MonitorWallPaperRows, MonitorBoxes
@@ -2734,41 +2893,85 @@ def ManageWallPapers(Name):
     for Row, Monitor in enumerate(Layout):
         ID = Monitor["ID"]
         Data = Profiles[Name]["Wallpapers"].setdefault(ID,{
-            "Path":"",
-            "Mode":"Fill"
+            "DTPath": "",
+            "DTMode": "Fill",
+            "LSPath": "",
+            "LSMode": "Fill"
         })
         MonitorFrame = tk.LabelFrame(WallpaperScrollFrame.Inner,text=ID)
         MonitorFrame.grid(row=Row+1,column=0,padx=5,pady=5,sticky="ew")
-        MonitorFrame.columnconfigure(1,weight=1)
+        MonitorFrame.columnconfigure(0,weight=1)
+        MonitorFrame.columnconfigure(1,weight=0)
+        MonitorFrame.columnconfigure(2,weight=1)
         MonitorWallPaperRows.append(MonitorFrame)
-        PathVar = tk.StringVar(value=Data["Path"])
-        ModeVar = tk.StringVar(value=Data.get("Mode","Fill"))
 
-        def BrowseForPic(Data=Data, PathVar=PathVar, ProfileName=Name):
-            Path = filedialog.askopenfilename(title="Select Wallpaper",filetypes=[("Images", "*.png *.jpg *.jpeg *.webp *.bmp"),("All Files", "*.*")])
+        DTContainer = tk.Frame(MonitorFrame)
+        DTContainer.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+        DTContainer.columnconfigure(1,weight=1)
+        ttk.Separator(MonitorFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+        LSContainer = tk.Frame(MonitorFrame)
+        LSContainer.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
+        LSContainer.columnconfigure(1,weight=1)
+
+
+
+        DTPathVar = tk.StringVar(value=Data["DTPath"])
+        DTModeVar = tk.StringVar(value=Data.get("DTMode","Fill"))
+        LSPathVar = tk.StringVar(value=Data["LSPath"])
+        LSModeVar = tk.StringVar(value=Data.get("LSMode","Fill"))
+
+        def DTBrowseForPic(Data=Data, PathVar=DTPathVar, ProfileName=Name):
+            Path = filedialog.askopenfilename(title="Select Desktop Wallpaper",filetypes=[("Images", "*.png *.jpg *.jpeg *.webp *.bmp"),("All Files", "*.*")])
             if Path:
-                Data['Path'] = Path
+                Data['DTPath'] = Path
                 PathVar.set(os.path.basename(Path))
                 SaveConfig("NullMonitor")
-                UpdateWallPapers(ProfileName)
+                UpdateDesktopWallPapers(ProfileName)
 
-        BrowseButton = tk.Button(MonitorFrame,text="Browse For Image",width=18,command=lambda Data=Data, PathVar=PathVar, ProfileName=Name: BrowseForPic(Data, PathVar, ProfileName))
-        BrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        tk.Entry(MonitorFrame,textvariable=PathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
-        Modebox = ttk.Combobox(MonitorFrame,textvariable=ModeVar,values=WallpaperModes,state="readonly",width=18)
-        Modebox.grid(row=0,column=2,padx=5,pady=5)
+        DTBrowseButton = tk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
+        DTBrowseButton.grid(row=0,column=0,padx=5,pady=5)
+        tk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        DTModebox = ttk.Combobox(DTContainer,textvariable=DTModeVar,values=WallpaperModes,state="readonly",width=18)
+        DTModebox.grid(row=0,column=2,padx=5,pady=5)
 
-        def UpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
-            Data["Mode"] = ModeVar.get()
-            UpdateWallPapers(ProfileName)
+        def DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
+            Data["DTMode"] = ModeVar.get()
+            UpdateDesktopWallPapers(ProfileName)
             SaveConfig("NullMonitor")
 
-        Modebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=ModeVar,ProfileName=Name:UpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
+        DTModebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=DTModeVar,ProfileName=Name:DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
+
+        #-------
+
+        def LSBrowseForPic(Data=Data, PathVar=LSPathVar, ProfileName=Name):
+            Path = filedialog.askopenfilename(title="Select Lock Screen Wallpaper",filetypes=[("Images", "*.png *.jpg *.jpeg *.webp *.bmp"),("All Files", "*.*")])
+            if Path:
+                Data['LSPath'] = Path
+                PathVar.set(os.path.basename(Path))
+                SaveConfig("NullMonitor")
+                UpdateLockScreenWallPapers(ProfileName)
+
+        LSBrowseButton = tk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
+        LSBrowseButton.grid(row=0,column=0,padx=5,pady=5)
+        tk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        LSModebox = ttk.Combobox(LSContainer,textvariable=LSModeVar,values=WallpaperModes,state="readonly",width=18)
+        LSModebox.grid(row=0,column=2,padx=5,pady=5)
+
+        def LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
+            Data["LSMode"] = ModeVar.get()
+            UpdateLockScreenWallPapers(ProfileName)
+            SaveConfig("NullMonitor")
+
+        LSModebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=LSModeVar,ProfileName=Name:LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
+
 
         Boxes[ID] = {
-            "Box": Modebox,
-            "Var": ModeVar,
-            "PathVar": PathVar
+            "DTBox": DTModebox,
+            "DTVar": DTModeVar,
+            "DTPathVar": DTPathVar,
+            "LSBox": LSModebox,
+            "LSVar": LSModeVar,
+            "LSPathVar": LSPathVar
             }
 
     MonitorBoxes = Boxes
@@ -2785,6 +2988,7 @@ def NullMonitorNoteBookChange(event):
     return
 
 def CreateProfileBox(Name):
+    global NullMonitorSetActiveCheckBoxes
     Frame = tk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=5,pady=5)
     Frame.pack(fill="x",pady=5)
 
@@ -2796,6 +3000,8 @@ def CreateProfileBox(Name):
 
     ActiveCheck = tk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
     ActiveCheck.grid(row=0,column=0,padx=2,pady=2,sticky="ew")
+
+    NullMonitorSetActiveCheckBoxes.append(ActiveCheck)
 
     DeleteBtn = tk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
     DeleteBtn.grid(row=0,column=3,padx=2,pady=2,sticky="ew")
@@ -2850,6 +3056,7 @@ def CreateProfileBox(Name):
     }
 
     RefreshWarpDisplay(Name)
+
 def CreateProfile():
     Name = NullMonitorProfileNameVar.get().strip()
 
@@ -2864,9 +3071,11 @@ def CreateProfile():
 
     for monitor in Layout:
         Wallpapers[monitor['ID']] = {
-            "Path": "",
-            "Mode": "Fill"
-        }
+            "DTPath": "",
+            "DTMode": "Fill",
+            "LSPath": "",
+            "LSMode": "Fill"
+            }
 
     Profiles[Name] = {
         "Layout": Layout,
@@ -10748,14 +10957,29 @@ NullMonitorHowToUse.pack(fill="both")
 # --------------- NullMonitor Wallpaper Page
 
 NullMonitorWallPapersPage.columnconfigure(0,weight=1)
-NullMonitorWallPapersPage.rowconfigure(1,weight=1)
+NullMonitorWallPapersPage.rowconfigure(2,weight=1)
 WallpaperPreviewFrame = tk.LabelFrame(NullMonitorWallPapersPage,text="Monitor Layout")
 WallpaperPreviewFrame.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
 WallpaperPreviewFrame.columnconfigure(0,weight=1)
+
 WallpaperLayoutContainer = tk.Frame(WallpaperPreviewFrame)
 WallpaperLayoutContainer.grid(row=0,column=0,pady=5)
+
+WallpaperInfoFrame = tk.Frame(NullMonitorWallPapersPage)
+WallpaperInfoFrame.grid(row=1,column=0,padx=5,pady=5,sticky="ew")
+WallpaperInfoFrame.columnconfigure(0,weight=1)
+WallpaperInfoFrame.columnconfigure(1,weight=0)
+WallpaperInfoFrame.columnconfigure(2,weight=1)
+
+desktoplabel = tk.Label(WallpaperInfoFrame, text="Desktop Wallpapers")
+desktoplabel.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+ttk.Separator(WallpaperInfoFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+lockscreenlabel = tk.Label(WallpaperInfoFrame, text="LockScreen Wallpapers")
+lockscreenlabel.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
+
+
 WallpaperScrollFrame = ScrollableFrame(NullMonitorWallPapersPage)
-WallpaperScrollFrame.grid(row=1,column=0,padx=5,pady=5,sticky="nsew")
+WallpaperScrollFrame.grid(row=2,column=0,padx=5,pady=5,sticky="nsew")
 WallpaperScrollFrame.Inner.columnconfigure(0,weight=1)
 # ------------------------------
 # Null Wire UI
@@ -11658,9 +11882,11 @@ def StartUpNullMonitor():
 
             for monitor in Layout:
                 Wallpapers[monitor['ID']] = {
-                    "Path": "",
-                    "Mode": "Fill"
-                }
+                    "DTPath": "",
+                    "DTMode": "Fill",
+                    "LSPath": "",
+                    "LSMode": "Fill"
+                    }
 
             Profiles["Default"] = {
             "Layout": Layout,
@@ -11671,12 +11897,13 @@ def StartUpNullMonitor():
             }
             ActiveProfile = "Default"
             SaveConfig("NullMonitor")
+        
         BuildUIFromProfiles()
         NullMonitorEnabledVar.set(ScanForMouse)
         ToggleNullMonitor()
 
         if ActiveProfile and Profiles[ActiveProfile].get("EnabledWallPapers"):
-            UpdateWallPapers(ActiveProfile)
+            Root.after(1000,lambda:  UpdateLockScreenWallPapers(ActiveProfile))
 
         Notebook.add(NullMonitor, text="NullMonitor")
     else:
