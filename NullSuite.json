@@ -5,7 +5,7 @@
     "NullMidiActive": false,
     "NullProtonActive": false,
     "NullRipActive": false,
-    "NullGitActive": false,
+    "NullGitActive": true,
     "NullTrackerActive": false,
     "NullMojiActive": false,
     "StartMinimized": false,
@@ -30,17 +30,10 @@
   },
   "NullGit": {
     "Repos": {
-      "(Install First)": {
-        "Name": "NullSuite",
-        "Path": "(InstallFirst)",
-        "Owner": false,
-        "CurrentBranch": "main [Branch]"
-      }
     }
   },
   "NullTracker": {
-    "AppClassification": {
-    },
+    "AppClassification": {},
     "WriteToDiskSeconds": 1,
     "MinimumWindowTime": 1,
     "NewDayThreshold": 3
@@ -50,8 +43,7 @@
     "RecentEmoji": []
   },
   "NullMonitor": {
-    "Profiles": {
-    },
+    "Profiles": {},
     "ActiveProfile": "Default",
     "ScanForMouse": false
   }
