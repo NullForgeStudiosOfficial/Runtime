@@ -7494,7 +7494,10 @@ def GetLatestReleaseData(RepoName):
             and len(Assets) > 0
         ):
             return Data
-
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return None
+        print(e)
     except Exception as e:
         print(e)
 
@@ -8542,7 +8545,7 @@ def AddRepoObject(Repo):
     tk.Button(InnerFrame, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
 
     ttk.Separator(Frame, orient="horizontal").grid(row=7, column=0, sticky="ew", columnspan=99, pady=6)
-    if Repo["Owner"]:
+    if IsOwner(Repo['Path']):
         CommitMessage = tk.StringVar()
         CommitMessageShow = tk.Label(Frame, text="Commit Message:", width=15, padx=5)
         CommitMessageShow.grid(row=3, column=0, sticky="ew")
@@ -8635,7 +8638,6 @@ def AddRepo(Path):
     Repos[Path] = {
         "Name": Name,
         "Path": Path,
-        "Owner": False,
         "DeleteConfirmation": False
     }
 
