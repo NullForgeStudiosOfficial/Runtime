@@ -175,6 +175,7 @@ KeySaving = False
 MidiBeingInput = False
 MidiRows = []
 SaveRows = []
+MidiRowObjects = []
 MidiDeviceListeners = {}
 UInputDevice = None
 ActiveCapture = {
@@ -5209,7 +5210,7 @@ def SearchForAnyFile(Controller, var, Field, Page=None):
         SaveConfig("NullMidi")
 
 def AddMidiRow(Row=None, Loading=False):
-    global MidiRows, DeleteDeviceConfirmation, DeleteDeviceRowConfirmation
+    global MidiRows, DeleteDeviceConfirmation, DeleteDeviceRowConfirmation, MidiRowObjects
     Frame = tk.Frame(MidiContainer, bd=2, relief="solid")
     Frame.pack(fill="x", expand=False, padx=5, pady=5)
     Frame.columnconfigure(0, weight=1)
@@ -7381,6 +7382,7 @@ def AddMidiRow(Row=None, Loading=False):
 
     
     MidiRows.append(Row)
+    MidiRowObjects.append(Frame)
 
     if not Loading:
         SaveConfig("NullMidi")
@@ -10571,10 +10573,10 @@ def BuildRecentEmojis():
     for Button in NullMojiRecentButtons:
         Button.destroy()
     NullMojiRecentButtons.clear()
-    ColumnCount = 10
+    ColumnCount = 4
     for i, RecentEmoji in enumerate(RecentEmojis):
-        Button = tk.Button(NullMojiAllRecentColumnListInner,text=RecentEmoji["Emoji"],font=("Noto Color Emoji",15),command=lambda E=RecentEmoji: CopyEmoji(E))
-        Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2)
+        Button = tk.Button(NullMojiAllRecentColumnListInner,text=RecentEmoji["Emoji"],font=("Noto Color Emoji",15),command=lambda E=RecentEmoji: CopyEmoji(E), width=3)
+        Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2,)
         Button.bind("<Button-3>",lambda event, E=RecentEmoji, B=Button:RemoveRecentEmoji(E, B))
         NullMojiRecentButtons.append(Button)
 
@@ -11861,7 +11863,7 @@ def StartUpNullWire():
     return
 
 def StartUpNullMidi():
-    global MixerInitialized, MidiRows, LoadCompleted
+    global MixerInitialized, MidiRows, LoadCompleted, MidiRowObjects
     if NullMidiActive.get() == True:
 
         midi = None
@@ -11875,6 +11877,14 @@ def StartUpNullMidi():
                 data = json.load(f)
                 midi = data.get("NullMidi", {})
 
+            print("1")
+            for row in MidiRowObjects[:]:
+                row.destroy()
+
+            MidiRows.clear()
+            MidiRowObjects.clear()
+
+            print("2")
             for row in midi.get("MidiRows", []):
                 AddMidiRow(row, True)
 
@@ -11883,13 +11893,16 @@ def StartUpNullMidi():
             Root.update_idletasks()
             return False
 
+        print("3")
         if MixerInitialized == False:
             pygame.mixer.init(buffer=256)
             pygame.mixer.set_num_channels(144)
             MixerInitialized = True
         
+        print("4")
         BuildGlobalUInputDevice()
 
+        print("5")
         Notebook.add(NullMidi, text="NullMidi")
     else:
         Notebook.forget(NullMidi)
@@ -11898,7 +11911,7 @@ def StartUpNullMidi():
     return
 
 def StartUpNullProton():
-    global ProtonGames, LoadCompleted
+    global ProtonGames, LoadCompleted, ProtonGameRows
    
     if NullProtonActive.get() == True:
         proton = None
@@ -11921,6 +11934,12 @@ def StartUpNullProton():
 
         ProtonGames.clear()
         ProtonGames.extend(proton.get("Games", []))
+
+        for row in ProtonGameRows[:]:
+            row.destroy()
+
+        ProtonGameRows.clear()
+
 
         for Game in ProtonGames.copy():
             AddGameRow(Game, True)
