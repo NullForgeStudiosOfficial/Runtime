@@ -64,7 +64,7 @@ import shlex
 from pynput import mouse, keyboard
 import atexit
 import tempfile
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 
 from datetime import datetime
 import urllib.request
@@ -136,6 +136,12 @@ Python = os.path.join(BaseDir, "venv", "bin", "python3")
 NWPath = os.path.join(BaseDir, "NW.sh") 
 ChangeLogPath = os.path.join(BaseDir, "ChangeLog.json") 
 IconImage = tk.PhotoImage(file=IconPath)
+
+CircadianPath = os.path.join(BaseDir, "CircadianClock.png")
+ClockOriginal = Image.open(CircadianPath)
+ClockImage = ImageTk.PhotoImage(ClockOriginal)
+Width, Height = ClockOriginal.size
+ClockCrop = ClockOriginal.crop((0,0,Width,int(Height *0.49)))
 Root.iconphoto(True, IconImage)
 LoadTimes = {}
 LoadCompleted = 0
@@ -256,6 +262,7 @@ MinimumWindowTime = 1
 NewDayThreshold = 3
 CompletedCycles = []
 CurrentFocus = None
+
 OldFocus = None
 FocusStartTime = time.time()
 PreviousFocusStartTime = 0
@@ -281,6 +288,11 @@ CurrentViewedMonth = None
 CurrentViewedCycle = None
 TrackerPopup = None
 WindowDeleteConfirmation = {}
+ResetClock = True
+LastClockUpdate = None
+ClockRotation = 0
+ClockUpdatedViaCycle = True
+WaitForNullFocusLoad = False
 # ------------------------------
 # NullMoji
 # ------------------------------
@@ -297,6 +309,9 @@ NullMojiRecentButtons = []
 NullMojiAllEmojiButtons = []
 RootState = ""
 NullMojiPopupWindow = None
+NullMojiCopied = False
+ClipBoardHistory = []
+LastClipBoard = None
 # ————————————————————————————————————————————————————————————
 # Required Startup Methods
 # ————————————————————————————————————————————————————————————
@@ -8261,6 +8276,9 @@ def AddRepoObject(Repo):
     BranchBox = ttk.Combobox(Frame, values=DisplayValues, textvariable=CurrentBranch, state="readonly")
     BranchBox.grid(row=0, column=1, sticky="ew",padx=10)
     BranchBox.bind("<<ComboboxSelected>>", lambda e: OnRepoOptionChanged())
+    BranchBox.unbind_class("TCombobox", "<Button-4>")
+    BranchBox.unbind_class("TCombobox", "<Button-5>")
+
     try:
         threading.Thread(target=UpdateReleaseOption,args=(Repo,RepoOptions,BranchBox),daemon=True).start()
     except:
@@ -9015,7 +9033,7 @@ def OnKeyPress(Key):
     RegisterAnyActivity()
 
 def ChangedWindowFocus(NewFocus):
-    global CurrentFocus, FocusStartTime, CurrentCycle, PreviousFocusStartTime, OldFocus, CurrentViewedCycle, CurrentViewedMonth, CurrentViewedYear, OnCurrentCycle
+    global CurrentFocus, FocusStartTime, CurrentCycle, PreviousFocusStartTime, OldFocus, CurrentViewedCycle, CurrentViewedMonth, CurrentViewedYear, OnCurrentCycle, ResetClock
 
     OldFocus = CurrentFocus
     CurrentFocus = NewFocus
@@ -9062,6 +9080,7 @@ def ChangedWindowFocus(NewFocus):
             ClickMonthButton(CurrentViewedYear, CurrentViewedMonth)
             ClickCycleButton(CurrentViewedYear,CurrentViewedMonth,CurrentCycle["StartTime"])
             OnCurrentCycle = True
+            ResetClock = True
         elif FocusedDuration >= MinimumWindowTime:
             CurrentCycle['TimeSpent'][OldFocus]['FocusedTime'] += int(FocusedDuration)
 
@@ -9709,6 +9728,72 @@ def InjectTracker():
             CurrentViewedCycle
         )
     SaveTrackerLog()
+    return
+
+def GetClipboard():
+    try:
+        Targets = subprocess.run(
+            ["xclip", "-selection", "clipboard", "-t", "TARGETS", "-o"],
+            capture_output=True,
+            text=True
+        )
+
+        if Targets.returncode != 0:
+            return None
+
+        Targets = Targets.stdout.splitlines()
+
+        if any(Target.startswith("image/") for Target in Targets):
+            return {
+                "Type": "Image",
+                "Targets": Targets,
+            }
+
+        elif (
+            "text/plain" in Targets or
+            "UTF8_STRING" in Targets or
+            "TEXT" in Targets
+        ):
+            Text = subprocess.run(
+                ["xclip", "-selection", "clipboard", "-o"],
+                capture_output=True,
+                text=True
+            )
+
+            return {
+                "Type": "Text",
+                "Text": Text.stdout,
+                "Targets": Targets,
+            }
+
+        return {
+            "Type": "Unsupported",
+            "Targets": Targets,
+        }
+
+    except Exception:
+        return None
+
+def AddClipBoardUI(ClipBoardContents):
+    global ClipBoardHistory
+
+    DisplayName = (CurrentFocus.replace("-", " ").title())
+
+    if ClipBoardContents["Type"] == "Text":
+        ClipBoardHistory.append({
+            "Text": ClipBoardContents['Text'],
+            "TimeOfCopy": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
+            "Type": "Text",
+            "Collasped": True,
+            "Path": None,
+            "Focus": DisplayName
+        })
+        pass #wedosomeshit
+    elif ClipBoardContents["Type"] == "Image":
+        pass #do other shit. save it
+    else:
+        pass #unspported file type thing
+
     return
 
 # ————————————————————————————————————————————————————————————
@@ -10625,15 +10710,29 @@ ForcePush.grid(row=0,column=1,sticky="ew",padx=5,pady=2, columnspan=2)
 # Null Focus UI
 # ------------------------------
 NullFocusNotebook = ttk.Notebook(NullFocus)
-NullFocusNotebook.pack(fill="both", expand=True)
 NullFocusManagePage = tk.Frame(NullFocusNotebook)
+NullFocusLogsPage = tk.Frame(NullFocusNotebook)
+NullFocusClockPage = tk.Frame(NullFocusNotebook)
+NullFocusClipBoard = tk.Frame(NullFocusNotebook)
+NullFocusOperator = tk.Frame(NullFocusNotebook)
+
+
+NullFocusNotebook.pack(fill="both", expand=True)
+
 NullFocusManagePage.rowconfigure(0, weight=1)
 NullFocusManagePage.columnconfigure(0, weight=1)
-NullFocusLogsPage = tk.Frame(NullFocusNotebook)
+
 NullFocusLogsPage.rowconfigure(0, weight=1)
 NullFocusLogsPage.columnconfigure(0, weight=1)
 NullFocusNotebook.add(NullFocusLogsPage, text="Logs")
-NullFocusNotebook.add(NullFocusManagePage, text="Manage")
+NullFocusNotebook.add(NullFocusManagePage, text="Manage Tracking")
+NullFocusNotebook.add(NullFocusClockPage, text="Circadian Clock")
+#NullFocusNotebook.add(NullFocusClipBoard, text="ClipBoard")
+#NullFocusNotebook.add(NullFocusOperator, text="Operator")
+
+
+
+
 #--- Manage
 NullFocusManagePageMain = tk.Frame(NullFocusManagePage)
 NullFocusManagePageMain.pack(fill="both", expand=True)
@@ -10764,11 +10863,19 @@ LogData.pack(fill="both", expand=True, anchor="n")
 LogDataInner = LogData.Inner
 LogDataLabel = tk.Label(LogDataInner, textvariable=CurrentLogView)
 LogDataLabel.pack(fill="both", expand=True, anchor="nw")
-
 YearChoices.BindMouseWheel(NullFocusLogsPageInner)
 MonthChoices.BindMouseWheel(NullFocusLogsPageInner)
 CycleChoices.BindMouseWheel(NullFocusLogsPageInner)
 LogData.BindMouseWheel(NullFocusLogsPageInner)
+# -----------Circadian Clock 
+NullFocusClockPage.columnconfigure(0,weight=1)
+HereLine = tk.Label(NullFocusClockPage, text = "↓", font=("Arial, 18"))
+HereLine.grid(row=0, column=0, sticky="nswe", pady=(10,0))
+ClockLabel = tk.Label(NullFocusClockPage, image=ClockImage)
+ClockLabel.image = ClockImage
+ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
+# ---------- ClipBoard
+ClipBoardList = ScrollableFrame(NullFocusClipBoard)
 
 # ------------------------------
 # Null Moji UI
@@ -11017,6 +11124,82 @@ def NullFocusFocusLoop():
         FocusedClass = GetWindowClass(WindowID)
         ChangedWindowFocus(FocusedClass)
 
+def NullFocusClockLoop():
+    global ResetClock, LastClockUpdate, ClockOriginal, ClockLabel, ClockImage, ClockRotation, ClockUpdatedViaCycle
+     
+    while True:
+        if NullFocusActive.get():
+            try:
+                if ResetClock == True:
+                    print("Were Resetting Clock")
+                    ResetClock = False
+                    LastClockUpdate = time.time()
+                    if ClockUpdatedViaCycle == False:
+                        ClockRotation = 0
+                        Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
+                        Width, Height = Rotated.size
+                        Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                        ClockImage = ImageTk.PhotoImage(Rotated)
+                        Root.after(0,lambda: ClockLabel.config(image=ClockImage))
+                        ClockLabel.image = ClockImage
+                    else:
+                        print("should reach this")
+                        ClockUpdatedViaCycle = False
+
+                        while WaitForNullFocusLoad == False:
+                            time.sleep(1)
+                            continue
+
+                        time.sleep(1)
+
+                        CycleStart = datetime.strptime(CurrentCycle["StartTime"],"%m/%d/%y - %I:%M%p")
+                        ElapsedSeconds = (datetime.now() - CycleStart).total_seconds()
+                        ElapsedHalfHours = int(ElapsedSeconds // 1800)
+                        ClockRotation = ElapsedHalfHours * 7.5
+
+                        Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
+                        Width, Height = Rotated.size
+                        Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                        ClockImage = ImageTk.PhotoImage(Rotated)
+                        Root.after(0,lambda: ClockLabel.config(image=ClockImage))
+                        ClockLabel.image = ClockImage
+                        
+                else:
+                    if LastClockUpdate != None:
+                        if time.time() - LastClockUpdate >= 1800:
+                            LastClockUpdate = time.time()
+                            ClockRotation += 7.5
+                            Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
+                            Width, Height = Rotated.size
+                            Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                            ClockImage = ImageTk.PhotoImage(Rotated)
+                            Root.after(0,lambda: ClockLabel.config(image=ClockImage))
+                            ClockLabel.image = ClockImage
+                time.sleep(30)
+                continue
+            except Exception as e:
+                print(f"NullFocusClockLoop Error: {e}")
+        time.sleep(3)
+
+
+    return
+
+def NullFocusClipBoardLoop():
+    global NullMojiCopied, LastClipBoard
+
+    while True:
+        if NullFocusActive.get():
+
+            if NullMojiCopied:
+                NullMojiCopied =  False
+            else:
+                Current = GetClipboard()
+                if Current != None:
+                    if Current != LastClipBoard:
+                        LastClipBoard = Current
+                        AddClipBoardUI(Current)
+        time.sleep(0.5)
+
 def HideToTray():
     global HiddenToTray
     if SystemLoading:
@@ -11044,6 +11227,8 @@ def WaitForLoad():
     threading.Thread(target=NullGitLoop, daemon=True).start()
     threading.Thread(target=NullFocusLoop, daemon=True).start()
     threading.Thread(target=NullFocusFocusLoop, daemon=True).start()
+    threading.Thread(target=NullFocusClockLoop, daemon=True).start()
+    threading.Thread(target=NullFocusClipBoardLoop, daemon=True).start()
     
     LoadConfig()
 
@@ -11339,7 +11524,7 @@ def StartUpNullMonitor():
 def StartUpNullFocus():
     global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted
     global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
-    global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle
+    global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
     
     if NullFocusActive.get() == True:
         SystemLoading = True
@@ -11453,6 +11638,8 @@ def StartUpNullFocus():
         CurrentViewedCycle = CurrentCycle["StartTime"]
         CurrentViewedMonth = LatestMonth
         CurrentViewedYear = LatestYear
+
+        WaitForNullFocusLoad = True
 
     else:
         def StopTrackerListeners():
