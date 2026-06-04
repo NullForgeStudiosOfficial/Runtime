@@ -88,12 +88,11 @@ Main.pack(fill="both", expand=True, padx=10, pady=10)
 style = ttk.Style()
 style.map("TNotebook.Tab",foreground=[("disabled", "#666666"),("selected", "#000000"),("!disabled", "#000000")])
 NullWireActive = tk.BooleanVar(value=False)
-NullRipActive = tk.BooleanVar(value=False)
 NullMidiActive = tk.BooleanVar(value=False)
 NullProtonActive = tk.BooleanVar(value=False)
 NullMonitorActive = tk.BooleanVar(value=False)
 NullGitActive = tk.BooleanVar(value=False)
-NullTrackerActive = tk.BooleanVar(value=False)
+NullFocusActive = tk.BooleanVar(value=False)
 NullMojiActive = tk.BooleanVar(value=False)
 StartMinimizedActive= tk.BooleanVar(value=False)
 StartInTrayActive= tk.BooleanVar(value=False)
@@ -156,15 +155,6 @@ ProtonVars = {
 ProtonGames = []
 ProtonGameRows = []
 LogQueue = queue.Queue()
-# ------------------------------
-# NullRip
-# ------------------------------
-Titles = []
-SelectedChapters = []
-SelectedAudio = []
-SelectedSubs = []
-SelectedTitle = None
-CurrentProcess = None
 # ------------------------------
 # NullMidi
 # ------------------------------
@@ -259,7 +249,7 @@ CurrentManagedRepo = None
 CurrentDownloadProcess = None
 
 # ------------------------------
-# NullTracker
+# NullFocus
 # ------------------------------
 WriteToDiskSeconds = 60
 MinimumWindowTime = 1
@@ -471,7 +461,7 @@ def LoadConfig():
         SaveConfig("NullMonitor", True)
         SaveConfig("NullMidi", True)
         SaveConfig("NullGit", True)
-        SaveConfig("NullTracker", True)
+        SaveConfig("NullFocus", True)
         SaveConfig("NullMoji", True)
 
     try:
@@ -509,13 +499,6 @@ def LoadConfig():
             "Tab": NullProton,
         },
 
-        "NullRip": {
-            "Config": "NullRipActive",
-            "Toggle": NullRipActive,
-            "Start": StartUpNullRip,
-            "Tab": NullRip,
-        },
-
         "NullGit": {
             "Config": "NullGitActive",
             "Toggle": NullGitActive,
@@ -523,11 +506,11 @@ def LoadConfig():
             "Tab": NullGit,
         },
 
-        "NullTracker": {
-            "Config": "NullTrackerActive",
-            "Toggle": NullTrackerActive,
-            "Start": StartUpNullTracker,
-            "Tab": NullTracker,
+        "NullFocus": {
+            "Config": "NullFocusActive",
+            "Toggle": NullFocusActive,
+            "Start": StartUpNullFocus,
+            "Tab": NullFocus,
         },
     
         "NullMoji":{
@@ -595,9 +578,8 @@ def SaveConfig(Which, FirstTimeSetup=False):
                 "NullMonitorActive": NullMonitorActive.get(),
                 "NullMidiActive": NullMidiActive.get(),
                 "NullProtonActive": NullProtonActive.get(),
-                "NullRipActive": NullRipActive.get(),
                 "NullGitActive": NullGitActive.get(),
-                "NullTrackerActive": NullTrackerActive.get(),
+                "NullFocusActive": NullFocusActive.get(),
                 "NullMojiActive": NullMojiActive.get(),
                 "StartMinimized": StartMinimizedActive.get(),
                 "StartInTray": StartInTrayActive.get(),
@@ -643,9 +625,9 @@ def SaveConfig(Which, FirstTimeSetup=False):
             data.update({
                 "NullGit": {"Repos":Repos}
             })
-        elif Which == "NullTracker":
+        elif Which == "NullFocus":
             data.update({
-            "NullTracker": {
+            "NullFocus": {
             "AppClassification": AppClassification,
             "WriteToDiskSeconds": WriteToDiskSeconds,
             "MinimumWindowTime": MinimumWindowTime,
@@ -860,7 +842,7 @@ def BuildWindowSelectionList(Program):
                     "gnome-shell.gnome-shell",
                     "plasmashell.plasmashell"
                 ]
-            ) or Program =="NullTracker" and WindowClass in IgnoredList:
+            ) or Program =="NullFocus" and WindowClass in IgnoredList:
                 continue
 
             SeenClasses.add(WindowClass)
@@ -909,7 +891,7 @@ def SelectWindow(Window, Dict, var, ClassName,DisplayName, Popup, Program, Page=
             Dict[ClassName] = Window["ClassName"]
             var.set(Window["UIName"])
             Dict[DisplayName] = Window["UIName"]
-    elif Program == "NullTracker":
+    elif Program == "NullFocus":
         Dict.setdefault(ClassName,[])
         if Window["ClassName"] not in Dict[ClassName]:
             NormalizedClass = Window["ClassName"].split(".")[0].lower()
@@ -927,24 +909,10 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
     SelectedImage = [None]
     Thumbnails = []
 
-    Outer = tk.Frame(Popup)
-    Outer.pack(fill="both", expand=True)
+    ScrollFrame = ScrollableFrame(Popup)
+    ScrollFrame.pack(fill="both", expand=True)
 
-    Canvas = tk.Canvas(Outer)
-    ScrollBar = tk.Scrollbar(Outer, orient="vertical", command=Canvas.yview)
-
-    Inner = tk.Frame(Canvas)
-
-    Inner.bind(
-        "<Configure>",
-        lambda e: Canvas.configure(scrollregion=Canvas.bbox("all"))
-    )
-
-    Canvas.create_window((0, 0), window=Inner, anchor="nw")
-    Canvas.configure(yscrollcommand=ScrollBar.set)
-
-    Canvas.pack(side="left", fill="both", expand=True)
-    ScrollBar.pack(side="right", fill="y")
+    Images = []
 
     SupportedTypes = (
         ".png",
@@ -954,8 +922,6 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
         ".webp",
         ".gif"
     )
-
-    Images = []
 
     for File in sorted(os.listdir(Path)):
         FullPath = os.path.join(Path, File)
@@ -975,7 +941,7 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
         Column = Index % 5
 
         Cell = tk.Frame(
-            Inner,
+            ScrollFrame.Inner,
             relief="groove",
             borderwidth=2
         )
@@ -1020,13 +986,14 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
             command=lambda P=ImagePath: SelectImage(P)
         ).pack(fill="x")
 
+    ScrollFrame.BindMouseWheel(ScrollFrame.Inner)
+
     Popup.transient(Root)
     Popup.grab_set()
 
     Root.wait_window(Popup)
 
     return SelectedImage[0]
-
 # ————————————————————————————————————————————————————————————
 # NullWire
 # ————————————————————————————————————————————————————————————
@@ -3482,571 +3449,6 @@ def BuildEnv(State):
             Env[Key] = Value
 
     return Env
-
-# ————————————————————————————————————————————————————————————
-# NullRip
-# ————————————————————————————————————————————————————————————
-def ToggleChapters():
-    all_checked = all(var.get() for _, var in SelectedChapters)
-
-    for _, var in SelectedChapters:
-        var.set(not all_checked)
-
-def ScanDisc(path):
-    result = subprocess.run(
-        ["HandBrakeCLI", "-i", path, "--scan"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
-    return result.stdout
-
-def ParseScan(output):
-    titles = []
-    current = None
-
-    audio_mode = False
-    sub_mode = False
-
-    for line in output.splitlines():
-
-        t = re.search(r"\+ title (\d+):", line)
-        if t:
-            if current:
-                titles.append(current)
-
-            current = {
-                "index": int(t.group(1)),
-                "duration": "",
-                "chapters": [],
-                "audio": [],
-                "subtitles": []
-            }
-
-            audio_mode = False
-            sub_mode = False
-            continue
-
-        if "+ audio tracks:" in line:
-            audio_mode = True
-            sub_mode = False
-            continue
-
-        if "+ subtitle tracks:" in line:
-            sub_mode = True
-            audio_mode = False
-            continue
-
-        if audio_mode:
-            m = re.search(r"\+ (\d+), (.+)", line)
-            if m and current:
-                raw = m.group(2)
-
-                name = re.match(r"([^(]+)", raw)
-                clean = name.group(1).strip() if name else raw
-
-                current["audio"].append({
-                    "id": int(m.group(1)),
-                    "name": clean
-                })
-            continue
-
-        if sub_mode:
-            m = re.search(r"\+ (\d+), (.+)", line)
-            if m and current:
-                raw = m.group(2)
-
-                name = re.match(r"([^(]+)", raw)
-                clean = name.group(1).strip() if name else raw
-
-                current["subtitles"].append({
-                    "id": int(m.group(1)),
-                    "name": clean
-                })
-            continue
-
-        d = re.search(r"\+ duration: (\d+:\d+:\d+)", line)
-        if d and current:
-            current["duration"] = d.group(1)
-            continue
-
-        c = re.search(r"\+ (\d+): duration (\d+:\d+:\d+)", line)
-        if c and current:
-            current["chapters"].append({
-                "num": int(c.group(1)),
-                "time": c.group(2)
-            })
-            continue
-
-    if current:
-        titles.append(current)
-
-    return titles
-
-def LoadTitles(data):
-    global Titles
-    Titles = data
-
-    for w in NullRipTitlesBox.Inner.winfo_children():
-        w.destroy()
-
-    for w in NullRipChaptersBox.Inner.winfo_children():
-        w.destroy()
-
-    for w in NullRipOptionsBoxSplit.Inner.winfo_children():
-        w.destroy()
-
-    for title in data:
-        button = tk.Button(
-            NullRipTitlesBox.Inner,
-            text=f"Title {title['index']} ({title['duration']})",
-            anchor="w",
-            command=lambda t=title: OnTitleSelected(t)
-        )
-
-        button.pack(fill="x", padx=5, pady=2)
-
-def OnTitleSelected(title):
-    global SelectedTitle
-    SelectedTitle = title
-
-    LoadChapters(title)
-    LoadOptions(title)
-
-def GetVLCCommand():
-    if shutil.which("vlc"):
-        return ["vlc"]
-
-    if shutil.which("flatpak"):
-        result = subprocess.run(
-            ["flatpak", "list"],
-            stdout=subprocess.PIPE,
-            text=True
-        )
-
-        if "org.videolan.VLC" in result.stdout:
-            return ["flatpak", "run", "org.videolan.VLC"]
-
-    return None
-
-def PreviewChapter(title_index, chapter_num):
-    cmd = GetVLCCommand()
-
-    if not cmd:
-        messagebox.showerror(
-            "VLC Required",
-            "Install VLC (apt or flatpak) to preview chapters."
-        )
-        return
-
-    try:
-        subprocess.Popen(
-            cmd + [f"dvd://{NullRipInputPath.get()}#{title_index}:{chapter_num}"])
-    except Exception as e:
-        print("VLC launch failed:", e)
-
-def LoadChapters(title):
-    global SelectedChapters
-    SelectedChapters.clear()
-
-    for w in NullRipChaptersBox.Inner.winfo_children():
-        w.destroy()
-
-    for chap in title["chapters"]:
-        var = tk.BooleanVar(value=False)
-        SelectedChapters.append((chap, var))
-
-        row = tk.Frame(NullRipChaptersBox.Inner)
-        row.pack(fill="x", padx=5, pady=2)
-
-        tk.Checkbutton(
-            row,
-            text=f"Chapter {chap['num']} ({chap['time']})",
-            variable=var,
-            anchor="w"
-        ).pack(side="left", fill="x", expand=True)
-
-        tk.Button(
-            row,
-            text="▶",
-            width=3,
-            command=lambda t=title['index'], c=chap['num']: PreviewChapter(t, c)
-        ).pack(side="right")
-
-def LoadOptions(title):
-    global SelectedAudio, SelectedSubs
-
-    SelectedAudio.clear()
-    SelectedSubs.clear()
-
-    frame = NullRipOptionsBoxSplit.Inner
-
-    for w in frame.winfo_children():
-        w.destroy()
-
-    frame.columnconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=0)
-    frame.columnconfigure(2, weight=1)
-
-    tk.Label(frame, text="Audio").grid(row=0, column=0, sticky="ew")
-    tk.Label(frame, text="Subtitles").grid(row=0, column=2, sticky="ew")
-
-    max_rows = max(len(title["audio"]), len(title["subtitles"]))
-
-    divider = tk.Frame(frame, width=2, bg="black")
-    divider.grid(row=0, column=1, rowspan=max_rows+1, sticky="ns", padx=5)
-
-    
-
-    for i in range(max_rows):
-
-        if i < len(title["audio"]):
-            track = title["audio"][i]
-            var = tk.BooleanVar(value=True)
-
-            SelectedAudio.append((track, var))
-
-            tk.Checkbutton(
-                frame,
-                text=track["name"],
-                variable=var
-            ).grid(row=i+1, column=0, sticky="w", padx=(5,10))
-
-        if i < len(title["subtitles"]):
-            track = title["subtitles"][i]
-            var = tk.BooleanVar(value=True)
-
-            SelectedSubs.append((track, var))
-
-            tk.Checkbutton(
-                frame,
-                text=track["name"],
-                variable=var
-            ).grid(row=i+1, column=2, sticky="w", padx=(10,5))
-
-def StartScan():
-    popup, progress = ShowScanPopup()
-
-    threading.Thread(
-        target=lambda: ScanThread(popup, progress),
-        daemon=True
-    ).start()
-
-def ScanThread(popup, progress):
-    path = NullRipInputPath.get()
-
-    if not path:
-        Root.after(0, popup.destroy)
-        return
-
-    raw = ScanDisc(path)
-    titles = ParseScan(raw)
-
-    Root.after(0, lambda: FinishScan(popup, progress, titles))
-
-def FinishScan(popup, progress, titles):
-    progress.stop()
-    popup.destroy()
-
-    LoadTitles(titles)
-    NullRipStartButton.config(state="normal")
-
-def GetSelectedTracks():
-    audio = [t["id"] for t, v in SelectedAudio if v.get()]
-    subs  = [t["id"] for t, v in SelectedSubs if v.get()]
-    return audio, subs
-
-def GetVideosDir():
-    home = os.path.expanduser("~")
-    config = os.path.join(home, ".config", "user-dirs.dirs")
-
-    if os.path.exists(config):
-        with open(config, "r") as f:
-            for line in f:
-                if line.startswith("XDG_VIDEOS_DIR"):
-                    path = line.split("=")[1].strip().strip('"')
-                    path = path.replace("$HOME", home)
-                    return path
-
-    return os.path.join(home, "Videos")
-
-def BrowseInput():
-    import os
-
-    user = getpass.getuser()
-
-    media_path = f"/media/{user}"
-    run_media_path = f"/run/media/{user}"
-
-    start_dir = None
-
-    if os.path.exists(media_path):
-        start_dir = media_path
-    elif os.path.exists(run_media_path):
-        start_dir = run_media_path
-    else:
-        start_dir = "/"  # fallback
-
-    path = filedialog.askdirectory(initialdir=start_dir)
-
-    if path:
-        NullRipInputPath.set(path)
-
-def BrowseOutput():
-    start_dir = GetVideosDir()
-
-    if not os.path.exists(start_dir):
-        start_dir = os.path.expanduser("~")
-
-    path = filedialog.askdirectory(initialdir=start_dir)
-
-    if path:
-        NullRipOutputPath.set(path)
-
-def ShowScanPopup():
-    popup = tk.Toplevel(Root)
-    popup.title("Scanning")
-    popup.geometry("300x100")
-    popup.resizable(False, False)
-
-    tk.Label(popup, text="Scanning disc...").pack(pady=10)
-
-    progress = ttk.Progressbar(popup, mode="indeterminate")
-    progress.pack(fill="x", padx=10, pady=5)
-    progress.start(10)
-
-    popup.grab_set()
-    popup.transient(Root)
-
-    CenterWindow(popup)
-
-    return popup, progress
-
-def CenterWindow(win):
-    win.update_idletasks()
-    x = (win.winfo_screenwidth() // 2) - (win.winfo_width() // 2)
-    y = (win.winfo_screenheight() // 2) - (win.winfo_height() // 2)
-    win.geometry(f"+{x}+{y}")
-
-def GetSelections():
-    if not SelectedTitle:
-        return None
-
-    title_index = SelectedTitle["index"]
-
-    chapters = [c["num"] for c, v in SelectedChapters if v.get()]
-    audio    = [t["id"] for t, v in SelectedAudio if v.get()]
-    subs     = [t["id"] for t, v in SelectedSubs if v.get()]
-
-    return title_index, chapters, audio, subs
-
-def ConfirmNoAudio():
-    return messagebox.askyesno(
-        "No Audio Selected",
-        "No audio selected.\nAre you sure you want to begin the rip?"
-    )
-
-def FormatChapters(chapters):
-    if not chapters:
-        return None
-
-    chapters = sorted(chapters)
-
-    ranges = []
-    start = prev = chapters[0]
-
-    for num in chapters[1:]:
-        if num == prev + 1:
-            prev = num
-        else:
-            ranges.append((start, prev))
-            start = prev = num
-
-    ranges.append((start, prev))
-
-    parts = []
-    for s, e in ranges:
-        if s == e:
-            parts.append(str(s))
-        else:
-            parts.append(f"{s}-{e}")
-
-    return ",".join(parts)
-
-def BuildCommand(title, chapters, audio, subs):
-    filename = NullRipFileName.get().strip()
-
-    if not filename:
-        filename = f"Title_{title}"
-
-    if not filename.lower().endswith(".mkv"):
-        filename += ".mkv"
-
-    output_file = os.path.join(NullRipOutputPath.get(), filename)
-    if os.path.exists(output_file):
-        if not messagebox.askyesno("Overwrite?", f"{filename} already exists.\nOverwrite?"):
-            return None
-
-    cmd = [
-        "HandBrakeCLI",
-        "-i", NullRipInputPath.get(),
-        "-o", output_file,
-        "--title", str(title),
-        "-q", "20",
-    ]
-
-    if chapters:
-        formatted = FormatChapters(chapters)
-        cmd += ["--chapters", formatted]
-
-    if audio:
-        cmd += ["--audio", ",".join(map(str, audio))]
-
-    if subs:
-        cmd += ["--subtitle", ",".join(map(str, subs))]
-
-    return cmd
-
-def ShowRipOverlay():
-    NullRipOverlay.place(
-        relx=0,
-        rely=0,
-        relwidth=1,
-        relheight=1
-    )
-    NullRipOverlay.lift()
-
-def HideRipOverlay():
-    NullRipOverlay.place_forget()
-
-def UpdateRipOverlay(percent=0, eta="--"):
-    NullRipOverlayLabel.config(
-        text=(
-            "Ripping Video...\n\n"
-            f"Progress: {percent:.1f}%\n"
-            f"ETA: {eta}\n\n"
-            "Please wait..."
-        )
-    )
-
-def CancelRip():
-    global CurrentProcess
-
-    if CurrentProcess:
-        try:
-            CurrentProcess.terminate()
-        except:
-            pass
-
-    HideRipOverlay()
-
-def StartRip():
-    data = GetSelections()
-
-    if not data:
-        messagebox.showerror("Error", "No title selected.")
-        return
-
-    title, chapters, audio, subs = data
-
-    if not chapters:
-        messagebox.showerror("Error", "No chapters selected.")
-        return
-
-    if not audio:
-        if not ConfirmNoAudio():
-            return
-
-    if not NullRipInputPath.get():
-        messagebox.showerror("Error", "No input selected.")
-        return
-
-    if not NullRipOutputPath.get():
-        messagebox.showerror("Error", "No output folder selected.")
-        return
-
-    filename = NullRipFileName.get().strip()
-
-    if not filename:
-        messagebox.showerror("Error", "No filename set.")
-        return
-
-    filename = re.sub(r'[\\/*?:"<>|]', "", filename)
-    NullRipFileName.set(filename)
-
-    cmd = BuildCommand(title, chapters, audio, subs)
-
-    if not cmd:
-        return
-
-    ShowRipOverlay()
-    UpdateRipOverlay(0, "--")
-
-    threading.Thread(
-        target=RipThread,
-        args=(cmd,),
-        daemon=True
-    ).start()
-
-def RipThread(cmd):
-    global CurrentProcess
-
-    try:
-        CurrentProcess = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            universal_newlines=True
-        )
-
-        percent = 0
-        eta = "--"
-
-        for line in CurrentProcess.stdout:
-            line = line.strip()
-            print(line)
-
-            percent_match = re.search(r"(\d+(?:\.\d+)?)\s*%", line)
-            eta_match = re.search(r"ETA\s+([0-9hms:]+)", line)
-
-            if percent_match:
-                percent = float(percent_match.group(1))
-
-            if eta_match:
-                eta = eta_match.group(1)
-
-            Root.after(0, UpdateRipOverlay, percent, eta)
-
-        CurrentProcess.wait()
-
-        if CurrentProcess.returncode != 0:
-            Root.after(
-                0,
-                lambda: messagebox.showerror(
-                    "Error",
-                    "Rip failed or cancelled."
-                )
-            )
-            Root.after(0, HideRipOverlay)
-            return
-
-        Root.after(0, FinishRip)
-
-    finally:
-        CurrentProcess = None
-
-def FinishRip():
-    HideRipOverlay()
-
-    messagebox.showinfo("Done", "Rip complete.")
-
-    if NullRipOpenFolder.get():
-        try:
-            subprocess.Popen(["xdg-open", NullRipOutputPath.get()])
-        except Exception as e:
-            print("Failed to open folder:", e)
 
 # ————————————————————————————————————————————————————————————
 # NullMidi
@@ -9570,7 +8972,7 @@ def StashAndPull():
         )
 
 # ————————————————————————————————————————————————————————————
-# NullTracker
+# NullFocus
 # ————————————————————————————————————————————————————————————
 
 def RegisterAnyActivity():
@@ -9669,7 +9071,7 @@ def ChangedWindowFocus(NewFocus):
     return
 
 def WatchFocus():
-    if NullTrackerActive.get() == True:
+    if NullFocusActive.get() == True:
         proc = subprocess.Popen(
             ["xprop", "-root", "-spy", "_NET_ACTIVE_WINDOW"],
             stdout=subprocess.PIPE,
@@ -9678,7 +9080,7 @@ def WatchFocus():
 
         for line in proc.stdout:
             try:
-                if NullTrackerActive.get() == True:
+                if NullFocusActive.get() == True:
                     WindowID= line.strip().split()[-1]
                     yield WindowID
                 else:
@@ -9793,14 +9195,14 @@ def AddNewTracker(Name=None, Loading=False):
 
     def WaitForTrackerPopUp():
             if TrackerPopup is None:
-                SaveConfig("NullTracker")
+                SaveConfig("NullFocus")
                 RefreshCategoryWindows()
                 return
             Root.after(100, WaitForTrackerPopUp)
 
     def AddWindowTrackerSpecialty(AppClassification,OriginalName):
 
-        SearchForWindow(AppClassification,None,OriginalName,None,"NullTracker")
+        SearchForWindow(AppClassification,None,OriginalName,None,"NullFocus")
         
         WaitForTrackerPopUp()
         return
@@ -9911,7 +9313,7 @@ def RemoveCategoryWindow(Category, WindowName, Button, Popup, Timeout=4):
 
     UpdateTrackerQuality()
 
-    SaveConfig("NullTracker")
+    SaveConfig("NullFocus")
 
     Button.destroy()
 
@@ -9927,12 +9329,12 @@ def AddIgnoredTracker():
         IgnoredAppListVar,
         "Ignored",
         "IgnoredDisplay",
-        "NullTracker"
+        "NullFocus"
     )
 
     def WaitForTrackerPopUp():
             if TrackerPopup is None:
-                SaveConfig("NullTracker")
+                SaveConfig("NullFocus")
                 UpdateTrackerQuality()
                 Root.update_idletasks()
                 return
@@ -9985,7 +9387,7 @@ def RemoveIgnoredTracker(App, Button, Timeout=4):
     if App in AppClassification.get("Ignored",[]):
         AppClassification["Ignored"].remove(App)
     UpdateTrackerQuality()
-    SaveConfig("NullTracker")
+    SaveConfig("NullFocus")
     Button.destroy()
     return
 
@@ -10010,7 +9412,7 @@ def QueueTrackerSave():
         Root.after_cancel(TrackerSaveTimer)
     TrackerSaveTimer = Root.after(
         1000,
-        lambda: SaveConfig("NullTracker")
+        lambda: SaveConfig("NullFocus")
     )
 
 def ClickYearButton(Year):
@@ -10620,9 +10022,9 @@ NullWire = tk.Frame(Notebook)
 NullMonitor = tk.Frame(Notebook)
 NullMidi = tk.Frame(Notebook)
 NullProton = tk.Frame(Notebook)
-NullRip = tk.Frame(Notebook)
+
 NullGit = tk.Frame(Notebook)
-NullTracker = tk.Frame(Notebook)
+NullFocus = tk.Frame(Notebook)
 NullMoji = tk.Frame(Notebook)
 
 Notebook.add(NullSuite, text="NullSuite")
@@ -10630,9 +10032,8 @@ Notebook.add(NullWire, text="NullWire")
 Notebook.add(NullMonitor, text="NullMonitor")
 Notebook.add(NullMidi, text = "NullMidi")
 Notebook.add(NullProton, text = "NullProton")
-Notebook.add(NullRip, text = "NullRip")
 Notebook.add(NullGit, text = "NullGit")
-Notebook.add(NullTracker, text = "NullTracker")
+Notebook.add(NullFocus, text = "NullFocus")
 Notebook.add(NullMoji, text = "NullMoji")
 
 # ------------------------------
@@ -10682,14 +10083,11 @@ def UpdateStartUpToggles(Which):
     elif Which == "Proton":
         StartUpNullProton()
 
-    elif Which == "Rip":
-        StartUpNullRip()
-
     elif Which == "Git":
         StartUpNullGit()
 
     elif Which == "Tracker":
-        StartUpNullTracker()
+        StartUpNullFocus()
 
     elif Which == "Moji":
         StartUpNullMoji()
@@ -10709,17 +10107,14 @@ NullMidiActivator.grid(row=0,column=2, padx=1,pady=1, sticky="w")
 NullProtonActivator = tk.Checkbutton(NullSuiteToggles, text="NullProton?", variable=NullProtonActive,command=lambda: UpdateStartUpToggles("Proton"))
 NullProtonActivator.grid(row=0,column=3, padx=1,pady=1, sticky="w")
 
-NullRipActivator = tk.Checkbutton(NullSuiteToggles, text="NullRip?", variable=NullRipActive,command=lambda: UpdateStartUpToggles("Rip"))
-NullRipActivator.grid(row=0,column=4, padx=1,pady=1, sticky="w")
-
 NullGitActivator = tk.Checkbutton(NullSuiteToggles, text="NullGit?", variable=NullGitActive,command=lambda: UpdateStartUpToggles("Git"))
-NullGitActivator.grid(row=0,column=5, padx=1,pady=1, sticky="w")
+NullGitActivator.grid(row=0,column=4, padx=1,pady=1, sticky="w")
 
-NullTrackerActivator = tk.Checkbutton(NullSuiteToggles, text="NullTracker?", variable=NullTrackerActive,command=lambda: UpdateStartUpToggles("Tracker"))
-NullTrackerActivator.grid(row=0,column=6, padx=1,pady=1, sticky="w")
+NullFocusActivator = tk.Checkbutton(NullSuiteToggles, text="NullFocus?", variable=NullFocusActive,command=lambda: UpdateStartUpToggles("Tracker"))
+NullFocusActivator.grid(row=0,column=5, padx=1,pady=1, sticky="w")
 
 NullMojiActivator = tk.Checkbutton(NullSuiteToggles, text="NullMoji?", variable=NullMojiActive,command=lambda: UpdateStartUpToggles("Moji"))
-NullMojiActivator.grid(row=0,column=7, padx=1,pady=1, sticky="w")
+NullMojiActivator.grid(row=0,column=6, padx=1,pady=1, sticky="w")
 
 
 
@@ -10851,112 +10246,6 @@ MidiScrollBox.pack(fill="both", expand=True)
 MidiContainer = MidiScrollBox.Inner
 tk.Button(TopBar, text="Add New Input", command=lambda: AddMidiRow(None)).pack(fill="x")
 ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=5)
-# ------------------------------
-# Null Rip UI
-# ------------------------------
-NullRiptop = tk.Frame(NullRip)
-NullRiptop.pack(fill="x", padx=10, pady=(10, 0))
-NullRiptop.columnconfigure(0,weight=0)
-NullRiptop.columnconfigure(1,weight=1)
-NullRiptop.columnconfigure(2,weight=0)
-NullRiptop.rowconfigure(0, weight=1)
-NullRiptop.rowconfigure(1, weight=1)
-NullRiptop.rowconfigure(2, weight=1)
-NullRipScan = tk.Frame(NullRip)
-NullRipScan.pack(fill="x", padx=10)
-NullRipScan.columnconfigure(0,weight=1)
-NullRipScan.rowconfigure(0, weight=1)
-NullRipInputPath = tk.StringVar()
-NullRipOutputPath = tk.StringVar()
-NullRipOutputPath.set(GetVideosDir())
-NullRipFileName = tk.StringVar()
-NullRipOpenFolder = tk.BooleanVar()
-tk.Label(NullRiptop, text="Input:").grid(row=0, column=0, sticky="ew")
-tk.Button(NullRiptop, text="Browse", width =8,command=BrowseInput).grid(row=0, column=2, sticky="e")
-tk.Entry(NullRiptop,width=30,textvariable=NullRipInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-tk.Label(NullRiptop, text="Output:").grid(row=1, column=0, sticky="ew")
-tk.Entry(NullRiptop, width=30, textvariable=NullRipOutputPath, state="readonly", readonlybackground="#e7e7e7").grid(row=1, column=1, sticky="ew")
-tk.Button(NullRiptop, text="Browse", width =8,command=BrowseOutput).grid(row=1, column=2, sticky="e")
-tk.Label(NullRiptop, text="Name It:").grid(row=2, column=0, sticky="ew")
-tk.Entry(NullRiptop, width=30, textvariable=NullRipFileName,).grid(row=2, column=1, sticky="ew")
-tk.Button(NullRipScan,text="Scan",command=lambda: StartScan()).grid(row=3, column=0, pady=5, sticky="ew")
-divider = tk.Frame(NullRip, height=2, bg="gray")
-divider.pack(fill="x", padx=10, pady=5)
-NullRipbottom = tk.Frame(NullRip)
-NullRipbottom.pack(fill="both", expand=True)
-NullRipbottom.rowconfigure(0,weight=0)
-NullRipbottom.rowconfigure(1,weight=1)
-NullRipbottom.columnconfigure(0,weight=1)
-NullRipbottom.columnconfigure(1,weight=1)
-NullRipbottom.columnconfigure(2,weight=1)
-NullRipTitlesLabel = tk.Label(NullRipbottom, text="Titles")
-NullRipTitlesLabel.grid(row=0, column=0, sticky="ew", padx=(10,5), pady=0)
-NullRipTitlesBoxContainer = tk.Frame(NullRipbottom, bd=2, relief="solid")
-NullRipTitlesBoxContainer.grid(row=1, column=0, sticky="nsew", padx=(10,5), pady=(5,10))
-NullRipTitlesBox = ScrollableFrame(NullRipTitlesBoxContainer)
-NullRipTitlesBox.pack(fill="both", expand=True)
-NullRipChaptersLabel = tk.Label(NullRipbottom, text="Chapters")
-NullRipChaptersLabel.grid(row=0, column=1, sticky="ew", padx=(10,5), pady=0)
-NullRipChaptersBoxContainer = tk.Frame(NullRipbottom, bd=2, relief="solid")
-NullRipChaptersBoxContainer.grid(row=1, column=1, sticky="nsew", padx=(10,5), pady=(5,10))
-NullRipChaptersBox = ScrollableFrame(NullRipChaptersBoxContainer)
-NullRipChaptersBox.pack(fill="both", expand=True)
-NullRipOptionsText = tk.Label(NullRipbottom, text="Options")
-NullRipOptionsText.grid(row=0, column=2, sticky="ew", padx=(10,5), pady=0)
-NullRipOptionsBox = tk.Frame(NullRipbottom, bd=2, relief="solid")
-NullRipOptionsBox.grid(row=1, column=2, sticky="nsew", padx=(5,10), pady=(5,10))
-NullRipOptionsBox.rowconfigure(0, weight=1)
-NullRipOptionsBox.rowconfigure(1, weight=0)
-NullRipOptionsBox.columnconfigure(0, weight=1)
-NullRipOptionsBoxGrid = tk.Frame(NullRipOptionsBox)
-NullRipOptionsBoxGrid.grid(row=0, column=0, sticky="nsew")
-NullRipOptionsBoxGrid.rowconfigure(0, weight=1)
-NullRipOptionsBoxGrid.rowconfigure(1, weight=0)
-NullRipOptionsBoxGrid.rowconfigure(2, weight=0)
-NullRipOptionsBoxGrid.rowconfigure(3, weight=0)
-NullRipOptionsBoxGrid.columnconfigure(0, weight=1)
-NullRipOptionsBoxGrid.columnconfigure(1, weight=0)
-NullRipOptionsBoxSplit = ScrollableFrame(NullRipOptionsBoxGrid)
-NullRipOptionsBoxSplit.grid(row=0, column=0, sticky="nsew", padx=(5,5), pady=(5,10))
-NullRipOpenAfterRip = tk.Checkbutton(NullRipOptionsBoxGrid, text="Open Output After Rip?", variable=NullRipOpenFolder)
-NullRipOpenAfterRip.grid(row=1, column=0, sticky="swe", padx=(5,5))
-NullRipToggleAllChapters = tk.Button(NullRipOptionsBoxGrid, text="Toggle All Chapters")
-NullRipToggleAllChapters.grid(row=2, column=0, sticky="swe", padx=(5,5))
-NullRipToggleAllChapters.config(command=ToggleChapters)
-NullRipStartButton = tk.Button(NullRipOptionsBoxGrid, text="Start")
-NullRipStartButton.grid(row=3, column=0, sticky="swe", padx=(5,5), pady=(0,5))
-NullRipStartButton.config(state="disabled")
-NullRipStartButton.config(command=StartRip)
-NullRipprogress = ttk.Progressbar(NullRipScan, mode="indeterminate")
-NullRipprogress.grid(row=4, column=0, sticky="ew", pady=5)
-NullRipprogress.grid_remove()
-NullRipOverlay = tk.Frame(NullRip, bg="#000000")
-NullRipOverlayContent = tk.Frame(
-    NullRipOverlay,
-    bg="#000000"
-)
-NullRipOverlayContent.place(
-    relx=0.5,
-    rely=0.5,
-    anchor="center"
-)
-NullRipOverlayLabel = tk.Label(
-    NullRipOverlayContent,
-    text="",
-    fg="white",
-    bg="#000000",
-    justify="center",
-    anchor="center",
-    font=("Arial", 12)
-)
-NullRipOverlayLabel.pack(padx=20, pady=(20,10))
-NullRipCancelButton = tk.Button(
-    NullRipOverlayContent,
-    text="Cancel Rip",
-    command=CancelRip
-)
-NullRipCancelButton.pack(pady=(0,20))
-NullRipOverlay.lower()
 # ------------------------------
 # Null MonitorUI
 # ------------------------------
@@ -11333,56 +10622,56 @@ ForcePush.grid(row=0,column=1,sticky="ew",padx=5,pady=2, columnspan=2)
 
 
 # ------------------------------
-# Null Tracker UI
+# Null Focus UI
 # ------------------------------
-NullTrackerNotebook = ttk.Notebook(NullTracker)
-NullTrackerNotebook.pack(fill="both", expand=True)
-NullTrackerManagePage = tk.Frame(NullTrackerNotebook)
-NullTrackerManagePage.rowconfigure(0, weight=1)
-NullTrackerManagePage.columnconfigure(0, weight=1)
-NullTrackerLogsPage = tk.Frame(NullTrackerNotebook)
-NullTrackerLogsPage.rowconfigure(0, weight=1)
-NullTrackerLogsPage.columnconfigure(0, weight=1)
-NullTrackerNotebook.add(NullTrackerLogsPage, text="Logs")
-NullTrackerNotebook.add(NullTrackerManagePage, text="Manage")
+NullFocusNotebook = ttk.Notebook(NullFocus)
+NullFocusNotebook.pack(fill="both", expand=True)
+NullFocusManagePage = tk.Frame(NullFocusNotebook)
+NullFocusManagePage.rowconfigure(0, weight=1)
+NullFocusManagePage.columnconfigure(0, weight=1)
+NullFocusLogsPage = tk.Frame(NullFocusNotebook)
+NullFocusLogsPage.rowconfigure(0, weight=1)
+NullFocusLogsPage.columnconfigure(0, weight=1)
+NullFocusNotebook.add(NullFocusLogsPage, text="Logs")
+NullFocusNotebook.add(NullFocusManagePage, text="Manage")
 #--- Manage
-NullTrackerManagePageMain = tk.Frame(NullTrackerManagePage)
-NullTrackerManagePageMain.pack(fill="both", expand=True)
+NullFocusManagePageMain = tk.Frame(NullFocusManagePage)
+NullFocusManagePageMain.pack(fill="both", expand=True)
 
-NullTrackerManagePageMain.columnconfigure(0, weight=1)
-NullTrackerManagePageMain.rowconfigure(0, weight=0)
-NullTrackerManagePageMain.rowconfigure(1, weight=0)
-NullTrackerManagePageMain.rowconfigure(2, weight=0)
-NullTrackerManagePageMain.rowconfigure(3, weight=1)
-NullTrackerManagePageSlidersNTexts = tk.Frame(NullTrackerManagePageMain)
-NullTrackerManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=5)
-NullTrackerManagePageSlidersNTexts.columnconfigure(0, weight=1)
-NullTrackerManagePageSlidersNTexts.columnconfigure(1, weight=1)
-NullTrackerManagePageSlidersNTexts.columnconfigure(2, weight=1)
-NullTrackerManagePageSlidersNTexts.rowconfigure(0, weight=0)
-NullTrackerManagePageSlidersNTexts.rowconfigure(1, weight=0)
-NullTrackerManagePageSlidersNTexts.rowconfigure(2, weight=0)
+NullFocusManagePageMain.columnconfigure(0, weight=1)
+NullFocusManagePageMain.rowconfigure(0, weight=0)
+NullFocusManagePageMain.rowconfigure(1, weight=0)
+NullFocusManagePageMain.rowconfigure(2, weight=0)
+NullFocusManagePageMain.rowconfigure(3, weight=1)
+NullFocusManagePageSlidersNTexts = tk.Frame(NullFocusManagePageMain)
+NullFocusManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=5)
+NullFocusManagePageSlidersNTexts.columnconfigure(0, weight=1)
+NullFocusManagePageSlidersNTexts.columnconfigure(1, weight=1)
+NullFocusManagePageSlidersNTexts.columnconfigure(2, weight=1)
+NullFocusManagePageSlidersNTexts.rowconfigure(0, weight=0)
+NullFocusManagePageSlidersNTexts.rowconfigure(1, weight=0)
+NullFocusManagePageSlidersNTexts.rowconfigure(2, weight=0)
 TrackerWriteInterval = tk.IntVar(value = 1)
 TrackerMinimumWindowTime = tk.IntVar(value = 1)
 TrackerNewDay = tk.IntVar(value = 3)
 IgnoredAppListVar = tk.StringVar(value = "")
-WriteIntervalText = tk.Label(NullTrackerManagePageSlidersNTexts, text= f"Save To Disk Every: {TrackerWriteInterval.get()} Minutes")
+WriteIntervalText = tk.Label(NullFocusManagePageSlidersNTexts, text= f"Save To Disk Every: {TrackerWriteInterval.get()} Minutes")
 WriteIntervalText.grid(row=0, column=0, sticky="ew", pady=0)
-RequiredFocusText = tk.Label(NullTrackerManagePageSlidersNTexts, text= f"Window Focus Time Req: {TrackerMinimumWindowTime.get()} Seconds")
+RequiredFocusText = tk.Label(NullFocusManagePageSlidersNTexts, text= f"Window Focus Time Req: {TrackerMinimumWindowTime.get()} Seconds")
 RequiredFocusText.grid(row=0, column=1, sticky="ew", pady=0)
-NewDayText = tk.Label(NullTrackerManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
+NewDayText = tk.Label(NullFocusManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
 NewDayText.grid(row=0, column=2, sticky="ew", pady=0)
-WriteIntervalSlider = tk.Scale(NullTrackerManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
+WriteIntervalSlider = tk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
 WriteIntervalSlider.grid(row=1, column=0, sticky="ew")
-RequiredFocusSlider = tk.Scale(NullTrackerManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
+RequiredFocusSlider = tk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
 RequiredFocusSlider.grid(row=1, column=1, sticky="ew")
-NewDaySlider = tk.Scale(NullTrackerManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
+NewDaySlider = tk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
 NewDaySlider.grid(row=1, column=2, sticky="ew")
-AddNewTrackerClass = tk.Button(NullTrackerManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
+AddNewTrackerClass = tk.Button(NullFocusManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
 AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=5)
-TrackerDiv = tk.Frame(NullTrackerManagePageMain, height=3, bg="gray")
+TrackerDiv = tk.Frame(NullFocusManagePageMain, height=3, bg="gray")
 TrackerDiv.grid(row=2, column=0, sticky="ew", pady=5)
-TrackerBottomLists = tk.Frame(NullTrackerManagePageMain)
+TrackerBottomLists = tk.Frame(NullFocusManagePageMain)
 TrackerBottomLists.grid(row=3, column=0, sticky="ensw", pady=(0,5))
 TrackerBottomLists.columnconfigure(0,weight=1)
 TrackerBottomLists.columnconfigure(1,weight=6)
@@ -11405,8 +10694,8 @@ RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=5)
 TrackerClassificationList = ScrollableFrame(TrackerBottomLists)
 TrackerClassificationList.grid(row=0, column=1, sticky="ensw", padx=5, pady=5)
 ClassiciationListContainer = TrackerClassificationList.Inner
-IgnoredAppsList.BindMouseWheel(NullTrackerManagePageMain)
-TrackerClassificationList.BindMouseWheel(NullTrackerManagePageMain)
+IgnoredAppsList.BindMouseWheel(NullFocusManagePageMain)
+TrackerClassificationList.BindMouseWheel(NullFocusManagePageMain)
 RequiredFocusSlider.bind("<Button-4>", lambda e: (TrackerMinimumWindowTime.set(min(60, TrackerMinimumWindowTime.get()+5)), UpdateTrackerQuality()))
 RequiredFocusSlider.bind("<Button-5>", lambda e: (TrackerMinimumWindowTime.set(max(1, TrackerMinimumWindowTime.get()-5)), UpdateTrackerQuality()))
 WriteIntervalSlider.bind("<Button-4>", lambda e: (TrackerWriteInterval.set(min(60, TrackerWriteInterval.get()+5)), UpdateTrackerQuality()))
@@ -11414,32 +10703,32 @@ WriteIntervalSlider.bind("<Button-5>", lambda e: (TrackerWriteInterval.set(max(1
 NewDaySlider.bind("<Button-4>", lambda e: (TrackerNewDay.set(min(23, TrackerNewDay.get()+1)), UpdateTrackerQuality()))
 NewDaySlider.bind("<Button-5>", lambda e: (TrackerNewDay.set(max(1, TrackerNewDay.get()-1)), UpdateTrackerQuality()))
 #---Logs
-NullTrackerLogsPageInner = tk.Frame(NullTrackerLogsPage)
-NullTrackerLogsPageInner.grid(row=0, column=0, sticky="nsew")
-NullTrackerLogsPageInner.rowconfigure(0,weight=0)
-NullTrackerLogsPageInner.rowconfigure(1,weight=0)
-NullTrackerLogsPageInner.rowconfigure(2,weight=1)
-NullTrackerLogsPageInner.columnconfigure(0,weight=1)
-NullTrackerLogsPageInner.columnconfigure(1,weight=1)
-NullTrackerLogsPageInner.columnconfigure(2,weight=1)
-NullTrackerLogsPageInner.columnconfigure(3,weight=7)
-InjectorButton = tk.Button(NullTrackerLogsPageInner, text="Inject", command= lambda: InjectTracker())
+NullFocusLogsPageInner = tk.Frame(NullFocusLogsPage)
+NullFocusLogsPageInner.grid(row=0, column=0, sticky="nsew")
+NullFocusLogsPageInner.rowconfigure(0,weight=0)
+NullFocusLogsPageInner.rowconfigure(1,weight=0)
+NullFocusLogsPageInner.rowconfigure(2,weight=1)
+NullFocusLogsPageInner.columnconfigure(0,weight=1)
+NullFocusLogsPageInner.columnconfigure(1,weight=1)
+NullFocusLogsPageInner.columnconfigure(2,weight=1)
+NullFocusLogsPageInner.columnconfigure(3,weight=7)
+InjectorButton = tk.Button(NullFocusLogsPageInner, text="Inject", command= lambda: InjectTracker())
 InjectorButton.grid(row=0, column=0, sticky="ew")
-InjectorText = tk.Label(NullTrackerLogsPageInner, text="What You Are Injecting:")
+InjectorText = tk.Label(NullFocusLogsPageInner, text="What You Are Injecting:")
 InjectorText.grid(row=0, column=1, sticky="ew", columnspan=2)
-InjectionEntry = tk.Entry(NullTrackerLogsPageInner,)
+InjectionEntry = tk.Entry(NullFocusLogsPageInner,)
 InjectionEntry.grid(row=0,column=3,padx=3,pady=3,sticky="ew")
 ToolTip(InjectorText, "E.g. When you took your medication, or did something important. It will show what you type, with the timestamp.")
-YearText = tk.Label(NullTrackerLogsPageInner, text= f"Years", width=6)
+YearText = tk.Label(NullFocusLogsPageInner, text= f"Years", width=6)
 YearText.grid(row=1, column=0, sticky="ew")
-MonthText = tk.Label(NullTrackerLogsPageInner, text= f"Months", width=7)
+MonthText = tk.Label(NullFocusLogsPageInner, text= f"Months", width=7)
 MonthText.grid(row=1, column=1, sticky="ew")
-CycleText = tk.Label(NullTrackerLogsPageInner, text= f"Cycles", width=8)
+CycleText = tk.Label(NullFocusLogsPageInner, text= f"Cycles", width=8)
 CycleText.grid(row=1, column=2, sticky="ew")
-BreakDownText = tk.Label(NullTrackerLogsPageInner, text= f"Breakdown")
+BreakDownText = tk.Label(NullFocusLogsPageInner, text= f"Breakdown")
 BreakDownText.grid(row=1, column=3, sticky="ew")
 CurrentLogView = tk.StringVar(value = "")
-YearChoicesBox = tk.Frame(NullTrackerLogsPageInner, bd=2, relief="solid")
+YearChoicesBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=5, pady=5)
 YearChoicesBox.rowconfigure(0,weight=1)
 YearChoicesBox.columnconfigure(0,weight=1)
@@ -11448,7 +10737,7 @@ YearChoices.pack(fill="both", expand=True, anchor="n")
 YearChoicesButtons = YearChoices.Inner
 YearChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-MonthChoicesBox = tk.Frame(NullTrackerLogsPageInner, bd=2, relief="solid")
+MonthChoicesBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=5, pady=5)
 MonthChoicesBox.rowconfigure(0,weight=1)
 MonthChoicesBox.columnconfigure(0,weight=1)
@@ -11457,7 +10746,7 @@ MonthChoices.pack(fill="both", expand=True, anchor="n")
 MonthChoicesButtons = MonthChoices.Inner
 MonthChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-CycleChoicesBox = tk.Frame(NullTrackerLogsPageInner, bd=2, relief="solid")
+CycleChoicesBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=5, pady=5)
 CycleChoicesBox.rowconfigure(0,weight=1)
 CycleChoicesBox.columnconfigure(0,weight=1)
@@ -11466,7 +10755,7 @@ CycleChoices.pack(fill="both", expand=True, anchor="n")
 CycleChoicesButtons = CycleChoices.Inner
 CycleChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-LogDataBox = tk.Frame(NullTrackerLogsPageInner, bd=2, relief="solid")
+LogDataBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 LogDataBox.grid(row=2,column=3, sticky="nsew",padx=5, pady=5)
 LogDataBox.rowconfigure(0,weight=1)
 LogDataBox.columnconfigure(0,weight=1)
@@ -11476,10 +10765,10 @@ LogDataInner = LogData.Inner
 LogDataLabel = tk.Label(LogDataInner, textvariable=CurrentLogView)
 LogDataLabel.pack(fill="both", expand=True, anchor="nw")
 
-YearChoices.BindMouseWheel(NullTrackerLogsPageInner)
-MonthChoices.BindMouseWheel(NullTrackerLogsPageInner)
-CycleChoices.BindMouseWheel(NullTrackerLogsPageInner)
-LogData.BindMouseWheel(NullTrackerLogsPageInner)
+YearChoices.BindMouseWheel(NullFocusLogsPageInner)
+MonthChoices.BindMouseWheel(NullFocusLogsPageInner)
+CycleChoices.BindMouseWheel(NullFocusLogsPageInner)
+LogData.BindMouseWheel(NullFocusLogsPageInner)
 
 # ------------------------------
 # Null Moji UI
@@ -11709,21 +10998,21 @@ def NullGitLoop():
         except Exception as e:
             print("NullGitLoop Error:", e)
 
-def NullTrackerLoop():
+def NullFocusLoop():
     global LastWriteToDisk, CurrentCycle, FocusStartTime
 
     while True:
-        if NullTrackerActive.get():
+        if NullFocusActive.get():
             try:
                 now = time.time()
                 if (now - LastWriteToDisk>= (WriteToDiskSeconds * 60)):
                     SaveTrackerLog()
                     LastWriteToDisk = now
             except Exception as e:
-                print(f"NullTrackerLoop Error: {e}")
+                print(f"NullFocusLoop Error: {e}")
         time.sleep(1)
 
-def NullTrackerFocusLoop():
+def NullFocusFocusLoop():
     for WindowID in WatchFocus():
         FocusedClass = GetWindowClass(WindowID)
         ChangedWindowFocus(FocusedClass)
@@ -11753,8 +11042,8 @@ def WaitForLoad():
     threading.Thread(target=CymbalPlayer, daemon=True).start()
     threading.Thread(target=DrumPlayer, daemon=True).start()
     threading.Thread(target=NullGitLoop, daemon=True).start()
-    threading.Thread(target=NullTrackerLoop, daemon=True).start()
-    threading.Thread(target=NullTrackerFocusLoop, daemon=True).start()
+    threading.Thread(target=NullFocusLoop, daemon=True).start()
+    threading.Thread(target=NullFocusFocusLoop, daemon=True).start()
     
     LoadConfig()
 
@@ -11951,16 +11240,6 @@ def StartUpNullProton():
     LoadCompleted += 1
     return
 
-def StartUpNullRip():
-    global LoadCompleted
-    if NullRipActive.get() == True:
-        Notebook.add(NullRip, text="NullRip")
-    else:
-        Notebook.forget(NullRip)
-
-    LoadCompleted += 1
-    return
-
 def StartUpNullGit():
     global Repos, LoadCompleted, SystemLoading
     
@@ -12057,12 +11336,12 @@ def StartUpNullMonitor():
     LoadCompleted += 1
     return
 
-def StartUpNullTracker():
+def StartUpNullFocus():
     global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted
     global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
     global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle
     
-    if NullTrackerActive.get() == True:
+    if NullFocusActive.get() == True:
         SystemLoading = True
         tracker = None
         if not os.path.isfile(ConfigPath):
@@ -12073,10 +11352,10 @@ def StartUpNullTracker():
         try:
             with open(ConfigPath, "r") as f:
                 data = json.load(f)
-                tracker = data.get("NullTracker", {})
+                tracker = data.get("NullFocus", {})
 
         except Exception as e:
-            Butts.set(f"ERROR LOADING NULL TRACKER SAVE\n\n{e}")
+            Butts.set(f"ERROR LOADING Null Focus SAVE\n\n{e}")
             Root.update_idletasks()
             return False
 
@@ -12166,7 +11445,7 @@ def StartUpNullTracker():
             AddNewTracker(Classifications,True)
 
 
-        Notebook.add(NullTracker, text="NullTracker")
+        Notebook.add(NullFocus, text="NullFocus")
         ClickYearButton(LatestYear)
         ClickMonthButton(LatestYear, LatestMonth)
         ClickCycleButton(LatestYear,LatestMonth,CurrentCycle["StartTime"])
@@ -12189,7 +11468,7 @@ def StartUpNullTracker():
                 KeyboardListener = None
 
         StopTrackerListeners()
-        Notebook.forget(NullTracker)
+        Notebook.forget(NullFocus)
 
     SystemLoading = False
     LoadCompleted += 1
