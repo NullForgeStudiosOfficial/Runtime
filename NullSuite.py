@@ -65,6 +65,7 @@ from pynput import mouse, keyboard
 import atexit
 import tempfile
 from PIL import Image, ImageTk, ImageDraw
+import hashlib
 
 from datetime import datetime
 import urllib.request
@@ -100,7 +101,7 @@ DontLoadAppsOnStartUpActive= tk.BooleanVar(value=False)
 MixerInitialized = False
 LoadPopup = tk.Toplevel(Root)
 LoadPopup.title("Loading NullSuite Data")
-Width = 400
+Width = 1000
 Height = 100
 Root.update_idletasks()
 RootX = Root.winfo_x()
@@ -131,6 +132,7 @@ BaseDir = os.path.dirname(os.path.abspath(__file__))
 IconPath = os.path.join(BaseDir,"NullSuite.png")
 ConfigPath = os.path.join(BaseDir,"NullSuite.json")
 TrackerPath = os.path.join(BaseDir, "TrackerLogs")
+ClipboardPath = os.path.join(TrackerPath, "Clipboard")
 BaseEmojisPath = os.path.join(BaseDir, "BaseEmoji.json")
 Python = os.path.join(BaseDir, "venv", "bin", "python3")
 NWPath = os.path.join(BaseDir, "NW.sh") 
@@ -262,7 +264,6 @@ MinimumWindowTime = 1
 NewDayThreshold = 3
 CompletedCycles = []
 CurrentFocus = None
-
 OldFocus = None
 FocusStartTime = time.time()
 PreviousFocusStartTime = 0
@@ -293,6 +294,10 @@ LastClockUpdate = None
 ClockRotation = 0
 ClockUpdatedViaCycle = True
 WaitForNullFocusLoad = False
+ClipBoardHistory = []
+ClipBoardRows = []
+LastClipBoard = None
+DontCopyToClipBoardData = False
 # ------------------------------
 # NullMoji
 # ------------------------------
@@ -309,9 +314,8 @@ NullMojiRecentButtons = []
 NullMojiAllEmojiButtons = []
 RootState = ""
 NullMojiPopupWindow = None
-NullMojiCopied = False
-ClipBoardHistory = []
-LastClipBoard = None
+
+
 # ————————————————————————————————————————————————————————————
 # Required Startup Methods
 # ————————————————————————————————————————————————————————————
@@ -9743,17 +9747,40 @@ def GetClipboard():
 
         Targets = Targets.stdout.splitlines()
 
+        # Images
         if any(Target.startswith("image/") for Target in Targets):
+
+            MimeType = next(
+                (Target for Target in Targets if Target.startswith("image/")),
+                None
+            )
+
+            Image = subprocess.run(
+                [
+                    "xclip",
+                    "-selection",
+                    "clipboard",
+                    "-t",
+                    MimeType,
+                    "-o"
+                ],
+                capture_output=True
+            )
+
             return {
                 "Type": "Image",
+                "Hash": hashlib.sha256(Image.stdout).hexdigest(),
                 "Targets": Targets,
+                "MimeType": MimeType
             }
 
+        # Text
         elif (
             "text/plain" in Targets or
             "UTF8_STRING" in Targets or
             "TEXT" in Targets
         ):
+
             Text = subprocess.run(
                 ["xclip", "-selection", "clipboard", "-o"],
                 capture_output=True,
@@ -9763,38 +9790,412 @@ def GetClipboard():
             return {
                 "Type": "Text",
                 "Text": Text.stdout,
-                "Targets": Targets,
+                "Hash": hashlib.sha256(
+                    Text.stdout.encode("utf-8")
+                ).hexdigest(),
+                "Targets": Targets
             }
 
         return {
             "Type": "Unsupported",
-            "Targets": Targets,
+            "Hash": hashlib.sha256(
+                "\n".join(Targets).encode("utf-8")
+            ).hexdigest(),
+            "Targets": Targets
         }
 
-    except Exception:
+    except Exception as e:
+        print("Clipboard Error:", e)
         return None
-
-def AddClipBoardUI(ClipBoardContents):
+ClipLock = threading.Lock()
+def AddClipBoardEntry(ClipBoardContents):
     global ClipBoardHistory
 
-    DisplayName = (CurrentFocus.replace("-", " ").title())
+    if CurrentFocus is None:
+        return
+
+    DisplayName = CurrentFocus.replace("-", " ").title()
+
+    MonthFolder = os.path.join(
+        ClipboardPath,
+        datetime.now().strftime("%Y - %b")
+    )
+
+    os.makedirs(MonthFolder, exist_ok=True)
 
     if ClipBoardContents["Type"] == "Text":
-        ClipBoardHistory.append({
-            "Text": ClipBoardContents['Text'],
+
+        Row = {
+            "Text": ClipBoardContents["Text"],
             "TimeOfCopy": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
             "Type": "Text",
-            "Collasped": True,
+            "Collapsed": False,
             "Path": None,
-            "Focus": DisplayName
-        })
-        pass #wedosomeshit
-    elif ClipBoardContents["Type"] == "Image":
-        pass #do other shit. save it
-    else:
-        pass #unspported file type thing
+            "Focus": DisplayName,
+            "Hash": ClipBoardContents["Hash"],
+            "DeleteConfirmation": False
+        }
 
-    return
+    elif ClipBoardContents["Type"] == "Image":
+
+        ImagePath = os.path.join(
+            MonthFolder,
+            datetime.now().strftime("%Y-%m-%d---%H-%M-%S.png")
+        )
+
+        try:
+            with open(ImagePath, "wb") as f:
+                subprocess.run(
+                    [
+                        "xclip",
+                        "-selection",
+                        "clipboard",
+                        "-t",
+                        "image/png",
+                        "-o"
+                    ],
+                    stdout=f,
+                    check=True
+                )
+        except Exception as e:
+            print("Failed saving clipboard image:", e)
+            return
+
+        Row = {
+            "Text": "",
+            "TimeOfCopy": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
+            "Type": "Image",
+            "Collapsed": False,
+            "Path": ImagePath,
+            "Focus": DisplayName,
+            "Hash": ClipBoardContents["Hash"],
+            "DeleteConfirmation": False
+        }
+
+    else:
+        return
+
+    ClipBoardHistory.append(Row)
+
+    BuildClipBoardRow(Row)
+
+    SaveClipBoard()
+
+def BuildClipBoardRow(Row):
+    global ClipBoardRows
+
+    CBRow = tk.Frame(
+        ClipBoardList.Inner,
+        bd=2,
+        relief="solid"
+    )
+
+    CBRow.pack(
+        fill="x",
+        expand=True,
+        anchor="n",
+        pady=5
+    )
+
+    ClipBoardRows.append(CBRow)
+
+    CBRow.columnconfigure(1, weight=1)
+    CBRow.columnconfigure(2, weight=1)
+    CBRow.columnconfigure(3, weight=1)
+
+    def CollapseRow():
+
+        if Row["Collapsed"]:
+
+            if Row["Type"] == "Text":
+                TextHolder.grid_remove()
+
+            elif Row["Type"] == "Image":
+                ImageHolder.grid_remove()
+
+            RowCollapse.config(text="▶")
+            Row["Collapsed"] = False
+
+        else:
+
+            if Row["Type"] == "Text":
+                TextHolder.grid(
+                    row=1,
+                    column=0,
+                    sticky="ewns",
+                    columnspan=99
+                )
+
+            elif Row["Type"] == "Image":
+                ImageHolder.grid(
+                    row=1,
+                    column=0,
+                    sticky="ewns",
+                    columnspan=99
+                )
+
+            RowCollapse.config(text="▼")
+            Row["Collapsed"] = True
+
+    RowCollapse = tk.Button(
+        CBRow,
+        text="▶",
+        width=2,
+        command=CollapseRow
+    )
+
+    RowCollapse.grid(
+        row=0,
+        column=0,
+        sticky="ew",
+        padx=2
+    )
+
+    SourceLabel = tk.Label(
+        CBRow,
+        text=f"{Row['Focus']} at {Row['TimeOfCopy']} — {Row['Type'].upper()}",
+        width = 50
+    )
+
+    SourceLabel.grid(
+        row=0,
+        column=1,
+        sticky="ew"
+    )
+
+    def ReCopy():
+        global DontCopyToClipBoardData
+        global LastClipBoard
+
+        DontCopyToClipBoardData = True
+        LastClipBoard = Row["Hash"]
+
+        if Row["Type"] == "Text":
+
+            subprocess.run(
+                ["xclip", "-selection", "clipboard"],
+                input=Row["Text"].encode("utf-8"),
+                check=True
+            )
+
+        elif Row["Type"] == "Image":
+
+            subprocess.run(
+                [
+                    "xclip",
+                    "-selection",
+                    "clipboard",
+                    "-t",
+                    "image/png",
+                    "-i",
+                    Row["Path"]
+                ],
+                check=True
+            )
+
+    CopyButton = tk.Button(
+        CBRow,
+        text="Re-Copy",
+        command=ReCopy,
+        width = 50
+    )
+
+    CopyButton.grid(
+        row=0,
+        column=2,
+        sticky="ew"
+    )
+
+    def DeleteRow(Button, timeout=4):
+
+        EndTime = time.time() + timeout
+
+        def Tick():
+
+            if not Button.winfo_exists():
+                return
+
+            Remaining = int(
+                EndTime - time.time()
+            )
+
+            if Remaining <= 0:
+                Button.config(text="Delete")
+                Row["DeleteConfirmation"] = False
+                return
+
+            Button.config(
+                text=f"R U Sure? {Remaining}"
+            )
+
+            Root.after(1000, Tick)
+
+        if not Row["DeleteConfirmation"]:
+            Row["DeleteConfirmation"] = True
+            Tick()
+            return
+
+        if Row["Path"]:
+
+            try:
+                if os.path.isfile(Row["Path"]):
+                    os.remove(Row["Path"])
+            except Exception as e:
+                print(e)
+
+        if Row in ClipBoardHistory:
+            ClipBoardHistory.remove(Row)
+
+        SaveClipBoard()
+
+        CBRow.destroy()
+
+    DeleteButton = tk.Button(
+        CBRow,
+        text="Delete",
+        command=lambda: DeleteRow(DeleteButton),
+        width = 50
+    )
+
+    DeleteButton.grid(
+        row=0,
+        column=3,
+        sticky="ew"
+    )
+
+    if Row["Type"] == "Text":
+
+        TextHolder = tk.Frame(CBRow)
+
+        TextHolder.grid(
+            row=1,
+            column=0,
+            sticky="ewns",
+            columnspan=99
+        )
+
+        Lines = Row["Text"].count("\n") + 1
+
+        BigAssTextField = tk.Text(
+            TextHolder,
+            wrap="word",
+            height=max(3, Lines)
+        )
+
+        BigAssTextField.insert(
+            "1.0",
+            Row["Text"]
+        )
+
+        BigAssTextField.config(
+            state="disabled"
+        )
+
+        BigAssTextField.pack(
+            fill="both",
+            expand=True
+        )
+
+        TextHolder.grid_remove()
+
+    elif Row["Type"] == "Image":
+
+        ImageHolder = tk.Frame(CBRow)
+
+        ImageHolder.grid(
+            row=1,
+            column=0,
+            sticky="ewns",
+            columnspan=99
+        )
+
+        try:
+
+            Thumb = Image.open(
+                Row["Path"]
+            )
+
+            Thumb.thumbnail(
+                (800, 800)
+            )
+
+            Thumbnail = ImageTk.PhotoImage(
+                Thumb
+            )
+
+            ImageLabel = tk.Label(
+                ImageHolder,
+                image=Thumbnail
+            )
+
+            ImageLabel.image = Thumbnail
+
+            ImageLabel.pack(
+                pady=5
+            )
+
+        except Exception as e:
+
+            tk.Label(
+                ImageHolder,
+                text=f"Failed Loading Image\n{e}"
+            ).pack()
+
+        def OpenImage():
+
+            subprocess.Popen(
+                [
+                    "xdg-open",
+                    Row["Path"]
+                ]
+            )
+
+        OpenButton = tk.Button(
+            ImageHolder,
+            text="Open Full Image",
+            command=OpenImage
+        )
+
+        OpenButton.pack(
+            pady=5
+        )
+
+        ImageHolder.grid_remove()
+
+    ClipBoardList.BindMouseWheel(
+        CBRow
+    )
+
+def SaveClipBoard():
+    MonthFolder = os.path.join(
+        ClipboardPath,
+        datetime.now().strftime("%Y - %b")
+    )
+
+    os.makedirs(
+        MonthFolder,
+        exist_ok=True
+    )
+
+    ClipSave = os.path.join(
+        MonthFolder,
+        "000-ClipBoard.json"
+    )
+
+    with ClipLock:
+        try:
+            with open(ClipSave, "w") as f:
+                json.dump(
+                    ClipBoardHistory,
+                    f,
+                    indent=2
+                )
+        except Exception as e:
+            print(
+                "Saving clipboard failed:",
+                e
+            )
+
 
 # ————————————————————————————————————————————————————————————
 # NullMoji
@@ -10029,8 +10430,9 @@ def GetActiveWindowID():
         return None
     
 def CopyEmoji(Emoji):
-    global CopiedEmoji, NullMojiSearchButtons
+    global CopiedEmoji, NullMojiSearchButtons, DontCopyToClipBoardData
     CopiedEmoji = Emoji['Emoji']
+    DontCopyToClipBoardData = True
     subprocess.run(['xclip', '-selection', 'clipboard'], input=CopiedEmoji.encode('utf-8'), check=True)
 
     if PreviousWindowID is not None and CalledWithShortcut is not False:
@@ -10727,8 +11129,8 @@ NullFocusLogsPage.columnconfigure(0, weight=1)
 NullFocusNotebook.add(NullFocusLogsPage, text="Logs")
 NullFocusNotebook.add(NullFocusManagePage, text="Manage Tracking")
 NullFocusNotebook.add(NullFocusClockPage, text="Circadian Clock")
-#NullFocusNotebook.add(NullFocusClipBoard, text="ClipBoard")
-#NullFocusNotebook.add(NullFocusOperator, text="Operator")
+NullFocusNotebook.add(NullFocusClipBoard, text="ClipBoard")
+NullFocusNotebook.add(NullFocusOperator, text="Operator")
 
 
 
@@ -10876,7 +11278,7 @@ ClockLabel.image = ClockImage
 ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
 # ---------- ClipBoard
 ClipBoardList = ScrollableFrame(NullFocusClipBoard)
-
+ClipBoardList.pack(fill="both", expand=True, anchor="n", padx=10, pady=10)
 # ------------------------------
 # Null Moji UI
 # ------------------------------
@@ -11131,7 +11533,6 @@ def NullFocusClockLoop():
         if NullFocusActive.get():
             try:
                 if ResetClock == True:
-                    print("Were Resetting Clock")
                     ResetClock = False
                     LastClockUpdate = time.time()
                     if ClockUpdatedViaCycle == False:
@@ -11185,20 +11586,24 @@ def NullFocusClockLoop():
     return
 
 def NullFocusClipBoardLoop():
-    global NullMojiCopied, LastClipBoard
+    global DontCopyToClipBoardData, LastClipBoard
 
     while True:
         if NullFocusActive.get():
+            Current = GetClipboard()
 
-            if NullMojiCopied:
-                NullMojiCopied =  False
-            else:
-                Current = GetClipboard()
-                if Current != None:
-                    if Current != LastClipBoard:
-                        LastClipBoard = Current
-                        AddClipBoardUI(Current)
-        time.sleep(0.5)
+            if DontCopyToClipBoardData:
+                DontCopyToClipBoardData = False
+                LastClipBoard = Current['Hash']
+                continue
+
+            if Current != None:
+                if Current['Hash'] != LastClipBoard:
+
+
+                    LastClipBoard = Current['Hash']
+                    Root.after(0,lambda c=Current: AddClipBoardEntry(c))
+        time.sleep(1.5)
 
 def HideToTray():
     global HiddenToTray
@@ -11529,6 +11934,10 @@ def StartUpNullFocus():
     if NullFocusActive.get() == True:
         SystemLoading = True
         tracker = None
+
+        if not os.path.isdir(ClipboardPath):
+            os.makedirs(ClipboardPath, exist_ok=True)
+
         if not os.path.isfile(ConfigPath):
             Butts.set("Save File not found???")
             Root.update_idletasks()
@@ -11571,6 +11980,10 @@ def StartUpNullFocus():
                 json.dump({}, f, indent=4)
 
             YearFiles = [f"{Year}.json"]
+
+            YearMonthPath = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
+
+            os.makedirs(YearMonthPath, exist_ok=True)
 
             SaveTrackerLog()
             
@@ -11628,6 +12041,38 @@ def StartUpNullFocus():
             if Classifications == "Ignored" or Classifications == "Sleep":
                 continue
             AddNewTracker(Classifications,True)
+
+
+        ClipBoardHistory.clear()
+
+        for rows in ClipBoardRows:
+            rows.destroy()
+
+        ClipBoardRows.clear()
+
+        MonthFolder = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
+
+        ClipSave = os.path.join(MonthFolder,"000-ClipBoard.json")
+        os.makedirs(MonthFolder, exist_ok=True)
+
+        if not os.path.isfile(ClipSave):
+            with open(ClipSave, "w") as f:
+                json.dump([], f, indent=2)
+
+        try:
+            with open(ClipSave, "r") as f:
+                clippy = json.load(f)
+
+
+        except Exception as e:
+            Butts.set(f"ERROR LOADING ClipBoard Save\n\n{e}")
+            Root.update_idletasks()
+            return False
+        
+        for Row in clippy:
+            Row['Collapsed'] = False
+            BuildClipBoardRow(Row)
+
 
 
         Notebook.add(NullFocus, text="NullFocus")
