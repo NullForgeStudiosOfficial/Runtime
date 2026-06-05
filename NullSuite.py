@@ -12,20 +12,15 @@ InstallerPath = os.path.join(RootDir,"InstallNullSuite(Mint).sh")
 with open(os.path.join(RootDir, "Dependencies.json"), "r") as f:
     Dependencies = json.load(f)
 
-MissingModules = []
+MissingModules = any(
+    importlib.util.find_spec(Module) is None
+    for Module in Dependencies["NullSuitePyCheckPips"]
+)
 
-for Module, Package in Dependencies["Modules"].items():
-
-    if importlib.util.find_spec(Module) is None:
-        MissingModules.append(Package)
-
-MissingPackages = set()
-
-for Command, Package in Dependencies["Commands"].items():
-
-    if shutil.which(Command) is None:
-        MissingPackages.add(Package)
-
+MissingPackages = any(
+    shutil.which(Command) is None
+    for Command in Dependencies["NullSuitePyCheckPackages"]
+)
 if MissingModules or MissingPackages:
 
     subprocess.run(
