@@ -137,8 +137,6 @@ IconImage = tk.PhotoImage(file=IconPath)
 CircadianPath = os.path.join(BaseDir, "CircadianClock.png")
 ClockOriginal = Image.open(CircadianPath)
 ClockImage = ImageTk.PhotoImage(ClockOriginal)
-Width, Height = ClockOriginal.size
-ClockCrop = ClockOriginal.crop((0,0,Width,int(Height *0.49)))
 Root.iconphoto(True, IconImage)
 LoadTimes = {}
 LoadCompleted = 0
@@ -11805,13 +11803,13 @@ def NullFocusClockLoop():
                     if ClockUpdatedViaCycle == False:
                         ClockRotation = 0
                         Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
-                        Width, Height = Rotated.size
-                        Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                        Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
+                        #Width, Height = (100,100)
+                        #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
                         ClockImage = ImageTk.PhotoImage(Rotated)
                         Root.after(0,lambda: ClockLabel.config(image=ClockImage))
                         ClockLabel.image = ClockImage
                     else:
-                        print("should reach this")
                         ClockUpdatedViaCycle = False
 
                         while WaitForNullFocusLoad == False:
@@ -11826,8 +11824,9 @@ def NullFocusClockLoop():
                         ClockRotation = ElapsedHalfHours * 7.5
 
                         Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
-                        Width, Height = Rotated.size
-                        Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                        Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
+                        #Width, Height = (100,100)
+                        #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
                         ClockImage = ImageTk.PhotoImage(Rotated)
                         Root.after(0,lambda: ClockLabel.config(image=ClockImage))
                         ClockLabel.image = ClockImage
@@ -11838,8 +11837,9 @@ def NullFocusClockLoop():
                             LastClockUpdate = time.time()
                             ClockRotation += 7.5
                             Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
-                            Width, Height = Rotated.size
-                            Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                            Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
+                            #Width, Height = (100,100)
+                            #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
                             ClockImage = ImageTk.PhotoImage(Rotated)
                             Root.after(0,lambda: ClockLabel.config(image=ClockImage))
                             ClockLabel.image = ClockImage
