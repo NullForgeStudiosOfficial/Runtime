@@ -9932,8 +9932,7 @@ def BuildClipBoardRow(Row):
         ClipBoardRows.insert(0, CBRow)
     else:
         CBRow.pack(fill="x",expand=True,anchor="n",pady=5)
-
-    ClipBoardRows.append(CBRow)
+        ClipBoardRows.append(CBRow)
 
     CBRow.columnconfigure(1, weight=1)
     CBRow.columnconfigure(2, weight=1)
