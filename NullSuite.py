@@ -9910,14 +9910,16 @@ def AddClipBoardEntry(ClipBoardContents):
     else:
         return
 
-    ClipBoardHistory.append(Row)
+    ClipBoardHistory.insert(0, Row)
 
     BuildClipBoardRow(Row)
+
+
 
     SaveClipBoard()
 
 def BuildClipBoardRow(Row):
-    global ClipBoardRows
+    global ClipBoardRows, ClipBoardHistory
 
     CBRow = tk.Frame(
         ClipBoardList.Inner,
@@ -9925,12 +9927,11 @@ def BuildClipBoardRow(Row):
         relief="solid"
     )
 
-    CBRow.pack(
-        fill="x",
-        expand=True,
-        anchor="n",
-        pady=5
-    )
+    if ClipBoardRows:
+        CBRow.pack(fill="x",expand=True,anchor="n",pady=5,before=ClipBoardRows[0])
+        ClipBoardRows.insert(0, CBRow)
+    else:
+        CBRow.pack(fill="x",expand=True,anchor="n",pady=5)
 
     ClipBoardRows.append(CBRow)
 
@@ -10042,7 +10043,7 @@ def BuildClipBoardRow(Row):
     )
 
     def DeleteRow(Button, timeout=4):
-
+        global ClipBoardRows, ClipBoardHistory
         EndTime = time.time() + timeout
 
         def Tick():
@@ -10080,6 +10081,8 @@ def BuildClipBoardRow(Row):
 
         if Row in ClipBoardHistory:
             ClipBoardHistory.remove(Row)
+
+        ClipBoardRows.remove(CBRow)
 
         SaveClipBoard()
 
@@ -10424,9 +10427,12 @@ def SpotifyTracker():
 def AttemptToGetSpotifyID():
     global SpotifyID
 
-    IDs = subprocess.check_output(
-        ["xdotool", "search", "--class", "spotify"]
-    ).decode().splitlines()
+    try:
+        IDs = subprocess.check_output(
+            ["xdotool", "search", "--class", "spotify"]
+        ).decode().splitlines()
+    except:
+        return None
 
     for WindowID in IDs:
         try:
@@ -11851,6 +11857,7 @@ def NullFocusClipBoardLoop():
     global DontCopyToClipBoardData, LastClipBoard
 
     while True:
+        
         if NullFocusActive.get():
             Current = GetClipboard()
 
@@ -11859,7 +11866,7 @@ def NullFocusClipBoardLoop():
                 LastClipBoard = Current['Hash']
                 continue
 
-            if Current != None:
+            if Current:
                 if Current['Hash'] != LastClipBoard:
 
 
@@ -12197,7 +12204,7 @@ def StartUpNullFocus():
     global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted
     global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
     global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
-    global NullFocusOperatorRows, NullFocusOperators
+    global NullFocusOperatorRows, NullFocusOperators, ClipBoardHistory
     
     if NullFocusActive.get() == True:
         SystemLoading = True
@@ -12356,11 +12363,11 @@ def StartUpNullFocus():
             Root.update_idletasks()
             return False
         
+        ClipBoardHistory = clippy
+
         for Row in clippy:
             Row['Collapsed'] = False
             BuildClipBoardRow(Row)
-
-
 
         Notebook.add(NullFocus, text="NullFocus")
         ClickYearButton(LatestYear)
