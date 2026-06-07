@@ -62,7 +62,7 @@ import tempfile
 from PIL import Image, ImageTk, ImageDraw
 import hashlib
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import urllib.request
 
 setproctitle.setproctitle("NullSuite")
@@ -293,6 +293,11 @@ ClipBoardHistory = []
 ClipBoardRows = []
 LastClipBoard = None
 DontCopyToClipBoardData = False
+NullFocusOperators= []
+NullFocusOperatorRows = []
+LastProcessedFocus = None
+CurrentSpotifySong = ""
+SpotifyID = None
 # ------------------------------
 # NullMoji
 # ------------------------------
@@ -645,7 +650,8 @@ def SaveConfig(Which, FirstTimeSetup=False):
             "AppClassification": AppClassification,
             "WriteToDiskSeconds": WriteToDiskSeconds,
             "MinimumWindowTime": MinimumWindowTime,
-            "NewDayThreshold": NewDayThreshold
+            "NewDayThreshold": NewDayThreshold,
+            "Operators": NullFocusOperators
             }
             })
         elif Which == "NullMoji":
@@ -888,32 +894,78 @@ def SearchForWindow(Dict, var, ClassName,DisplayName,Program, Page=None):
     for Window in WindowSelection:
         tk.Button(
             ScrollFrame.Inner,
-            text=f"{Window['UIName']}\n{Window['ClassName']}",
+            text=f"Window Title:{Window['UIName']}\n\nProcess Name: {Window['ClassName']}",
             justify="left",
             anchor="w",
             command=lambda w=Window: SelectWindow(w, Dict, var, ClassName,DisplayName, Popup, Program, Page)
         ).pack(fill="x", padx=2, pady=2)
 
 def SelectWindow(Window, Dict, var, ClassName,DisplayName, Popup, Program, Page=None):
-    global TrackerPopup
+    global TrackerPopup, NullFocusOperator
+
+    normalizeddisplayname = NormalizeDisplayName(Window["UIName"],Window["ClassName"])
+    NormalizedClass = Window["ClassName"].split(".")[0].lower()
+
+
     if Program == "NullMidi":
         if Page != None:
             Dict[ClassName][Page] = Window["ClassName"]
-            var.set(Window["UIName"])
-            Dict[DisplayName][Page] = Window["UIName"]
+            var.set(normalizeddisplayname)
+            Dict[DisplayName][Page] = normalizeddisplayname
         else:
             Dict[ClassName] = Window["ClassName"]
-            var.set(Window["UIName"])
-            Dict[DisplayName] = Window["UIName"]
+            var.set(normalizeddisplayname)
+            Dict[DisplayName] = normalizeddisplayname
     elif Program == "NullFocus":
         Dict.setdefault(ClassName,[])
         if Window["ClassName"] not in Dict[ClassName]:
             NormalizedClass = Window["ClassName"].split(".")[0].lower()
             Dict[ClassName].append(NormalizedClass)
+    elif Program == "Operator":
+        Program = "NullFocus"
+        Operator = {
+            "DisplayName": normalizeddisplayname,
+            "WindowClass": NormalizedClass,
+            "DeleteConfirmation": False,
+            "Focused": {
+                "KeyOrAction": False,
+                "WindowSpecific": False,
+                "OnlyThisWindow": None,
+                "FileOrCommand": False,
+                "Keys": [],
+                "FilePath": "",
+                "Command": "",
+            },
+            "Unfocused": {
+                "KeyOrAction": False,
+                "WindowSpecific": False,
+                "OnlyThisWindow": None,
+                "FileOrCommand": False,
+                "Keys": [],
+                "FilePath": "",
+                "Command": "",
+            }
+            
+        }
+
+        NullFocusOperators.append(Operator)
+
+        CreateOperatorRow(Operator)
+    elif Program == "NullFocusOperator":
+        Program = "NullFocus"
+        Dict[ClassName] = NormalizedClass
+        var.set(NormalizedClass)
+
     
     Popup.destroy()
     TrackerPopup = None
     SaveConfig(Program)
+
+def NormalizeDisplayName(WindowTitle, WindowClass):
+    if " - " in WindowTitle:
+        return WindowTitle.split(" - ")[-1].strip()
+
+    return WindowClass.split(".")[0].capitalize()
 
 def OpenImagePopUp(Path, ThumbnailSize=256):
     Popup = tk.Toplevel(Root)
@@ -3617,7 +3669,6 @@ def PressKeyCombo(Keys, Window=False, SentWindowClassName=None):
 
     try:
         
-
         if not UInputDevice:
             BuildGlobalUInputDevice()
 
@@ -3649,6 +3700,7 @@ def PressKeyCombo(Keys, Window=False, SentWindowClassName=None):
             WindowIDs = Result.stdout.strip().splitlines()
 
             if not WindowIDs:
+                print("That window don't exist lol")
                 return
 
             XDOMap = {
@@ -3675,6 +3727,8 @@ def PressKeyCombo(Keys, Window=False, SentWindowClassName=None):
                 )
 
             return
+
+        print(Mapped)
 
         for Key in Mapped[:-1]:
             UInputDevice.emit(Key, 1)
@@ -3727,7 +3781,7 @@ def IsModifier(Key):
             or "SUPER" in Key
         )
 
-def SaveBinding(Target,Field,Button,Keys, Page):
+def SaveBinding(Target,Field,Button,Keys,Program, Page):
         global HeldKeys, KeyBeingInput, KeySaving
         if Page is None:
             Target[Field] = Keys
@@ -3735,7 +3789,7 @@ def SaveBinding(Target,Field,Button,Keys, Page):
             Target[Field][Page] = Keys
         Button.config(text="+".join(FormatKeyName(K)for K in Keys) if Keys else "Set Key")
         BuildGlobalUInputDevice()
-        SaveConfig("NullMidi")
+        SaveConfig(Program)
         FinishKeyInput()
  
 def FinishKeyInput():
@@ -3748,7 +3802,7 @@ def FinishKeyInput():
     Root.unbind("<KeyPress>")
     Root.unbind("<KeyRelease>")
 
-def DetectKey(Button, Target, Field, Page=None, Timeout=4):
+def DetectKey(Button, Target, Field, Program, Page=None, Timeout=4):
     global KeyBeingInput, EscapeHeld, HeldKeys
     if KeyBeingInput or KeySaving:
         return
@@ -3769,11 +3823,11 @@ def DetectKey(Button, Target, Field, Page=None, Timeout=4):
             if HeldKeys: #This is so it saves modifiers. 
                 if EscapeHeld:
                     Button.config(text="Set Key")
-                    SaveBinding(Target,Field,Button,[],Page)
+                    SaveBinding(Target,Field,Button,[],Program, Page)
                 else:
-                    SaveBinding(Target,Field,Button,SortKeys(HeldKeys),Page)
+                    SaveBinding(Target,Field,Button,SortKeys(HeldKeys),Program,Page)
             else:
-                SaveBinding(Target,Field,Button,[],Page)
+                SaveBinding(Target,Field,Button,[],Program,Page)
             return
         
         if not HeldKeys:
@@ -3781,7 +3835,7 @@ def DetectKey(Button, Target, Field, Page=None, Timeout=4):
         elif IsOnlyModifiers(HeldKeys):
             Button.config(text=f"Holding... {Remaining}")
         else:
-            SaveBinding(Target,Field,Button,SortKeys(HeldKeys),Page)
+            SaveBinding(Target,Field,Button,SortKeys(HeldKeys),Program,Page)
 
         Root.after(25, Tick)
 
@@ -3790,7 +3844,7 @@ def DetectKey(Button, Target, Field, Page=None, Timeout=4):
         Key = NormalizeKey(Event.keysym)
         if Key == "ESCAPE":
             EscapeHeld = True
-            Root.after(1000,lambda: (SaveBinding(Target,Field,Button,[],Page)) if EscapeHeld else None)
+            Root.after(1000,lambda: (SaveBinding(Target,Field,Button,[],Program,Page)) if EscapeHeld else None)
             return
         
         if IsModifier(Key):
@@ -3800,7 +3854,7 @@ def DetectKey(Button, Target, Field, Page=None, Timeout=4):
             HeldKeys.clear()
             HeldKeys.update(ModifierKeys)
             HeldKeys.add(Key)
-            SaveBinding(Target,Field,Button,SortKeys(HeldKeys),Page)
+            SaveBinding(Target,Field,Button,SortKeys(HeldKeys),Program,Page)
         
             
 
@@ -5028,50 +5082,45 @@ def AddMidiRow(Row=None, Loading=False):
             Controller['KeyOrAction'][GetInternalPage()] = KeyOrAction.get()
             Controller['WindowSpecific'][GetInternalPage()]= WindowSpecific.get()
             Controller['FileOrCustom'][GetInternalPage()]= FileOrCustom.get()
+            Controller['WindowDisplayName'][GetInternalPage()]= WindowDisplayName.get()
+            Controller['StartFilePath'][GetInternalPage()]= StartFilePath.get()
+            Controller['CustomCommand'][GetInternalPage()]= CustomCommand.get()
 
-            UsingActionOutput = KeyOrAction.get()
-            UsingKeyOutput = not KeyOrAction.get()
+            ControllerKeyOutputButton.grid_forget()
+            ControllerWindowSpecificSwitcher.grid_forget()
+            ControllerWindowSpecifiWindowShow.grid_forget()
+            ControllerWindowSpecificChooseWindowButton.grid_forget()
+            ControllerFileSwitcher.grid_forget()
+            ControllerFileSwitcher.grid_forget()
+            ControllerCustomEntryShow.grid_forget()
+            ControllerCustomRunButton.grid_forget()
+            ControllerActionEntryShow.grid_forget()
+            ControllerChooseFile.grid_forget()
+            ControllerWindowSpecifiWindowShow.grid_forget()
+            ControllerWindowSpecificChooseWindowButton.grid_forget()
+            ControllerActionEntryShow.grid_forget()
+            ControllerChooseFile.grid_forget()
+            ControllerCustomEntryShow.grid_forget()
+            ControllerCustomRunButton.grid_forget()
 
-            UsingFileForOutput = not Controller['FileOrCustom'][GetInternalPage()]
-            UsingCustomOutput = Controller['FileOrCustom'][GetInternalPage()]
 
-            SendToOneWindow = Controller['WindowSpecific'][GetInternalPage()]
-            SendToAllWindows = not Controller['WindowSpecific'][GetInternalPage()]
-
-            if UsingActionOutput:
-                ControllerKeyOutputButton.grid_forget()
-                ControllerWindowSpecificSwitcher.grid_forget()
-                ControllerWindowSpecifiWindowShow.grid_forget()
-                ControllerWindowSpecificChooseWindowButton.grid_forget()
-                ControllerFileSwitcher.grid_forget()
+            if KeyOrAction.get():
                 ControllerFileSwitcher.grid(row=0, column=4, sticky="ew", padx=2)
-                if UsingCustomOutput:
+
+                if FileOrCustom.get():
                     ControllerCustomEntryShow.grid(row=0, column=6, sticky="ew")
                     ControllerCustomRunButton.grid(row=0, column=5)
-                    ControllerActionEntryShow.grid_forget()
-                    ControllerChooseFile.grid_forget()
-                elif UsingFileForOutput:
+                else:
                     ControllerActionEntryShow.grid(row=0, column=6, sticky="ew")
                     ControllerChooseFile.grid(row=0, column=5)
-                    ControllerCustomEntryShow.grid_forget()
-                    ControllerCustomRunButton.grid_forget()
-            elif UsingKeyOutput:
-                ControllerFileSwitcher.grid_forget()
-                ControllerCustomEntryShow.grid_forget()
-                ControllerCustomRunButton.grid_forget()
-                ControllerActionEntryShow.grid_forget()
-                ControllerChooseFile.grid_forget()
-
+            else:
                 ControllerKeyOutputButton.grid(row=0, column=4, sticky="ew")
                 ControllerWindowSpecificSwitcher.grid(row=0, column=5, sticky="ew", padx=2)
-                if SendToOneWindow:
+
+                if WindowSpecific.get():
                     ControllerWindowSpecifiWindowShow.grid(row=0, column=6, sticky="ew")
                     ControllerWindowSpecificChooseWindowButton.grid(row=0, column=7)
-                elif SendToAllWindows:
-                    ControllerWindowSpecifiWindowShow.grid_forget()
-                    ControllerWindowSpecificChooseWindowButton.grid_forget()
-
-                
+                                    
             SaveConfig("NullMidi")
             
         def RemoveController(Controller, Button, Timeout=4):
@@ -5134,43 +5183,28 @@ def AddMidiRow(Row=None, Loading=False):
 
         #--- Key
 
-        ControllerKeyOutputButton = tk.Button(ControllerFrame,text=("+".join(FormatKeyName(K)for K in Controller["KeyOutputs"][GetInternalPage()]) or "Set Key"),command=lambda: DetectKey(ControllerKeyOutputButton,Controller,'KeyOutputs',GetInternalPage()),width=25)
+        ControllerKeyOutputButton = tk.Button(ControllerFrame,text=("+".join(FormatKeyName(K)for K in Controller["KeyOutputs"][GetInternalPage()]) or "Set Key"),command=lambda: DetectKey(ControllerKeyOutputButton,Controller,'KeyOutputs',"NullMidi",GetInternalPage()),width=25)
 
         ControllerWindowSpecificSwitcher = tk.Checkbutton(ControllerFrame, text="All|Window", variable=WindowSpecific, command=lambda:ControllerUIUpdater())
-        ControllerWindowSpecificSwitcher.grid(row=0, column=5, sticky="ew", padx=2)
 
         ControllerWindowSpecifiWindowShow = tk.Entry(ControllerFrame, textvariable=WindowDisplayName, state="readonly")
-        ControllerWindowSpecifiWindowShow.grid(row=0, column=6, sticky="ew")
-        ControllerWindowSpecifiWindowShow.grid_forget()
 
         ControllerWindowSpecificChooseWindowButton = tk.Button(ControllerFrame, command=lambda: SearchForWindow(Controller, WindowDisplayName, "WindowClassName", "WindowDisplayName", "NullMidi", GetInternalPage() ), text="Choose Window", width=14)
-        ControllerWindowSpecificChooseWindowButton.grid(row=0, column=7)
-        ControllerWindowSpecificChooseWindowButton.grid_forget()
 
         # ------ Opener 
         ControllerFileSwitcher = tk.Checkbutton(ControllerFrame, text="File|Custom", variable=FileOrCustom, command=lambda:ControllerUIUpdater())
-        ControllerFileSwitcher.grid(row=0, column=4, sticky="ew", padx=2)
-        ControllerFileSwitcher.grid_forget()
 
         # ---- File
 
         ControllerChooseFile = tk.Button(ControllerFrame, command=lambda: SearchForAnyFile(Controller,StartFilePath,"StartFilePath",GetInternalPage()), text="Browse", width=8)
-        ControllerChooseFile.grid(row=0, column=5)
-        ControllerChooseFile.grid_forget()
 
         ControllerActionEntryShow = tk.Entry(ControllerFrame, textvariable=StartFilePath, state="readonly")
-        ControllerActionEntryShow.grid(row=0, column=6, sticky="ew")
-        ControllerActionEntryShow.grid_forget()
 
         # ---- Custom
 
         ControllerCustomRunButton= tk.Button(ControllerFrame, command=lambda: MidiCustomRun(Controller['CustomCommand'][GetInternalPage()]), text="Run", width=8)
-        ControllerCustomRunButton.grid(row=0, column=5)
-        ControllerCustomRunButton.grid_forget()
 
         ControllerCustomEntryShow = tk.Entry(ControllerFrame, textvariable=CustomCommand,)
-        ControllerCustomEntryShow.grid(row=0, column=6, sticky="ew")
-        ControllerCustomEntryShow.grid_forget()
         CustomCommand.trace_add("write", UpdateCustomCommand)
 
         #--- Always
@@ -5497,7 +5531,7 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowCenterMidiInputButton = tk.Button(DrumRowInputsFrame,text=("Set Midi"if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))),command=lambda: DetectNote(DrumRowCenterMidiInputButton,Row["Device"],Drum, "CenterMidiInput"), width =22)
                 DrumRowCenterMidiInputButton.grid(row=0, column=1)
 
-                DrumRowCenterKeyOutputButton = tk.Button(DrumRowInputsFrame,text=("+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key"),command=lambda: DetectKey(DrumRowCenterKeyOutputButton,Drum,"CenterKeyOutput"),width=22)                
+                DrumRowCenterKeyOutputButton = tk.Button(DrumRowInputsFrame,text=("+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key"),command=lambda: DetectKey(DrumRowCenterKeyOutputButton,Drum,"CenterKeyOutput","NullMidi"),width=22)                
                 DrumRowCenterKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
 
@@ -5591,7 +5625,7 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowRimMidiInputButton = tk.Button(DrumRowInputsFrame,text=("Set Midi"if Drum.get("RimMidiInput") is None else str(Drum.get("RimMidiInput"))),command=lambda: DetectNote(DrumRowRimMidiInputButton,Row["Device"],Drum, "RimMidiInput"), width =22)
                 DrumRowRimMidiInputButton.grid(row=0, column=1)
 
-                DrumRowRimKeyOutputButton = tk.Button(DrumRowInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowRimKeyOutputButton,Drum, "RimKeyOutput"), width=22)
+                DrumRowRimKeyOutputButton = tk.Button(DrumRowInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowRimKeyOutputButton,Drum, "RimKeyOutput","NullMidi"), width=22)
                 DrumRowRimKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
 
@@ -5762,7 +5796,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowBellMidiInputButton = tk.Button(CymbalRowBellInputsFrame, text=("Set Midi" if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))), command=lambda: DetectNote(CymbalRowBellMidiInputButton, Row["Device"], Drum, "CenterMidiInput"), width=22)
                 CymbalRowBellMidiInputButton.grid(row=0, column=1)
 
-                CymbalRowBellKeyOutputButton = tk.Button(CymbalRowBellInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBellKeyOutputButton, Drum, "CenterKeyOutput"), width=22)
+                CymbalRowBellKeyOutputButton = tk.Button(CymbalRowBellInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBellKeyOutputButton, Drum, "CenterKeyOutput","NullMidi"), width=22)
                 CymbalRowBellKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 CymbalRowBellSounds = tk.LabelFrame(CymbalRowBellRow, text="Sounds")
@@ -5856,7 +5890,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowEdgeMidiInputButton = tk.Button(CymbalRowEdgeInputsFrame, text=("Set Midi" if Drum.get("RimMidiInput") is None else str(Drum.get("RimMidiInput"))), command=lambda: DetectNote(CymbalRowEdgeMidiInputButton, Row["Device"], Drum, "RimMidiInput"), width=22)
                 CymbalRowEdgeMidiInputButton.grid(row=0, column=1)
 
-                CymbalRowEdgeKeyOutputButton = tk.Button(CymbalRowEdgeInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowEdgeKeyOutputButton, Drum, "RimKeyOutput"), width=22)
+                CymbalRowEdgeKeyOutputButton = tk.Button(CymbalRowEdgeInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowEdgeKeyOutputButton, Drum, "RimKeyOutput","NullMidi"), width=22)
                 CymbalRowEdgeKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 CymbalRowEdgeSounds = tk.LabelFrame(CymbalRowEdgeRow, text="Sounds")
@@ -5948,7 +5982,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowBowMidiInputButton = tk.Button(CymbalRowBowInputsFrame, text=("Set Midi" if Drum.get("BowMidiInput") is None else str(Drum.get("BowMidiInput"))), command=lambda: DetectNote(CymbalRowBowMidiInputButton, Row["Device"], Drum, "BowMidiInput"), width=22)
                 CymbalRowBowMidiInputButton.grid(row=0, column=1)
 
-                CymbalRowBowKeyOutputButton = tk.Button(CymbalRowBowInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("BowKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBowKeyOutputButton, Drum, "BowKeyOutput"), width=22)
+                CymbalRowBowKeyOutputButton = tk.Button(CymbalRowBowInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("BowKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBowKeyOutputButton, Drum, "BowKeyOutput","NullMidi"), width=22)
                 CymbalRowBowKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 CymbalRowBowSounds = tk.LabelFrame(CymbalRowBowRow, text="Sounds")
@@ -6111,7 +6145,7 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowKickMidiInputButton = tk.Button(DrumRowKickInputsFrame,text=("Set Midi" if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))),command=lambda: DetectNote(DrumRowKickMidiInputButton,Row["Device"],Drum,"CenterMidiInput"),width=22)
                 DrumRowKickMidiInputButton.grid(row=0, column=1)
 
-                DrumRowKickKeyOutputButton = tk.Button(DrumRowKickInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowKickKeyOutputButton,Drum,"CenterKeyOutput"),width=22)
+                DrumRowKickKeyOutputButton = tk.Button(DrumRowKickInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowKickKeyOutputButton,Drum,"CenterKeyOutput","NullMidi"),width=22)
                 DrumRowKickKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
 
@@ -6260,7 +6294,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowClosedMidiInputButton = tk.Button(HihatRowClosedInputsFrame, text=("Set Midi" if Drum.get("HiHatClosedMidiInput") is None else str(Drum.get("HiHatClosedMidiInput"))), command=lambda: DetectNote(HihatRowClosedMidiInputButton, Row["Device"], Drum, "HiHatClosedMidiInput"), width=22)
                 HihatRowClosedMidiInputButton.grid(row=0, column=1)
 
-                HihatRowClosedKeyOutputButton = tk.Button(HihatRowClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowClosedKeyOutputButton, Drum, "HiHatClosedKeyOutput"), width=22)
+                HihatRowClosedKeyOutputButton = tk.Button(HihatRowClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowClosedKeyOutputButton, Drum, "HiHatClosedKeyOutput","NullMidi"), width=22)
                 HihatRowClosedKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowClosedSounds = tk.LabelFrame(HihatRowClosedRow, text="Sounds")
@@ -6337,7 +6371,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowHalfMidiInputButton = tk.Button(HihatRowHalfInputsFrame, text=("Set Midi" if Drum.get("HiHatHalfMidiInput") is None else str(Drum.get("HiHatHalfMidiInput"))), command=lambda: DetectNote(HihatRowHalfMidiInputButton, Row["Device"], Drum, "HiHatHalfMidiInput"), width=22)
                 HihatRowHalfMidiInputButton.grid(row=0, column=1)
 
-                HihatRowHalfKeyOutputButton = tk.Button(HihatRowHalfInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatHalfKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowHalfKeyOutputButton, Drum, "HiHatHalfKeyOutput"), width=22)
+                HihatRowHalfKeyOutputButton = tk.Button(HihatRowHalfInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatHalfKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowHalfKeyOutputButton, Drum, "HiHatHalfKeyOutput","NullMidi"), width=22)
                 HihatRowHalfKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 
@@ -6404,7 +6438,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowOpenMidiInputButton = tk.Button(HihatRowOpenInputsFrame, text=("Set Midi" if Drum.get("HiHatOpenMidiInput") is None else str(Drum.get("HiHatOpenMidiInput"))), command=lambda: DetectNote(HihatRowOpenMidiInputButton, Row["Device"], Drum, "HiHatOpenMidiInput"), width=22)
                 HihatRowOpenMidiInputButton.grid(row=0, column=1)
 
-                HihatRowOpenKeyOutputButton = tk.Button(HihatRowOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowOpenKeyOutputButton, Drum, "HiHatOpenKeyOutput"), width=22)
+                HihatRowOpenKeyOutputButton = tk.Button(HihatRowOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowOpenKeyOutputButton, Drum, "HiHatOpenKeyOutput","NullMidi"), width=22)
                 HihatRowOpenKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowOpenSounds = tk.LabelFrame(HihatRowOpenRow, text="Sounds")
@@ -6479,7 +6513,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowStompMidiInputButton = tk.Button(HihatRowStompInputsFrame, text=("Set Midi" if Drum.get("HiHatStompMidiInput") is None else str(Drum.get("HiHatStompMidiInput"))), command=lambda: DetectNote(HihatRowStompMidiInputButton, Row["Device"], Drum, "HiHatStompMidiInput"), width=22)
                 HihatRowStompMidiInputButton.grid(row=0, column=1)
 
-                HihatRowStompKeyOutputButton = tk.Button(HihatRowStompInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatStompKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowStompKeyOutputButton, Drum, "HiHatStompKeyOutput"), width=22)
+                HihatRowStompKeyOutputButton = tk.Button(HihatRowStompInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatStompKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowStompKeyOutputButton, Drum, "HiHatStompKeyOutput","NullMidi"), width=22)
                 HihatRowStompKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowStompSounds = tk.LabelFrame(HihatRowStompRow, text="Sounds")
@@ -6579,7 +6613,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellOpenMidiInputButton = tk.Button(HihatRowBellOpenInputsFrame, text=("Set Midi" if Drum.get("HiHatBellOpenMidiInput") is None else str(Drum.get("HiHatBellOpenMidiInput"))), command=lambda: DetectNote(HihatRowBellOpenMidiInputButton, Row["Device"], Drum, "HiHatBellOpenMidiInput"), width=22)
                 HihatRowBellOpenMidiInputButton.grid(row=0, column=1)
 
-                HihatRowBellOpenKeyOutputButton = tk.Button(HihatRowBellOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellOpenKeyOutputButton, Drum, "HiHatBellOpenKeyOutput"), width=22)
+                HihatRowBellOpenKeyOutputButton = tk.Button(HihatRowBellOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellOpenKeyOutputButton, Drum, "HiHatBellOpenKeyOutput","NullMidi"), width=22)
                 HihatRowBellOpenKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowBellOpenSounds = tk.LabelFrame(HihatRowBellOpenRow, text="Sounds")
@@ -6644,7 +6678,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellClosedMidiInputButton = tk.Button(HihatRowBellClosedInputsFrame, text=("Set Midi" if Drum.get("HiHatBellClosedMidiInput") is None else str(Drum.get("HiHatBellClosedMidiInput"))), command=lambda: DetectNote(HihatRowBellClosedMidiInputButton, Row["Device"], Drum, "HiHatBellClosedMidiInput"), width=22)
                 HihatRowBellClosedMidiInputButton.grid(row=0, column=1)
 
-                HihatRowBellClosedKeyOutputButton = tk.Button(HihatRowBellClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellClosedKeyOutputButton, Drum, "HiHatBellClosedKeyOutput"), width=22)
+                HihatRowBellClosedKeyOutputButton = tk.Button(HihatRowBellClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellClosedKeyOutputButton, Drum, "HiHatBellClosedKeyOutput","NullMidi"), width=22)
                 HihatRowBellClosedKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowBellClosedSounds = tk.LabelFrame(HihatRowBellClosedRow, text="Sounds")
@@ -9086,6 +9120,8 @@ def ChangedWindowFocus(NewFocus):
     if OnCurrentCycle and HiddenToTray == False:
         ClickCycleButton(CurrentViewedYear, CurrentViewedMonth, CurrentViewedCycle)
             
+    NullFocusRunOperators()
+
     return
 
 def WatchFocus():
@@ -9583,7 +9619,11 @@ def ClickCycleButton(Year, Month, Cycle):
                     FocusedHours = int(FocusedSeconds // 3600)
                     FocusedMinutes = int((FocusedSeconds % 3600) // 60)
                     FocusedSecs = int(FocusedSeconds % 60)
+                    SleepTime = CycleDate - timedelta(seconds=FocusedSeconds)
+
                     Output += (
+                        f"Went To Sleep At: "
+                        f"{SleepTime.strftime('%I:%M:%S %p')}\n"
                         f"Slept Yesterday, For : "
                         f"{FocusedHours:02}:"
                         f"{FocusedMinutes:02}:"
@@ -10190,6 +10230,217 @@ def SaveClipBoard():
                 "Saving clipboard failed:",
                 e
             )
+
+def AddOperatorWindow():
+    SearchForWindow(None,None,None,None,"Operator")
+    return
+
+def CreateOperatorRow(Window):
+    global NullFocusOperatorRows
+
+    CurrentPage = tk.BooleanVar(value=True)
+    KeyOrAction = tk.BooleanVar(value=False)
+    WindowSpecific = tk.BooleanVar(value=False)
+    OnlyThisWindow = tk.StringVar(value=None)
+    FilePath = tk.StringVar(value="")
+    Command = tk.StringVar(value="")
+    FileOrCommand = tk.BooleanVar(value=False)
+
+    def GetCurrentPage():
+        if CurrentPage.get():
+            return "Focused"
+        else:
+            return "Unfocused"
+    
+    
+
+    def ChangedPage():
+        which = GetCurrentPage()
+        NormalizedClass = Window[which]["OnlyThisWindow"].split(".")[0].lower()
+        KeyOrAction.set(Window[which]["KeyOrAction"])
+        WindowSpecific.set(Window[which]["WindowSpecific"])
+        OnlyThisWindow.set(NormalizedClass)
+        FilePath.set(Window[which]["FilePath"])     
+        Command.set(Window[which]["Command"])
+        FileOrCommand.set(Window[which]["FileOrCommand"])
+
+        OperatorUIUpdater()
+    
+    def RemoveOperator(Window, Button, Timeout=4):
+        global NullFocusOperators
+        EndTime = time.time() + (Timeout)
+
+        def Tick(Window):
+            if Window['DeleteConfirmation'] == False:
+                return
+            else:
+                Remaining = int(EndTime - time.time())
+                if Remaining <= 0:
+                    if not Button.winfo_exists():
+                        return
+                    Button.config(text="Delete")
+                    Window['DeleteConfirmation'] = False
+                    return
+                if not Button.winfo_exists():
+                    return
+                else:
+                    Button.config(text=f"R U Sure? {Remaining}")
+                    Root.after(1000, Tick, Window)
+
+        if Window['DeleteConfirmation'] == False:
+            Window['DeleteConfirmation'] = True
+            Tick(Window)
+            return
+
+        NullFocusOperators.remove(Window)
+        MainFrame.destroy()
+        SaveConfig("NullFocus")
+
+    MainFrame = tk.LabelFrame(OperatorList.Inner, text=Window['DisplayName'], bd=2)
+    MainFrame.pack(fill="x", expand=True)
+    MainFrame.columnconfigure(4,weight=1)
+
+    OperatorFocused = tk.Checkbutton(MainFrame, text="Focused|UnFocused", variable=CurrentPage, command=lambda:ChangedPage())
+    OperatorFocused.grid(row=0, column=0, sticky="ew")
+
+    def OperatorUIUpdater():
+        Window[GetCurrentPage()]['KeyOrAction'] = KeyOrAction.get()
+        Window[GetCurrentPage()]['WindowSpecific']= WindowSpecific.get()
+        Window[GetCurrentPage()]['OnlyThisWindow']= OnlyThisWindow.get()
+        Window[GetCurrentPage()]['FileOrCustom']= FileOrCommand.get()
+        Window[GetCurrentPage()]['FilePath']= FilePath.get()
+        Window[GetCurrentPage()]['Command']= Command.get()
+
+        OperatorKeyOutputButton.config(text="+".join(FormatKeyName(K)for K in Window[GetCurrentPage()]["Keys"]) or "Set Key")
+
+        OperatorKeyOutputButton.grid_remove()
+        OperatorWindowSpecificSwitcher.grid_remove()
+        OperatorWindowSpecifiWindowShow.grid_remove()
+        OperatorWindowSpecificChooseWindowButton.grid_remove()
+        OperatorFileSwitcher.grid_remove()
+        OperatorChooseFile.grid_remove()
+        OperatorActionEntryShow.grid_remove()
+        OperatorCustomRunButton.grid_remove()
+        OperatorCustomEntryShow.grid_remove()
+
+
+        if KeyOrAction.get():
+            OperatorFileSwitcher.grid(row=0, column=2, sticky="ew", padx=2)
+            if FileOrCommand.get():
+                OperatorCustomRunButton.grid(row=0, column=3, sticky="ew", padx=2)
+                OperatorCustomEntryShow.grid(row=0, column=4, sticky="ew", padx=2)
+            else:
+                OperatorChooseFile.grid(row=0, column=3, sticky="ew", padx=2)
+                OperatorActionEntryShow.grid(row=0, column=4, sticky="ew", padx=2)
+
+        else:
+            OperatorKeyOutputButton.grid(row=0, column=2, sticky="ew", padx=2)
+            OperatorWindowSpecificSwitcher.grid(row=0, column=3, sticky="ew", padx=2)
+            if WindowSpecific.get():
+                OperatorWindowSpecifiWindowShow.grid(row=0, column=4, sticky="ew", padx=2)
+                OperatorWindowSpecificChooseWindowButton.grid(row=0, column=5, sticky="ew", padx=2)
+        
+        SaveConfig("NullFocus")
+        return
+
+    OperatorKeyActionSwitcher = tk.Checkbutton(MainFrame, text="Keys|Action", variable=KeyOrAction, command=lambda:OperatorUIUpdater())
+    OperatorKeyActionSwitcher.grid(row=0, column=1, sticky="ew", padx=2)
+
+    #--- keys
+    OperatorKeyOutputButton = tk.Button(MainFrame,text=("+".join(FormatKeyName(K)for K in Window[GetCurrentPage()]["Keys"]) or "Set Key"),command=lambda: DetectKey(OperatorKeyOutputButton,Window[GetCurrentPage()],'Keys',"NullFocus"),width=25)
+
+    OperatorWindowSpecificSwitcher = tk.Checkbutton(MainFrame, text="All|Window", variable=WindowSpecific, command=lambda:OperatorUIUpdater())
+    OperatorWindowSpecifiWindowShow = tk.Entry(MainFrame, textvariable=OnlyThisWindow, state="readonly")
+    OperatorWindowSpecificChooseWindowButton = tk.Button(MainFrame, command=lambda: SearchForWindow(Window[GetCurrentPage()], OnlyThisWindow, "OnlyThisWindow", "WindowDisplayName", "NullFocusOperator"), text="Choose Window", width=14)
+
+    #-------- Action
+    #--- file
+    OperatorFileSwitcher = tk.Checkbutton(MainFrame, text="File|Custom", variable=FileOrCommand, command=lambda:OperatorUIUpdater())
+
+    OperatorChooseFile = tk.Button(MainFrame, command=lambda: SearchForAnyFile(Window[GetCurrentPage()],FilePath,"FilePath"), text="Browse", width=8)
+
+    OperatorActionEntryShow = tk.Entry(MainFrame, textvariable=FilePath, state="readonly")
+    #--- command
+    OperatorCustomRunButton= tk.Button(MainFrame, command=lambda: MidiCustomRun(Window[GetCurrentPage()]['Command']), text="Run", width=8)
+    OperatorCustomEntryShow = tk.Entry(MainFrame, textvariable=Command,)
+    
+    #--- remove
+    OperatorRemoveButton = tk.Button(MainFrame, command=lambda: RemoveOperator(Window,OperatorRemoveButton), text="Remove", width=16)
+    OperatorRemoveButton.grid(row=0, column=20)
+
+    OperatorList.BindMouseWheel(MainFrame)
+
+    ChangedPage()
+    NullFocusOperatorRows.append(MainFrame)
+    return
+
+def ExecuteWindowChange(Window, Type):
+
+    if Window[Type]['KeyOrAction']:
+        if Window[Type]['FileOrCommand']:
+            MidiCustomRun(Window[Type]['Command'])
+        else:
+            MidiFileOpen(Window[Type]['FilePath'])
+    else:
+        if Window[Type]['WindowSpecific']:
+            PressKeyCombo(Window[Type]["Keys"],Window[Type]["WindowSpecific"], Window[Type]['OnlyThisWindow'])
+        else:
+            PressKeyCombo(Window[Type]["Keys"])
+        
+    return
+
+def SpotifyTracker():
+    global CurrentSpotifySong, SpotifyID
+
+    if SpotifyID is None:
+        AttemptToGetSpotifyID()
+
+        if SpotifyID is None:
+            return
+
+
+
+    try:
+        WindowTitle = subprocess.check_output(
+            ["xdotool", "getwindowname", SpotifyID]
+        ).decode().strip()
+
+    except Exception:
+        SpotifyID = None
+        return
+    
+    if " - " in WindowTitle:
+        Artist, Song = WindowTitle.split(" - ", 1)
+        NewSong = f"Song Name:\n{Song}\n\nArtist:\n{Artist}"
+    else:
+        NewSong = WindowTitle
+
+    if NewSong != CurrentSpotifySong:
+        CurrentSpotifySong = NewSong
+
+        with open("SpotifySong.txt", "w", encoding="utf-8") as f:
+            f.write(CurrentSpotifySong)
+    
+def AttemptToGetSpotifyID():
+    global SpotifyID
+
+    IDs = subprocess.check_output(
+        ["xdotool", "search", "--class", "spotify"]
+    ).decode().splitlines()
+
+    for WindowID in IDs:
+        try:
+            Title = subprocess.check_output(
+                ["xdotool", "getwindowname", WindowID]
+            ).decode().strip()
+
+            if " - " in Title:
+                SpotifyID = WindowID
+
+        except:
+            continue
+
+    return None
 
 
 # ————————————————————————————————————————————————————————————
@@ -11274,6 +11525,20 @@ ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
 # ---------- ClipBoard
 ClipBoardList = ScrollableFrame(NullFocusClipBoard)
 ClipBoardList.pack(fill="both", expand=True, anchor="n", padx=10, pady=10)
+# ---------- Operator
+NullFocusOperator.columnconfigure(0,weight=1)
+NullFocusOperator.rowconfigure(2,weight=1)
+
+NullFocusAddOperatorButton = tk.Button(NullFocusOperator, text = "Add Operator", command=lambda: AddOperatorWindow())
+NullFocusAddOperatorButton.grid(row=0,column=0, sticky="ew", padx=5)
+
+tk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=5)
+
+OperatorList = ScrollableFrame(NullFocusOperator)
+OperatorList.rowconfigure(0,weight=1)
+OperatorList.columnconfigure(0,weight=1)
+OperatorList.grid(row=2,column=0, sticky="ewns", pady=5, padx=5)
+
 # ------------------------------
 # Null Moji UI
 # ------------------------------
@@ -11512,6 +11777,8 @@ def NullFocusLoop():
                 if (now - LastWriteToDisk>= (WriteToDiskSeconds * 60)):
                     SaveTrackerLog()
                     LastWriteToDisk = now
+                else:
+                    SpotifyTracker()
             except Exception as e:
                 print(f"NullFocusLoop Error: {e}")
         time.sleep(1)
@@ -11599,6 +11866,16 @@ def NullFocusClipBoardLoop():
                     LastClipBoard = Current['Hash']
                     Root.after(0,lambda c=Current: AddClipBoardEntry(c))
         time.sleep(1.5)
+
+def NullFocusRunOperators():
+    for Operator in NullFocusOperators:
+        if Operator['WindowClass'] == CurrentFocus:
+            ExecuteWindowChange(Operator, "Focused")
+
+        if Operator['WindowClass'] == OldFocus:
+            ExecuteWindowChange(Operator, "Unfocused")
+
+
 
 def HideToTray():
     global HiddenToTray
@@ -11751,14 +12028,12 @@ def StartUpNullMidi():
                 data = json.load(f)
                 midi = data.get("NullMidi", {})
 
-            print("1")
             for row in MidiRowObjects[:]:
                 row.destroy()
 
             MidiRows.clear()
             MidiRowObjects.clear()
 
-            print("2")
             for row in midi.get("MidiRows", []):
                 AddMidiRow(row, True)
 
@@ -11767,16 +12042,13 @@ def StartUpNullMidi():
             Root.update_idletasks()
             return False
 
-        print("3")
         if MixerInitialized == False:
             pygame.mixer.init(buffer=256)
             pygame.mixer.set_num_channels(144)
             MixerInitialized = True
         
-        print("4")
         BuildGlobalUInputDevice()
 
-        print("5")
         Notebook.add(NullMidi, text="NullMidi")
     else:
         Notebook.forget(NullMidi)
@@ -11925,6 +12197,7 @@ def StartUpNullFocus():
     global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted
     global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
     global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
+    global NullFocusOperatorRows, NullFocusOperators
     
     if NullFocusActive.get() == True:
         SystemLoading = True
@@ -11964,6 +12237,8 @@ def StartUpNullFocus():
             KeyboardListener.start()
         
         StartTrackerListeners()
+
+        # -----  Log and Manage Tabs
 
         YearFiles = [File for File in os.listdir(TrackerPath)if File.endswith(".json")]
         if len(YearFiles) == 0:
@@ -12036,6 +12311,23 @@ def StartUpNullFocus():
             if Classifications == "Ignored" or Classifications == "Sleep":
                 continue
             AddNewTracker(Classifications,True)
+
+        # --- Operators Stuff
+
+        for rows in NullFocusOperatorRows:
+            rows.destroy()
+
+        NullFocusOperatorRows.clear()
+
+        NullFocusOperators.clear()
+
+
+        for operators in tracker.get("Operators", []):
+            NullFocusOperators.append(operators)
+            CreateOperatorRow(operators)
+
+
+        #---- ClipBoard stuff
 
 
         ClipBoardHistory.clear()
