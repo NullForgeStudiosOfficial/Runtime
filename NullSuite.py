@@ -61,9 +61,9 @@ import atexit
 import tempfile
 from PIL import Image, ImageTk, ImageDraw
 import hashlib
-
 from datetime import datetime, timedelta
 import urllib.request
+import nulltk # type: ignore
 
 setproctitle.setproctitle("NullSuite")
 
@@ -71,15 +71,16 @@ os.environ["PULSE_PROP_application.name"] = "NullMidiSounds"
 
 import pygame
 
+
 # ==========================================================================================
 # Startup :)
 # ==========================================================================================
 SystemLoading = True
 ProgramLoading = False
-Root = tk.Tk(className="NullSuite")
+Root = nulltk.Tk(className="NullSuite")
 Root.title("NullSuite")
 Root.geometry("1600x900")
-Main = tk.Frame(Root)
+Main = nulltk.Frame(Root)
 Main.pack(fill="both", expand=True, padx=10, pady=10)
 style = ttk.Style()
 style.map("TNotebook.Tab",foreground=[("disabled", "#666666"),("selected", "#000000"),("!disabled", "#000000")])
@@ -94,7 +95,7 @@ StartMinimizedActive= tk.BooleanVar(value=False)
 StartInTrayActive= tk.BooleanVar(value=False)
 DontLoadAppsOnStartUpActive= tk.BooleanVar(value=False)
 MixerInitialized = False
-LoadPopup = tk.Toplevel(Root)
+LoadPopup = nulltk.Toplevel(Root)
 LoadPopup.title("Loading NullSuite Data")
 Width = 1000
 Height = 100
@@ -110,10 +111,10 @@ LoadPopup.resizable(False, False)
 LoadPopup.transient(Root)
 LoadPopup.grab_set()
 LoadPopup.attributes("-topmost", True)
-LoadFrame = tk.Frame(LoadPopup)
+LoadFrame = nulltk.Frame(LoadPopup)
 LoadFrame.pack(fill="both", expand=True)
 Butts = tk.StringVar(value = "Loading")
-tk.Label(LoadFrame,textvariable=Butts,font=("Arial", 12)).pack(expand=True)
+nulltk.Label(LoadFrame,textvariable=Butts,font=("Arial", 12)).pack(expand=True)
 LoadPopup.update()
 
 def BlockClose():
@@ -296,6 +297,7 @@ NullFocusOperatorRows = []
 LastProcessedFocus = None
 CurrentSpotifySong = ""
 SpotifyID = None
+DeletionCheckBoxes = []
 # ------------------------------
 # NullMoji
 # ------------------------------
@@ -314,12 +316,21 @@ RootState = ""
 NullMojiPopupWindow = None
 
 
+
+
+
+
+
+# ------------------------------
+# Theme Setup
+# ------------------------------
+
+DarkTheme = tk.BooleanVar(value=True)
+
+
 # ————————————————————————————————————————————————————————————
 # Required Startup Methods
 # ————————————————————————————————————————————————————————————
-
-
-
 
 def GetRepoRoot():
     return os.path.dirname(BaseDir)
@@ -543,6 +554,9 @@ def LoadConfig():
 
         nullsuite = data.get("NullSuite", {})
         StartMinimizedActive.set(nullsuite.get("StartMinimized", False))
+        DarkTheme.set(nullsuite.get("DarkTheme", True))
+        BlackVar.set(nullsuite.get("DarkVar", 0))
+        WhiteVar.set(nullsuite.get("WhiteVar", 100))
 
         if StartMinimizedActive.get():
             Root.after(0, Root.iconify)
@@ -552,16 +566,13 @@ def LoadConfig():
         if StartInTrayActive.get():
             Root.after(0, Root.withdraw)
 
-        DontLoadAppsOnStartUpActive.set(nullsuite.get("DontStartApps", False))
+        for Name, Module in Modules.items():
+            Module["Toggle"].set(nullsuite.get(Module["Config"], False))
 
-        if DontLoadAppsOnStartUpActive.get() == False:
-            for Name, Module in Modules.items():
-                Module["Toggle"].set(nullsuite.get(Module["Config"], False))
+            if Module["Toggle"].get():
+                LoadStagger += 250
 
-                if Module["Toggle"].get():
-                    LoadStagger += 250
-
-                Root.after(LoadStagger, Module["Start"])
+            Root.after(LoadStagger, Module["Start"])
 
         return True
 
@@ -600,7 +611,9 @@ def SaveConfig(Which, FirstTimeSetup=False):
                 "NullMojiActive": NullMojiActive.get(),
                 "StartMinimized": StartMinimizedActive.get(),
                 "StartInTray": StartInTrayActive.get(),
-                "DontStartApps": DontLoadAppsOnStartUpActive.get()
+                "DarkTheme": DarkTheme.get(),
+                "DarkValue": BlackVar.get(),
+                "WhiteValue": WhiteVar.get()
             }
         })
 
@@ -723,17 +736,35 @@ def BindMouseWheel(self, widget):
     for child in widget.winfo_children():
         self.BindMouseWheel(child)
 
+def ChangeTheme():
+    if DarkTheme.get() == True:
+        nulltk.ApplyTheme("Dark")
+    else:
+        nulltk.ApplyTheme("Light")
+    SaveConfig("NullSuite")
+    return
+
+def CheckBlackOrWhitevalue(Color):
+    if Color == "Dark":
+        nulltk.DarkThemeValue = BlackVar.get()
+        pass
+    else:
+        nulltk.LightThemeValue = WhiteVar.get()
+        pass
+    ChangeTheme()
+    SaveConfig("NullSuite")
+    return
 
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.Canvas = tk.Canvas(self, highlightthickness=0)
+        self.Canvas = nulltk.Canvas(self, highlightthickness=0)
 
-        scrollbar = tk.Scrollbar(self, orient="vertical", command=self.Canvas.yview)
+        scrollbar = nulltk.Scrollbar(self, orient="vertical", command=self.Canvas.yview)
 
-        self.Inner = tk.Frame(self.Canvas)
+        self.Inner = nulltk.Frame(self.Canvas)
 
         self.Window = self.Canvas.create_window((0, 0), window=self.Inner, anchor="nw")
 
@@ -767,7 +798,7 @@ class ScrollableFrame(tk.Frame):
         if ContentHeight <= ViewHeight:
             return
 
-        if isinstance(event.widget, (tk.Scale, ttk.Scale)):
+        if isinstance(event.widget, (nulltk.Scale, ttk.Scale)):
             return
 
         if event.num == 4:
@@ -781,7 +812,7 @@ class HoriScrollableFrame(tk.Frame):
         super().__init__(parent)
         self.Canvas = tk.Canvas(self,highlightthickness=0)
         self.Scrollbar = tk.Scrollbar(self,orient="horizontal",command=self.Canvas.xview)
-        self.Inner = tk.Frame(self.Canvas)
+        self.Inner = nulltk.Frame(self.Canvas)
         self.Window = self.Canvas.create_window((0, 0),window=self.Inner,anchor="nw")
         self.Inner.bind("<Configure>",lambda e: self.Canvas.configure(scrollregion=self.Canvas.bbox("all")))
         self.Canvas.bind("<Configure>",lambda e: self.Canvas.itemconfig(self.Window,height=e.height))
@@ -801,7 +832,7 @@ class HoriScrollableFrame(tk.Frame):
         ViewWidth = self.Canvas.winfo_width()
         if ContentWidth <= ViewWidth:
             return
-        if isinstance(event.widget, (tk.Scale, ttk.Scale)):
+        if isinstance(event.widget, (nulltk.Scale, ttk.Scale)):
             return
         if event.num == 4:
             self.Canvas.xview_scroll(-1, "units")
@@ -890,7 +921,7 @@ def SearchForWindow(Dict, var, ClassName,DisplayName,Program, Page=None):
     ScrollFrame.pack(fill="both", expand=True)
 
     for Window in WindowSelection:
-        tk.Button(
+        nulltk.Button(
             ScrollFrame.Inner,
             text=f"Window Title:{Window['UIName']}\n\nProcess Name: {Window['ClassName']}",
             justify="left",
@@ -1004,7 +1035,7 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
         Row = Index // 5
         Column = Index % 5
 
-        Cell = tk.Frame(
+        Cell = nulltk.Frame(
             ScrollFrame.Inner,
             relief="groove",
             borderwidth=2
@@ -1025,26 +1056,26 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
             Photo = ImageTk.PhotoImage(Thumb)
             Thumbnails.append(Photo)
 
-            tk.Label(
+            nulltk.Label(
                 Cell,
                 image=Photo
             ).pack()
 
         except Exception:
-            tk.Label(
+            nulltk.Label(
                 Cell,
                 text="Preview Failed",
                 width=30,
                 height=15
             ).pack()
 
-        tk.Label(
+        nulltk.Label(
             Cell,
             text=os.path.basename(ImagePath),
             wraplength=ThumbnailSize
         ).pack()
 
-        tk.Button(
+        nulltk.Button(
             Cell,
             text="Select",
             command=lambda P=ImagePath: SelectImage(P)
@@ -1058,6 +1089,15 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
     Root.wait_window(Popup)
 
     return SelectedImage[0]
+
+
+
+
+
+
+
+
+
 # ————————————————————————————————————————————————————————————
 # NullWire
 # ————————————————————————————————————————————————————————————
@@ -1242,7 +1282,7 @@ def AddRoutingObject():
     NullWireRoutingEntry.delete(0, tk.END)
 
 def AddRoutingBlock(NameOfSink, Sink):
-    Frame = tk.Frame(NullWireRoutingObjects, bd=2, relief="solid")
+    Frame = nulltk.Frame(NullWireRoutingObjects, bd=2, relief="solid")
     Frame.pack(fill="x", padx=5, pady=5)
     Frame.columnconfigure(0, weight=1)
     Frame.rowconfigure(0, weight=1)
@@ -1251,7 +1291,7 @@ def AddRoutingBlock(NameOfSink, Sink):
     Frame.rowconfigure(3, weight=1) 
     Frame.rowconfigure(4, weight=1)
     Frame.rowconfigure(5, weight=1)
-    tk.Frame(Frame, height=5)\
+    nulltk.Frame(Frame, height=5)\
     .grid(row=5, column=0, columnspan=3)
 
     
@@ -1291,7 +1331,7 @@ def AddRoutingBlock(NameOfSink, Sink):
         SaveConfig("NullWire")
         RefreshRoutingUI()
 
-    Column0 = tk.Frame(Frame)
+    Column0 = nulltk.Frame(Frame)
     Column0.grid(row=0, column=0, sticky="ew", padx=5)
     Column0.columnconfigure(0, weight=0)  
     Column0.columnconfigure(1, weight=0)  
@@ -1299,18 +1339,18 @@ def AddRoutingBlock(NameOfSink, Sink):
     Column0.columnconfigure(3, weight=2) 
     Column0.columnconfigure(3, weight=1) 
 
-    DeleteSinkButton = tk.Button(Column0, text="Delete Wire", command=lambda: Delete(NameOfSink, Sink,DeleteSinkButton), width = 12)
+    DeleteSinkButton = nulltk.Button(Column0, text="Delete Wire", command=lambda: Delete(NameOfSink, Sink,DeleteSinkButton), width = 12)
     DeleteSinkButton.grid(row=0, column=0, padx=5, pady=5, sticky="w")
     
     MonoVar = tk.BooleanVar(value=Sink.get("Mono", False))
     MuteVar = tk.BooleanVar(value=Sink.get("Mute", False))
-    InnerFrame = tk.Frame(Column0, bd=2, relief="solid")
+    InnerFrame = nulltk.Frame(Column0, bd=2, relief="solid")
     InnerFrame.grid(row=0, column=3, sticky="ew", padx=2)
     InnerFrame.columnconfigure(0, weight=1)
     display_name = NameOfSink.replace("_NullWire", "")
-    tk.Label(InnerFrame, text=display_name, anchor="w")\
+    nulltk.Label(InnerFrame, text=display_name, anchor="w")\
     .grid(row=0, column=0, sticky="ew")
-    volume_frame = tk.Frame(Column0)
+    volume_frame = nulltk.Frame(Column0)
     volume_frame.grid(row=0, column=4, sticky="ew", padx=5)
     volume_frame.columnconfigure(0, weight=1)
     start_vol = Sink.get("Volume", 100)
@@ -1335,13 +1375,13 @@ def AddRoutingBlock(NameOfSink, Sink):
     # ==============================
     # THICK DIVIDER
     # ==============================
-    tk.Frame(Frame, height=3, bg="#555")\
+    nulltk.Frame(Frame, height=3, bg="#555")\
         .grid(row=1, column=0, columnspan=3, sticky="ew", pady=3)
     
     # ==============================
     # AUDIO DEVICES ROW
     # ==============================
-    RowA = tk.Frame(Frame)
+    RowA = nulltk.Frame(Frame)
     RowA.grid(row=2, column=0, columnspan=3, sticky="ew", padx=5, pady=0)
     RowA.columnconfigure(0, weight=1)
     AllDevices = [f"A{i}" for i in range(1, 21)]
@@ -1361,7 +1401,7 @@ def AddRoutingBlock(NameOfSink, Sink):
                 subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
                 Sink["Outputs"][d] = False
             SaveConfig("NullWire")
-        cb = tk.Checkbutton(RowA,text=device,variable=var,width=3,command=Toggle,anchor="w")
+        cb = nulltk.Checkbutton(RowA,text=device,variable=var,width=3,command=Toggle,anchor="w")
         cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
 
         if not exists:
@@ -1370,7 +1410,7 @@ def AddRoutingBlock(NameOfSink, Sink):
     # ==============================
     # MIC DEVICES ROW
     # ==============================
-    RowM = tk.Frame(Frame)
+    RowM = nulltk.Frame(Frame)
     RowM.grid(row=3, column=0, columnspan=3, sticky="ew", padx=5)
     RowM.columnconfigure(0, weight=1)
 
@@ -1396,7 +1436,7 @@ def AddRoutingBlock(NameOfSink, Sink):
                 Sink["Inputs"][d] = False
             SaveConfig("NullWire")
 
-        cb = tk.Checkbutton(RowM,text=device,variable=var,width=3,command=Toggle,anchor="w")
+        cb = nulltk.Checkbutton(RowM,text=device,variable=var,width=3,command=Toggle,anchor="w")
         cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
 
         if not exists:
@@ -1405,18 +1445,18 @@ def AddRoutingBlock(NameOfSink, Sink):
     # ==============================
     # SOURCES ROW
     # ==============================
-    SRow = tk.Frame(Frame)
+    SRow = nulltk.Frame(Frame)
     SRow.grid(row=4, column=0, columnspan=3, sticky="ew", padx=5)
     SRow.columnconfigure(2, weight=1)
-    tk.Button(SRow, text="Attach", width=6, command=lambda: OpenAddSourcePopup(NameOfSink, Sink))\
+    nulltk.Button(SRow, text="Attach", width=6, command=lambda: OpenAddSourcePopup(NameOfSink, Sink))\
     .grid(row=0, column=0, sticky="ew")
-    tk.Button(SRow, text="Remove", width=6, command=lambda: OpenRemoveSourcePopup(Sink))\
+    nulltk.Button(SRow, text="Remove", width=6, command=lambda: OpenRemoveSourcePopup(Sink))\
     .grid(row=0, column=1, padx=(5,0), sticky="ew")
-    InnerFrameS = tk.Frame(SRow, bd=1, relief="solid")
+    InnerFrameS = nulltk.Frame(SRow, bd=1, relief="solid")
     InnerFrameS.grid(row=0, column=2, sticky="nsew", padx=5)
     InnerFrameS.columnconfigure(0, weight=1)
     InnerFrameS.rowconfigure(0, weight=1)
-    tk.Label(InnerFrameS,text = ", ".join(Sink["Sources"]) if Sink["Sources"] else "",anchor="nw",justify="left").grid(row=0, column=0, sticky="nsew")
+    nulltk.Label(InnerFrameS,text = ", ".join(Sink["Sources"]) if Sink["Sources"] else "",anchor="nw",justify="left").grid(row=0, column=0, sticky="nsew")
 
     # ==============================
     # Mono cause why not
@@ -1437,7 +1477,7 @@ def AddRoutingBlock(NameOfSink, Sink):
             subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
         SaveConfig("NullWire")
 
-    tk.Checkbutton(Column0,text="Mono?",variable=MonoVar,command=ToggleMono)\
+    nulltk.Checkbutton(Column0,text="Mono?",variable=MonoVar,command=ToggleMono)\
         .grid(row=0, column=1, padx=5, pady=5, sticky="w")
     
     # ==============================
@@ -1452,20 +1492,20 @@ def AddRoutingBlock(NameOfSink, Sink):
             ApplyVolume()
         SaveConfig("NullWire")
 
-    tk.Checkbutton(Column0,text="Mute",variable=MuteVar,command=ToggleMute)\
+    nulltk.Checkbutton(Column0,text="Mute",variable=MuteVar,command=ToggleMute)\
         .grid(row=0, column=2, padx=5, pady=5, sticky="w")
 
     NullWireScrollArea.BindMouseWheel(Frame)
 
     # - putting scale at the end so the feckin mouse scroll still works on it. the FUCK tkinter??? Still love you windows 1995 lookin ass bitch.
 
-    scale = tk.Scale(volume_frame,from_=0,to=150,orient="horizontal",showvalue=0,command=OnVolumeChange)
+    scale = nulltk.Scale(volume_frame,from_=0,to=150,orient="horizontal",showvalue=0,command=OnVolumeChange)
     scale.grid(row=0, column=0, sticky="ew")
     scale.bind("<ButtonRelease-1>", lambda e: ApplyVolume())
     scale.bind("<Button-4>", lambda e: (scale.set(min(150, scale.get()+5)), ScheduleApply()))
     scale.bind("<Button-5>", lambda e: (scale.set(max(0, scale.get()-5)), ScheduleApply()))
     scale.set(start_vol)
-    tk.Label(volume_frame, textvariable=vol_var, width=3)\
+    nulltk.Label(volume_frame, textvariable=vol_var, width=3)\
     .grid(row=0, column=1, padx=5)
 
 
@@ -1492,7 +1532,7 @@ def OpenAddSourcePopup(name, Sink):
         fg = "#aaaaaa" if owner else None
         label = src if not owner else f"{src} [FROM: {owner}]"
 
-        tk.Button(Popup,text=label,command=lambda s=src: SelectSource(name, Sink, s, Popup)).pack(fill="x")
+        nulltk.Button(Popup,text=label,command=lambda s=src: SelectSource(name, Sink, s, Popup)).pack(fill="x")
 
 def SelectSource(name, Sink, source, Popup):
     for s in Sinks.values():
@@ -1517,7 +1557,7 @@ def OpenRemoveSourcePopup(Sink):
     Popup.grab_set()
 
     for src in Sink["Sources"]:
-        tk.Button(Popup,text=src,command=lambda s=src: RemoveSource(Sink, s, Popup)).pack(fill="x")
+        nulltk.Button(Popup,text=src,command=lambda s=src: RemoveSource(Sink, s, Popup)).pack(fill="x")
 
 def RemoveSource(Sink, source, Popup):
     if source in Sink["Sources"]:
@@ -1538,7 +1578,7 @@ def RefreshRoutingUI():
         AddRoutingBlock(name, sink)
 
 def CreateABlock(i):
-    frame = tk.Frame(LeftColumn, bd=1, relief="solid")
+    frame = nulltk.Frame(LeftColumn, bd=1, relief="solid")
     frame.pack(fill="x", pady=2)
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=0)
@@ -1546,16 +1586,16 @@ def CreateABlock(i):
     AKey = f"A{i}"
     data = Devices["A"][AKey]
     name = data["Name"] if data else "-"
-    container = tk.Frame(frame)
+    container = nulltk.Frame(frame)
     container.grid(row=0, column=0, sticky="nsew", padx=5)
     container.columnconfigure(0, weight=1)
     container.grid_propagate(False)
 
-    tk.Label(container, text=f"{AKey}: {name}", anchor="w")\
+    nulltk.Label(container, text=f"{AKey}: {name}", anchor="w")\
         .grid(row=0, column=0, sticky="w")
-    volume = tk.Frame(frame)
+    volume = nulltk.Frame(frame)
     volume.grid(row=0, column=1, sticky="e", padx=5)
-    volume_controls = tk.Frame(volume)
+    volume_controls = nulltk.Frame(volume)
     volume_controls.grid(row=0, column=0)
     device_id = data["ID"] if data else None
     start_vol = data.get("Volume") if data else None
@@ -1611,7 +1651,7 @@ def CreateABlock(i):
         vol_var.set(str(volumenumber))
         data['Volume'] = volumenumber
 
-    scale = tk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
+    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
     scale.grid(row=0, column=0, sticky="e", padx=5)
 
     def OnScrollUp(event):
@@ -1638,10 +1678,10 @@ def CreateABlock(i):
         else:
             volume_controls.grid_remove()
 
-    tk.Label(volume_controls, textvariable=vol_var, anchor="w", width= 3)\
+    nulltk.Label(volume_controls, textvariable=vol_var, anchor="w", width= 3)\
         .grid(row=0, column=1, sticky="w")
 
-    tk.Checkbutton(volume,text="Override System",width = 15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
+    nulltk.Checkbutton(volume,text="Override System",width = 15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
     
     if override_var.get():
         volume_controls.grid()
@@ -1653,17 +1693,17 @@ def CreateABlock(i):
             volume.grid_remove()
             volume_controls.grid_remove()
 
-    btns = tk.Frame(frame)
+    btns = nulltk.Frame(frame)
     btns.grid(row=0, column=2)
 
-    tk.Button(btns, text="SET",
+    nulltk.Button(btns, text="SET",
         command=lambda k=AKey: OpenOutputPopup(k)).pack(side="left")
 
-    ClearButton = tk.Button(btns, text="CLEAR",command=lambda k=AKey: ClearOutput(k,ClearButton),width=11)
+    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=AKey: ClearOutput(k,ClearButton),width=11)
     ClearButton.pack(side="left")
     
 def CreateMBlock(i):
-    frame = tk.Frame(RightColumn, bd=1, relief="solid")
+    frame = nulltk.Frame(RightColumn, bd=1, relief="solid")
     frame.pack(fill="x", pady=2)
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=0)
@@ -1671,15 +1711,15 @@ def CreateMBlock(i):
     MKey = f"M{i}"
     data = Devices["M"][MKey]
     name = data["Name"] if data else "-"
-    container = tk.Frame(frame)
+    container = nulltk.Frame(frame)
     container.grid(row=0, column=0, sticky="nsew", padx=5)
     container.columnconfigure(0, weight=1)
     container.grid_propagate(False)
-    tk.Label(container, text=f"{MKey}: {name}", anchor="w")\
+    nulltk.Label(container, text=f"{MKey}: {name}", anchor="w")\
         .grid(row=0, column=0, sticky="w")
-    volume = tk.Frame(frame)
+    volume = nulltk.Frame(frame)
     volume.grid(row=0, column=1, sticky="e", padx=5)
-    volume_controls = tk.Frame(volume)
+    volume_controls = nulltk.Frame(volume)
     volume_controls.grid(row=0, column=0)
     device_id = data["ID"] if data else None
     start_vol = data.get("Volume") if data else None
@@ -1734,7 +1774,7 @@ def CreateMBlock(i):
         data['Volume'] = volumenumber
         vol_var.set(str(volumenumber))
 
-    scale = tk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
+    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
     scale.grid(row=0, column=0, sticky="e", padx=5)
 
     def OnScrollUp(event):
@@ -1765,23 +1805,23 @@ def CreateMBlock(i):
         else:
             volume_controls.grid_remove()
 
-    tk.Label(volume_controls, textvariable=vol_var, width=3)\
+    nulltk.Label(volume_controls, textvariable=vol_var, width=3)\
         .grid(row=0, column=1, sticky="w")
 
-    tk.Checkbutton(volume,text="Override System",width=15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
+    nulltk.Checkbutton(volume,text="Override System",width=15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
 
     if override_var.get():
         volume_controls.grid()
     else:
         volume_controls.grid_remove()
 
-    btns = tk.Frame(frame)
+    btns = nulltk.Frame(frame)
     btns.grid(row=0, column=2)
 
-    tk.Button(btns, text="SET",
+    nulltk.Button(btns, text="SET",
         command=lambda k=MKey: OpenInputPopup(k)).pack(side="left")
 
-    ClearButton = tk.Button(btns, text="CLEAR",command=lambda k=MKey: ClearInput(k,ClearButton),width=11)
+    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=MKey: ClearInput(k,ClearButton),width=11)
     ClearButton.pack(side="left")
     
 def BuildUI():
@@ -1793,11 +1833,11 @@ def NullWireRebuildUI():
     global LeftColumn, RightColumn, Divider
     for widget in NullWireMainRow.winfo_children():
         widget.destroy()
-    LeftColumn = tk.Frame(NullWireMainRow)
+    LeftColumn = nulltk.Frame(NullWireMainRow)
     LeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
-    Divider = tk.Frame(NullWireMainRow, bg="#555", width=4)
+    Divider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
     Divider.grid(row=0, column=1, sticky="ns")
-    RightColumn = tk.Frame(NullWireMainRow)
+    RightColumn = nulltk.Frame(NullWireMainRow)
     RightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
     BuildUI()
 
@@ -1883,7 +1923,7 @@ def OpenOutputPopup(targetKey):
     Popup.grab_set()
     
     for device in OutputDeviceSelection:
-        tk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectOutputDevice(d, targetKey, Popup)).pack(fill="x")
+        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectOutputDevice(d, targetKey, Popup)).pack(fill="x")
 
 def SelectOutputDevice(device, key, Popup):
     Devices["A"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"IsSink": False, "DeleteConfirmation": False}
@@ -1902,7 +1942,7 @@ def OpenInputPopup(targetKey):
     Popup.geometry("400x500")
     Popup.grab_set()
     for device in InputDeviceSelection:
-        tk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectInputDevice(d, targetKey, Popup)).pack(fill="x")
+        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectInputDevice(d, targetKey, Popup)).pack(fill="x")
 
 def SelectInputDevice(device, key, Popup):
     Devices["M"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"DeleteConfirmation": False}
@@ -2057,7 +2097,7 @@ class ToolTip:
         self.tip.overrideredirect(True)
         self.tip.geometry(f"+{x}+{y}")
 
-        label = tk.Label(
+        label = nulltk.Label(
             self.tip,
             text=self.text,
             bg="black",
@@ -2383,7 +2423,7 @@ def OpenRemoveWarp(Name):
     Popup.title("Remove Warp")
     CenterOnRoot(Popup, 500, 300)
 
-    Frame = tk.Frame(Popup, padx=10, pady=10)
+    Frame = nulltk.Frame(Popup, padx=10, pady=10)
     Frame.pack(fill="both", expand=True)
 
     Warps = Profiles.get(Name, {}).get("Warps", {})
@@ -2399,7 +2439,7 @@ def OpenRemoveWarp(Name):
                 f'{Warp["Target"]}: {Warp["TargetEdge"]}'
             )
 
-            tk.Button(
+            nulltk.Button(
                 Frame,
                 text=Text,
                 anchor="w",
@@ -2412,7 +2452,7 @@ def OpenRemoveWarp(Name):
             ).pack(fill="x", pady=2)
 
     if not HasWarps:
-        tk.Label(
+        nulltk.Label(
             Frame,
             text="No warps configured."
         ).pack(pady=10)
@@ -2467,7 +2507,7 @@ def SpawnMonitorPopups(OnSelect):
         Popup.geometry(f"{width}x{height}+{x}+{y}")
         Popup.config(cursor="hand2")
 
-        Label = tk.Label(
+        Label = nulltk.Label(
             Popup,
             text=f"Click Here\n{ID}",
             bg="black",
@@ -2490,10 +2530,10 @@ def CreateCenterPopup():
     Popup.attributes("-topmost", True)
     
 
-    Frame = tk.Frame(Popup)
+    Frame = nulltk.Frame(Popup)
     Frame.pack(fill="both", expand=True)
 
-    Label = tk.Label(Frame, text="", font=("Arial", 12))
+    Label = nulltk.Label(Frame, text="", font=("Arial", 12))
     Label.pack(expand=True)
 
     
@@ -2506,10 +2546,10 @@ def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
     Popup.title("Configure Warp")
     Popup.attributes("-topmost", True)
 
-    Frame = tk.Frame(Popup, padx=10, pady=10)
+    Frame = nulltk.Frame(Popup, padx=10, pady=10)
     Frame.pack()
 
-    tk.Label(Frame, text=f"{SourceID} → {TargetID}").pack(pady=5)
+    nulltk.Label(Frame, text=f"{SourceID} → {TargetID}").pack(pady=5)
 
     Edges = ["TopLeft", "Top", "TopRight",
              "Right",
@@ -2519,11 +2559,11 @@ def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
     SourceEdgeVar = tk.StringVar(value=Edges[0])
     TargetEdgeVar = tk.StringVar(value=Edges[0])
 
-    tk.Label(Frame, text="Source Edge").pack()
-    ttk.Combobox(Frame, values=Edges, textvariable=SourceEdgeVar, state="readonly").pack()
+    nulltk.Label(Frame, text="Source Edge").pack()
+    nulltk.Combobox(Frame, values=Edges, textvariable=SourceEdgeVar, state="readonly").pack()
 
-    tk.Label(Frame, text="Target Edge").pack()
-    ttk.Combobox(Frame, values=Edges, textvariable=TargetEdgeVar, state="readonly").pack()
+    nulltk.Label(Frame, text="Target Edge").pack()
+    nulltk.Combobox(Frame, values=Edges, textvariable=TargetEdgeVar, state="readonly").pack()
 
     def Confirm():
         Warp = {
@@ -2542,7 +2582,7 @@ def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
         Popup.destroy()
         SaveConfig("NullMonitor")
 
-    tk.Button(Frame, text="Confirm", command=Confirm).pack(pady=5)
+    nulltk.Button(Frame, text="Confirm", command=Confirm).pack(pady=5)
 
 def StartWarpSelection(ProfileName):
     State = {"source": None}
@@ -3034,7 +3074,7 @@ def ManageWallPapers(Name):
 
     for Monitor in Layout:
         X,Y = map(int,Monitor["Pos"].split("x"))
-        Box = tk.LabelFrame(WallpaperLayoutContainer,text=Monitor["ID"],width=150,height=100)
+        Box = nulltk.LabelFrame(WallpaperLayoutContainer,text=Monitor["ID"],width=150,height=100)
         Box.grid(row=(Y-MinY)//1000,column=(X-MinX)//1000,padx=3,pady=3)
         Box.grid_propagate(False)
         MonitorLayoutObjects.append(Box)
@@ -3047,18 +3087,18 @@ def ManageWallPapers(Name):
             "LSPath": "",
             "LSMode": "Fill"
         })
-        MonitorFrame = tk.LabelFrame(WallpaperScrollFrame.Inner,text=ID)
+        MonitorFrame = nulltk.LabelFrame(WallpaperScrollFrame.Inner,text=ID)
         MonitorFrame.grid(row=Row+1,column=0,padx=5,pady=5,sticky="ew")
         MonitorFrame.columnconfigure(0,weight=1)
         MonitorFrame.columnconfigure(1,weight=0)
         MonitorFrame.columnconfigure(2,weight=1)
         MonitorWallPaperRows.append(MonitorFrame)
 
-        DTContainer = tk.Frame(MonitorFrame)
+        DTContainer = nulltk.Frame(MonitorFrame)
         DTContainer.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
         DTContainer.columnconfigure(1,weight=1)
         ttk.Separator(MonitorFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
-        LSContainer = tk.Frame(MonitorFrame)
+        LSContainer = nulltk.Frame(MonitorFrame)
         LSContainer.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
         LSContainer.columnconfigure(1,weight=1)
 
@@ -3081,10 +3121,10 @@ def ManageWallPapers(Name):
                     SaveConfig("NullMonitor")
                     UpdateDesktopWallPapers(ProfileName)
 
-        DTBrowseButton = tk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
+        DTBrowseButton = nulltk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
         DTBrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        tk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
-        DTModebox = ttk.Combobox(DTContainer,textvariable=DTModeVar,values=WallpaperModes,state="readonly",width=18)
+        nulltk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        DTModebox = nulltk.Combobox(DTContainer,textvariable=DTModeVar,values=WallpaperModes,state="readonly",width=18)
         DTModebox.grid(row=0,column=2,padx=5,pady=5)
 
         def DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
@@ -3108,10 +3148,10 @@ def ManageWallPapers(Name):
                     SaveConfig("NullMonitor")
                     UpdateLockScreenWallPapers(ProfileName)
 
-        LSBrowseButton = tk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
+        LSBrowseButton = nulltk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
         LSBrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        tk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
-        LSModebox = ttk.Combobox(LSContainer,textvariable=LSModeVar,values=WallpaperModes,state="readonly",width=18)
+        nulltk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        LSModebox = nulltk.Combobox(LSContainer,textvariable=LSModeVar,values=WallpaperModes,state="readonly",width=18)
         LSModebox.grid(row=0,column=2,padx=5,pady=5)
 
         def LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
@@ -3146,21 +3186,21 @@ def NullMonitorNoteBookChange(event):
 
 def CreateProfileBox(Name):
     global NullMonitorSetActiveCheckBoxes
-    Frame = tk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=5,pady=5)
+    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=5,pady=5)
     Frame.pack(fill="x",pady=5)
 
-    TopRow = tk.Frame(Frame)
+    TopRow = nulltk.Frame(Frame)
     TopRow.pack(fill="x")
     TopRow.columnconfigure(2,weight=1)
 
     ActiveVar = tk.BooleanVar()
 
-    ActiveCheck = tk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
+    ActiveCheck = nulltk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
     ActiveCheck.grid(row=0,column=0,padx=2,pady=2,sticky="ew")
 
     NullMonitorSetActiveCheckBoxes.append(ActiveCheck)
 
-    DeleteBtn = tk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
+    DeleteBtn = nulltk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
     DeleteBtn.grid(row=0,column=3,padx=2,pady=2,sticky="ew")
 
     
@@ -3177,32 +3217,32 @@ def CreateProfileBox(Name):
 
     
 
-    ManageWallPaper = tk.Button(TopRow,text="Manage Wallpapers",command=lambda: ManageWallPapers(Name))
+    ManageWallPaper = nulltk.Button(TopRow,text="Manage Wallpapers",command=lambda: ManageWallPapers(Name))
     ManageWallPaper.grid(row=1,column=1,padx=2,pady=2,sticky="ew")
 
-    WallPapersEnabled = tk.Checkbutton(TopRow,text="Wallpapers",variable=EnableWallPaperVar,command= lambda: UpdateWallPaperEnabled(ManageWallPaper), width=16)
+    WallPapersEnabled = nulltk.Checkbutton(TopRow,text="Wallpapers",variable=EnableWallPaperVar,command= lambda: UpdateWallPaperEnabled(ManageWallPaper), width=16)
     WallPapersEnabled.grid(row=0,column=1,padx=2,pady=2,sticky="ew")
 
     UpdateWallPaperEnabled(ManageWallPaper)
 
-    Spacer3 = tk.Frame(Frame,bg="black",height=2)
+    Spacer3 = nulltk.Frame(Frame,bg="black",height=2)
     Spacer3.pack(fill="x",pady=5)
 
-    BtnRow = tk.Frame(Frame)
+    BtnRow = nulltk.Frame(Frame)
     BtnRow.pack(fill="x")
 
-    tk.Button(BtnRow,text="Create Warp",command=lambda: OpenAddWarp(Name)).pack(side="left",padx=2)
-    tk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
+    nulltk.Button(BtnRow,text="Create Warp",command=lambda: OpenAddWarp(Name)).pack(side="left",padx=2)
+    nulltk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
 
-    WarpBox = tk.Frame(Frame,padx=1,pady=1)
+    WarpBox = nulltk.Frame(Frame,padx=1,pady=1)
     WarpBox.pack(fill="x",pady=5)
 
-    InnerWarp = tk.Frame(WarpBox)
+    InnerWarp = nulltk.Frame(WarpBox)
     InnerWarp.pack(fill="x")
 
     WarpVar = tk.StringVar()
 
-    WarpLabel = tk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
+    WarpLabel = nulltk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
     WarpLabel.pack(fill="x",padx=5,pady=3)
 
     ProfileWidgets[Name] = {
@@ -3276,7 +3316,7 @@ def AddGameRow(State=None, Loading=False):
 
     GameName = os.path.splitext(os.path.basename(State["Path"]))[0] if State["Path"] else "New Game"
 
-    Frame = tk.LabelFrame(ProtonGameContainer,text=GameName)
+    Frame = nulltk.LabelFrame(ProtonGameContainer,text=GameName)
     Frame.grid(row=RowIndex,column=0,sticky="ew",pady=(5,5),padx=(0,10))
 
     for i in range(12):
@@ -3329,45 +3369,45 @@ def AddGameRow(State=None, Loading=False):
             UpdateTitle()
             SaveConfig("NullProton")
 
-    tk.Button(Frame,text="Remove",width=8,command=RemoveSelf).grid(row=0,column=0,padx=3)
+    nulltk.Button(Frame,text="Remove",width=8,command=RemoveSelf).grid(row=0,column=0,padx=3)
 
     ttk.Separator(Frame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
 
-    tk.Entry(Frame,textvariable=PathVar,state="readonly").grid(row=0,column=2,padx=3,sticky="ew")
+    nulltk.Entry(Frame,textvariable=PathVar,state="readonly").grid(row=0,column=2,padx=3,sticky="ew")
 
-    tk.Button(Frame,text="Browse",width=8,command=Browse).grid(row=0,column=3,padx=3)
+    nulltk.Button(Frame,text="Browse",width=8,command=Browse).grid(row=0,column=3,padx=3)
 
     ttk.Separator(Frame,orient="vertical").grid(row=0,column=4,sticky="ns",padx=5)
 
     Buttons = {}
 
-    Buttons["Default"] = tk.Button(Frame,text="Default",width=12,command=lambda: LaunchGame(State,"Default",RowIndex))
+    Buttons["Default"] = nulltk.Button(Frame,text="Default",width=12,command=lambda: LaunchGame(State,"Default",RowIndex))
     Buttons["Default"].grid(row=0,column=5,padx=2)
     Buttons["Default"].DefaultBg = Buttons["Default"].cget("bg")
 
-    Buttons["A"] = tk.Button(Frame,text="Proton A",width=12,command=lambda: LaunchGame(State,"A",RowIndex))
+    Buttons["A"] = nulltk.Button(Frame,text="Proton A",width=12,command=lambda: LaunchGame(State,"A",RowIndex))
     Buttons["A"].grid(row=0,column=6,padx=2)
     Buttons["A"].DefaultBg = Buttons["Default"].cget("bg")
 
-    Buttons["B"] = tk.Button(Frame,text="Proton B",width=12,command=lambda: LaunchGame(State,"B",RowIndex))
+    Buttons["B"] = nulltk.Button(Frame,text="Proton B",width=12,command=lambda: LaunchGame(State,"B",RowIndex))
     Buttons["B"].grid(row=0,column=7,padx=2)
     Buttons["B"].DefaultBg = Buttons["Default"].cget("bg")
 
     ttk.Separator(Frame,orient="vertical").grid(row=0,column=8,sticky="ns",padx=5)
 
-    Buttons["Linux"] = tk.Button(Frame,text="Linux",width=12,command=lambda: LaunchGame(State,"Linux",RowIndex))
+    Buttons["Linux"] = nulltk.Button(Frame,text="Linux",width=12,command=lambda: LaunchGame(State,"Linux",RowIndex))
     Buttons["Linux"].grid(row=0,column=9,padx=2)
     Buttons["Linux"].DefaultBg = Buttons["Default"].cget("bg")
 
-    Lowerframe = tk.Frame(Frame)
+    Lowerframe = nulltk.Frame(Frame)
     Lowerframe.grid(row=1,column=0,columnspan=99,sticky="ew")
     Lowerframe.columnconfigure(0,weight=1)
     Lowerframe.columnconfigure(1,weight=1)
 
-    LaunchArgs = tk.Entry(Lowerframe,textvariable=LaunchArgsVar)
+    LaunchArgs = nulltk.Entry(Lowerframe,textvariable=LaunchArgsVar)
     LaunchArgs.grid(row=0,column=0,padx=3,pady=(3,3),sticky="ew")
 
-    SteamArgs = tk.Entry(Lowerframe,textvariable=SteamArgsVar)
+    SteamArgs = nulltk.Entry(Lowerframe,textvariable=SteamArgsVar)
     SteamArgs.grid(row=0,column=1,padx=3,pady=(3,3),sticky="ew")
 
     ToolTip(LaunchArgs, "You can set Launch arguments here. Such as \"-windowed\"")
@@ -4679,7 +4719,7 @@ def SearchForAnyFile(Controller, var, Field, Page=None):
 
 def AddMidiRow(Row=None, Loading=False):
     global MidiRows, DeleteDeviceConfirmation, DeleteDeviceRowConfirmation, MidiRowObjects
-    Frame = tk.Frame(MidiContainer, bd=2, relief="solid")
+    Frame = nulltk.Frame(MidiContainer, bd=2, relief="solid")
     Frame.pack(fill="x", expand=False, padx=5, pady=5)
     Frame.columnconfigure(0, weight=1)
     Frame.rowconfigure(0, weight=1)
@@ -4724,7 +4764,7 @@ def AddMidiRow(Row=None, Loading=False):
     CreateVirtualPort(Row)
 
     # --- Togglerow before any selection
-    TogglesRow = tk.Frame(Frame)
+    TogglesRow = nulltk.Frame(Frame)
     TogglesRow.pack(fill="x", padx=5, pady=5)
     TogglesRow.columnconfigure(0, weight=1)
     TogglesRow.columnconfigure(1, weight=1)
@@ -4737,17 +4777,17 @@ def AddMidiRow(Row=None, Loading=False):
     TogglesRowAlwaysFalseDrumVar = tk.BooleanVar(value=False)
     TogglesRowAlwaysFalseKeyboardVar = tk.BooleanVar(value=False)
 
-    ControllerToggle = tk.Checkbutton(TogglesRow, text="Controller", variable=TogglesRowAlwaysFalseControllerVar, command=lambda: HideToggleRowShowOtherRow("Controller"),)
+    ControllerToggle = nulltk.Checkbutton(TogglesRow, text="Controller", variable=TogglesRowAlwaysFalseControllerVar, command=lambda: HideToggleRowShowOtherRow("Controller"),)
     ControllerToggle.grid(row=0, column=0, sticky="ew", padx=2)
-    DrumsToggle = tk.Checkbutton(TogglesRow, text="Drums", variable=TogglesRowAlwaysFalseDrumVar, command=lambda: HideToggleRowShowOtherRow("Drums"))
+    DrumsToggle = nulltk.Checkbutton(TogglesRow, text="Drums", variable=TogglesRowAlwaysFalseDrumVar, command=lambda: HideToggleRowShowOtherRow("Drums"))
     DrumsToggle.grid(row=0, column=1, sticky="ew", padx=2)
-    KeyboardToggle = tk.Checkbutton(TogglesRow, text="Keyboard", variable=TogglesRowAlwaysFalseKeyboardVar, command=lambda: HideToggleRowShowOtherRow("Keyboard"))
+    KeyboardToggle = nulltk.Checkbutton(TogglesRow, text="Keyboard", variable=TogglesRowAlwaysFalseKeyboardVar, command=lambda: HideToggleRowShowOtherRow("Keyboard"))
     KeyboardToggle.grid(row=0, column=2, sticky="ew", padx=2)
-    ToggleRowDelete = tk.Button(TogglesRow, text="Delete Device", command=lambda:RemoveMidiRow(Frame, Row,ToggleRowDelete))
+    ToggleRowDelete = nulltk.Button(TogglesRow, text="Delete Device", command=lambda:RemoveMidiRow(Frame, Row,ToggleRowDelete))
     ToggleRowDelete.grid(row=0, column=4, sticky="ew", padx=2)
     #----------------------
     
-    BasicTopRow = tk.Frame(Frame)
+    BasicTopRow = nulltk.Frame(Frame)
     BasicTopRow.pack(fill="x", padx=5, pady=5)
     BasicTopRow.columnconfigure(0, weight=0)
     BasicTopRow.columnconfigure(1, weight=0)
@@ -4763,7 +4803,7 @@ def AddMidiRow(Row=None, Loading=False):
     BasicTopRow.columnconfigure(11, weight=0)
     BasicTopRow.rowconfigure(0, weight=0)
     
-    ControllerRow = tk.Frame(Frame)
+    ControllerRow = nulltk.Frame(Frame)
     ControllerRow.pack(fill="both", expand=True, padx=5, pady=5)
     ControllerRow.rowconfigure(0, weight=0)
     ControllerRow.rowconfigure(1, weight=0)
@@ -4781,7 +4821,7 @@ def AddMidiRow(Row=None, Loading=False):
     ControllerRow.columnconfigure(11, weight=1)
     ControllerRow.pack_forget()
 
-    DrumRow = tk.Frame(Frame)
+    DrumRow = nulltk.Frame(Frame)
     DrumRow.pack(fill="x", expand=False, padx=5, pady=5)
     DrumRow.columnconfigure(0, weight=0)
     DrumRow.columnconfigure(1, weight=1)
@@ -4797,10 +4837,10 @@ def AddMidiRow(Row=None, Loading=False):
     DrumRow.rowconfigure(2,weight=0,)
     DrumRow.pack_forget()
 
-    KeyboardRow = tk.Frame(Frame, bd=2, relief="solid")
+    KeyboardRow = nulltk.Frame(Frame, bd=2, relief="solid")
     KeyboardRow.pack(fill="x", padx=5, pady=5)
-    tk.Label(KeyboardRow, text="Keyboard has been redacted, Just go here lol: ").pack(fill="x", padx=5, pady=5)
-    pianist = tk.Label(KeyboardRow,text="https://www.onlinepianist.com/virtual-piano",fg="blue",cursor="hand2")
+    nulltk.Label(KeyboardRow, text="Keyboard has been redacted, Just go here lol: ").pack(fill="x", padx=5, pady=5)
+    pianist = nulltk.Label(KeyboardRow,text="https://www.onlinepianist.com/virtual-piano",fg="blue",cursor="hand2")
     pianist.pack(fill="x", padx=5, pady=5)
     pianist.bind("<Button-1>", lambda e: webbrowser.open_new("https://www.onlinepianist.com/virtual-piano"))
     
@@ -4896,43 +4936,43 @@ def AddMidiRow(Row=None, Loading=False):
         Row["SendKeys"] = SendKeysVar.get()
         SaveConfig("NullMidi")
 
-    BasicTopRowCollapseButton = tk.Button(BasicTopRow, text="▼", command=lambda:CollapseRow(Row, False), width = 2)
+    BasicTopRowCollapseButton = nulltk.Button(BasicTopRow, text="▼", command=lambda:CollapseRow(Row, False), width = 2)
     BasicTopRowCollapseButton.grid(row=0, column=0, sticky="ew", padx=2)
 
 
-    BasicTopRowControllerToggle = tk.Checkbutton(BasicTopRow,variable=TopRowAlwaysTrueControllerRowVar,text="Controller", command=lambda:HideBasictopRow(), width = 12)
+    BasicTopRowControllerToggle = nulltk.Checkbutton(BasicTopRow,variable=TopRowAlwaysTrueControllerRowVar,text="Controller", command=lambda:HideBasictopRow(), width = 12)
     BasicTopRowControllerToggle.grid(row=0, column=1, sticky="ew", padx=2)
     BasicTopRowControllerToggle.grid_remove()
 
-    BasicTopRowDrumToggle = tk.Checkbutton(BasicTopRow,variable=TopRowAlwaysTrueDrumRowVar,text="Drums", command=lambda:HideBasictopRow(), width = 12)
+    BasicTopRowDrumToggle = nulltk.Checkbutton(BasicTopRow,variable=TopRowAlwaysTrueDrumRowVar,text="Drums", command=lambda:HideBasictopRow(), width = 12)
     BasicTopRowDrumToggle.grid(row=0, column=1, sticky="ew", padx=2)
     BasicTopRowDrumToggle.grid_remove()
 
-    BasicTopRowKeyboardToggle = tk.Checkbutton(BasicTopRow,variable=TopRowAlwaysTrueKeyboardRowVar,text="Keyboard", command=lambda:HideBasictopRow(), width = 12)
+    BasicTopRowKeyboardToggle = nulltk.Checkbutton(BasicTopRow,variable=TopRowAlwaysTrueKeyboardRowVar,text="Keyboard", command=lambda:HideBasictopRow(), width = 12)
     BasicTopRowKeyboardToggle.grid(row=0, column=1, sticky="ew", padx=2)
     BasicTopRowKeyboardToggle.grid_remove()
     #---
 
-    Divider = tk.Frame(BasicTopRow,width=2,bg="#555")
+    Divider = nulltk.Frame(BasicTopRow,width=2,bg="#555")
     Divider.grid(row=0,column=2,sticky="news",padx=5)
 
-    BasicTopRowActiveMidi = tk.Checkbutton(BasicTopRow,variable=ActiveMidiDevice, text="Active?", command=lambda: UpdateActiveState())
+    BasicTopRowActiveMidi = nulltk.Checkbutton(BasicTopRow,variable=ActiveMidiDevice, text="Active?", command=lambda: UpdateActiveState())
     BasicTopRowActiveMidi.grid(row=0, column=3, sticky="ew", padx=2)
 
-    BasicTopRowSendKeys= tk.Checkbutton(BasicTopRow,variable=SendKeysVar, text="Send Keys?", command=lambda: UpdateKeyInputs())
+    BasicTopRowSendKeys= nulltk.Checkbutton(BasicTopRow,variable=SendKeysVar, text="Send Keys?", command=lambda: UpdateKeyInputs())
     BasicTopRowSendKeys.grid(row=0, column=4, sticky="ew", padx=2)
 
-    BasicTopRowMuteMidi = tk.Checkbutton(BasicTopRow,variable=MuteMidiDevice, text="Mute", command=lambda: UpdateMuted())
+    BasicTopRowMuteMidi = nulltk.Checkbutton(BasicTopRow,variable=MuteMidiDevice, text="Mute", command=lambda: UpdateMuted())
     BasicTopRowMuteMidi.grid(row=0, column=5, sticky="ew", padx=2)
 
     def UpdateRowName(Row):
         Row['RowName'] = RowName.get()
         SaveConfig("NullMidi")
 
-    BasicTopRowNameLabel = tk.Label(BasicTopRow, text="Name:")
+    BasicTopRowNameLabel = nulltk.Label(BasicTopRow, text="Name:")
     BasicTopRowNameLabel.grid(row=0, column=6, sticky="e", padx=2)
 
-    BasicTopRowRowName = tk.Entry(BasicTopRow, textvariable=RowName, width=20)
+    BasicTopRowRowName = nulltk.Entry(BasicTopRow, textvariable=RowName, width=20)
     BasicTopRowRowName.grid(row=0, column=7, sticky="ew", padx=2)
     RowName.trace_add("write", lambda *args: UpdateRowName(Row))
 
@@ -4942,19 +4982,19 @@ def AddMidiRow(Row=None, Loading=False):
 
     PortName = tk.StringVar(value=Row["VirtualPortName"])
 
-    BasicTopRowVPText = tk.Label(BasicTopRow, text="Virtual\nPort Name:")
+    BasicTopRowVPText = nulltk.Label(BasicTopRow, text="Virtual\nPort Name:")
     BasicTopRowVPText.grid(row=0, column=8, sticky="ew", padx=2)
 
-    BasicTopRowVPName = tk.Entry(BasicTopRow, textvariable=PortName, width=22, state="readonly")
+    BasicTopRowVPName = nulltk.Entry(BasicTopRow, textvariable=PortName, width=22, state="readonly")
     BasicTopRowVPName.grid(row=0, column=9, sticky="ew", padx=2)
 
     MidiDeviceVar = tk.StringVar(value=Row.get("Device", ""))
-    BasicTopRowMidiDeviceDropDown = ttk.Combobox(BasicTopRow, textvariable=MidiDeviceVar, state="readonly",values=GetPorts(Row))
+    BasicTopRowMidiDeviceDropDown = nulltk.Combobox(BasicTopRow, textvariable=MidiDeviceVar, state="readonly",values=GetPorts(Row))
     BasicTopRowMidiDeviceDropDown.grid(row=0, column=10, sticky="ew", padx=2)
     BasicTopRowMidiDeviceDropDown.bind("<<ComboboxSelected>>",UpdateMidiDevice)
     BasicTopRowMidiDeviceDropDown.bind("<Button-1>",lambda e: BasicTopRowMidiDeviceDropDown.configure(values=GetPorts(Row)))
 
-    BasicTopRowDelete = tk.Button(BasicTopRow, text="Delete Device", command=lambda:RemoveMidiRow(Frame, Row,BasicTopRowDelete), width = 14)
+    BasicTopRowDelete = nulltk.Button(BasicTopRow, text="Delete Device", command=lambda:RemoveMidiRow(Frame, Row,BasicTopRowDelete), width = 14)
     BasicTopRowDelete.grid(row=0, column=11, sticky="ew", padx=2)
 
     BasicTopRow.pack_forget()
@@ -4993,46 +5033,46 @@ def AddMidiRow(Row=None, Loading=False):
 
     # --------------- Controller
 
-    Controllerlist = tk.Frame(ControllerRow)
+    Controllerlist = nulltk.Frame(ControllerRow)
     Controllerlist.pack(fill="both", expand="True", padx=5, pady=5)
     Controllerlist.grid(row=1, column=0, sticky="ewns", padx=2,columnspan=20)
     Controllerlist.columnconfigure(0,weight=1)
     Controllerlist.rowconfigure(0,weight=0)
-    tk.Label(ControllerRow, text="Page:").grid(row=0, column=1, sticky="ew", padx=(5,1))
-    ControllerShowPage = tk.Entry(ControllerRow, textvariable=ControllerRowPage, state="readonly", width=3)
+    nulltk.Label(ControllerRow, text="Page:").grid(row=0, column=1, sticky="ew", padx=(5,1))
+    ControllerShowPage = nulltk.Entry(ControllerRow, textvariable=ControllerRowPage, state="readonly", width=3)
     ControllerShowPage.grid(row=0, column=2, sticky="ew", padx=(5,1))
 
     
 
-    ControllerPageDown = tk.Button(ControllerRow, command=lambda: ControllerPageHandler(Row, "Down"), text="Page Down", width=8)
+    ControllerPageDown = nulltk.Button(ControllerRow, command=lambda: ControllerPageHandler(Row, "Down"), text="Page Down", width=8)
     ControllerPageDown.grid(row=0, column=3)
 
-    ControllerPageUp = tk.Button(ControllerRow, command=lambda: ControllerPageHandler(Row, "Up"), text="Page Up", width=8)
+    ControllerPageUp = nulltk.Button(ControllerRow, command=lambda: ControllerPageHandler(Row, "Up"), text="Page Up", width=8)
     ControllerPageUp.grid(row=0, column=4)
 
-    Divider = tk.Frame(ControllerRow,width=2,bg="#555")
+    Divider = nulltk.Frame(ControllerRow,width=2,bg="#555")
     Divider.grid(row=0,column=5,sticky="news",padx=5)
 
-    tk.Label(ControllerRow, text="Page Down Midi").grid(row=0, column=6, sticky="e", padx=(5,0))
+    nulltk.Label(ControllerRow, text="Page Down Midi").grid(row=0, column=6, sticky="e", padx=(5,0))
 
-    ControllerMidiPageDown = tk.Button(ControllerRow,text=("Set Midi"if Row.get("PageDownMidi") is None else str(Row.get("PageDownMidi"))),command=lambda: DetectNote(ControllerMidiPageDown,Row["Device"],Row, "PageDownMidi"), width =15)
+    ControllerMidiPageDown = nulltk.Button(ControllerRow,text=("Set Midi"if Row.get("PageDownMidi") is None else str(Row.get("PageDownMidi"))),command=lambda: DetectNote(ControllerMidiPageDown,Row["Device"],Row, "PageDownMidi"), width =15)
     ControllerMidiPageDown.grid(row=0, column=7)
 
-    ControllerMidiPageUp = tk.Button(ControllerRow,text=("Set Midi"if Row.get("PageUpMidi") is None else str(Row.get("PageUpMidi"))),command=lambda: DetectNote(ControllerMidiPageUp,Row["Device"],Row, "PageUpMidi"), width =15)
+    ControllerMidiPageUp = nulltk.Button(ControllerRow,text=("Set Midi"if Row.get("PageUpMidi") is None else str(Row.get("PageUpMidi"))),command=lambda: DetectNote(ControllerMidiPageUp,Row["Device"],Row, "PageUpMidi"), width =15)
     ControllerMidiPageUp.grid(row=0, column=8)
 
-    tk.Label(ControllerRow, text="Page Up Midi").grid(row=0, column=9, sticky="w", padx=(0,5))
+    nulltk.Label(ControllerRow, text="Page Up Midi").grid(row=0, column=9, sticky="w", padx=(0,5))
 
-    Divider = tk.Frame(ControllerRow,width=2,bg="#555")
+    Divider = nulltk.Frame(ControllerRow,width=2,bg="#555")
     Divider.grid(row=0,column=10,sticky="news",padx=5)
 
-    AddControllerObjectToList = tk.Button(ControllerRow, text="Add Controller", command=lambda:AddControllerToList(None,False))
+    AddControllerObjectToList = nulltk.Button(ControllerRow, text="Add Controller", command=lambda:AddControllerToList(None,False))
     AddControllerObjectToList.grid(row=0, column=11, sticky="ew", padx=2)
 
     
 
     def AddControllerToList(Controller=None, Loading=False):
-        ControllerFrame = tk.Frame(Controllerlist, bd=2, relief="solid")
+        ControllerFrame = nulltk.Frame(Controllerlist, bd=2, relief="solid")
         ControllerFrame.pack(fill="x", padx=5, pady=5)
         ControllerFrame.columnconfigure(0, weight=0)
         ControllerFrame.columnconfigure(1, weight=0)
@@ -5166,48 +5206,48 @@ def AddMidiRow(Row=None, Loading=False):
             return
 
         #--- absolutes
-        ControllerPageDropDown = ttk.Combobox(ControllerFrame, values=pages, textvariable=InternalControllerPage, state="readonly", width=3)
+        ControllerPageDropDown = nulltk.Combobox(ControllerFrame, values=pages, textvariable=InternalControllerPage, state="readonly", width=3)
         ControllerPageDropDown.grid(row=0, column=0, sticky="ew", padx=(5,1))
         ControllerPageDropDown.bind("<<ComboboxSelected>>",lambda e: OnControllerPageChange())
 
-        ControllerKeyActionSwitcher = tk.Checkbutton(ControllerFrame, text="Keys|Action", variable=KeyOrAction, command=lambda:ControllerUIUpdater())
+        ControllerKeyActionSwitcher = nulltk.Checkbutton(ControllerFrame, text="Keys|Action", variable=KeyOrAction, command=lambda:ControllerUIUpdater())
         ControllerKeyActionSwitcher.grid(row=0, column=1, sticky="ew", padx=2)
 
-        ControllerMidiInputButton = tk.Button(ControllerFrame,text=("Set Midi"if Controller["MidiInput"] is None else str(Controller["MidiInput"])),command=lambda: DetectNote(ControllerMidiInputButton,Row["Device"],Controller,"MidiInput"),width=5)
+        ControllerMidiInputButton = nulltk.Button(ControllerFrame,text=("Set Midi"if Controller["MidiInput"] is None else str(Controller["MidiInput"])),command=lambda: DetectNote(ControllerMidiInputButton,Row["Device"],Controller,"MidiInput"),width=5)
         ControllerMidiInputButton.grid(row=0, column=2)
 
-        SwitcherDivider = tk.Frame(ControllerFrame,width=2,bg="#555")
+        SwitcherDivider = nulltk.Frame(ControllerFrame,width=2,bg="#555")
         SwitcherDivider.grid(row=0,column=3,sticky="news",padx=5)
 
         #--- Key
 
-        ControllerKeyOutputButton = tk.Button(ControllerFrame,text=("+".join(FormatKeyName(K)for K in Controller["KeyOutputs"][GetInternalPage()]) or "Set Key"),command=lambda: DetectKey(ControllerKeyOutputButton,Controller,'KeyOutputs',"NullMidi",GetInternalPage()),width=25)
+        ControllerKeyOutputButton = nulltk.Button(ControllerFrame,text=("+".join(FormatKeyName(K)for K in Controller["KeyOutputs"][GetInternalPage()]) or "Set Key"),command=lambda: DetectKey(ControllerKeyOutputButton,Controller,'KeyOutputs',"NullMidi",GetInternalPage()),width=25)
 
-        ControllerWindowSpecificSwitcher = tk.Checkbutton(ControllerFrame, text="All|Window", variable=WindowSpecific, command=lambda:ControllerUIUpdater())
+        ControllerWindowSpecificSwitcher = nulltk.Checkbutton(ControllerFrame, text="All|Window", variable=WindowSpecific, command=lambda:ControllerUIUpdater())
 
-        ControllerWindowSpecifiWindowShow = tk.Entry(ControllerFrame, textvariable=WindowDisplayName, state="readonly")
+        ControllerWindowSpecifiWindowShow = nulltk.Entry(ControllerFrame, textvariable=WindowDisplayName, state="readonly")
 
-        ControllerWindowSpecificChooseWindowButton = tk.Button(ControllerFrame, command=lambda: SearchForWindow(Controller, WindowDisplayName, "WindowClassName", "WindowDisplayName", "NullMidi", GetInternalPage() ), text="Choose Window", width=14)
+        ControllerWindowSpecificChooseWindowButton = nulltk.Button(ControllerFrame, command=lambda: SearchForWindow(Controller, WindowDisplayName, "WindowClassName", "WindowDisplayName", "NullMidi", GetInternalPage() ), text="Choose Window", width=14)
 
         # ------ Opener 
-        ControllerFileSwitcher = tk.Checkbutton(ControllerFrame, text="File|Custom", variable=FileOrCustom, command=lambda:ControllerUIUpdater())
+        ControllerFileSwitcher = nulltk.Checkbutton(ControllerFrame, text="File|Custom", variable=FileOrCustom, command=lambda:ControllerUIUpdater())
 
         # ---- File
 
-        ControllerChooseFile = tk.Button(ControllerFrame, command=lambda: SearchForAnyFile(Controller,StartFilePath,"StartFilePath",GetInternalPage()), text="Browse", width=8)
+        ControllerChooseFile = nulltk.Button(ControllerFrame, command=lambda: SearchForAnyFile(Controller,StartFilePath,"StartFilePath",GetInternalPage()), text="Browse", width=8)
 
-        ControllerActionEntryShow = tk.Entry(ControllerFrame, textvariable=StartFilePath, state="readonly")
+        ControllerActionEntryShow = nulltk.Entry(ControllerFrame, textvariable=StartFilePath, state="readonly")
 
         # ---- Custom
 
-        ControllerCustomRunButton= tk.Button(ControllerFrame, command=lambda: MidiCustomRun(Controller['CustomCommand'][GetInternalPage()]), text="Run", width=8)
+        ControllerCustomRunButton= nulltk.Button(ControllerFrame, command=lambda: MidiCustomRun(Controller['CustomCommand'][GetInternalPage()]), text="Run", width=8)
 
-        ControllerCustomEntryShow = tk.Entry(ControllerFrame, textvariable=CustomCommand,)
+        ControllerCustomEntryShow = nulltk.Entry(ControllerFrame, textvariable=CustomCommand,)
         CustomCommand.trace_add("write", UpdateCustomCommand)
 
         #--- Always
 
-        ControllerRemoveButton = tk.Button(ControllerFrame, command=lambda: RemoveController(Controller,ControllerRemoveButton), text="Remove Controller", width=18)
+        ControllerRemoveButton = nulltk.Button(ControllerFrame, command=lambda: RemoveController(Controller,ControllerRemoveButton), text="Remove Controller", width=18)
         ControllerRemoveButton.grid(row=0, column=8)
 
         MidiScrollBox.BindMouseWheel(Frame)
@@ -5219,7 +5259,7 @@ def AddMidiRow(Row=None, Loading=False):
 
     # --------------- Drums
 
-    DrumList = tk.Frame(DrumRow)#ScrollableFrame(DrumRow)
+    DrumList = nulltk.Frame(DrumRow)#ScrollableFrame(DrumRow)
     DrumList.pack(fill="both", expand="True", padx=5, pady=5)
 
     DrumList.grid(row=2, column=0, sticky="ewns", padx=2,columnspan=10)
@@ -5228,7 +5268,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
     def AddDrumToList(Drum=None, Loading=False):
-        MainDrumFrame = tk.Frame(DrumList, bd=2, relief="solid")
+        MainDrumFrame = nulltk.Frame(DrumList, bd=2, relief="solid")
         MainDrumFrame.pack(fill="x", padx=5, pady=5)
 
         MainDrumFrame.columnconfigure(0, weight=1)
@@ -5327,21 +5367,21 @@ def AddMidiRow(Row=None, Loading=False):
             return
             
 
-        DrumWindowSpecificSwitcher = tk.Checkbutton(DrumRow, text="All|Window", variable=DrumWindowSpecific, command=lambda:DrumWindowSpecificUpdater())
+        DrumWindowSpecificSwitcher = nulltk.Checkbutton(DrumRow, text="All|Window", variable=DrumWindowSpecific, command=lambda:DrumWindowSpecificUpdater())
         DrumWindowSpecificSwitcher.grid(row=1, column=4, sticky="ew", padx=2)
 
-        DrumWindowSpecificChooseWindowButton = tk.Button(DrumRow, command=lambda: SearchForWindow(Drum, DrumWindowDisplayName, "WindowClassName", "WindowDisplayName" ), text="Choose Window", width=14)
+        DrumWindowSpecificChooseWindowButton = nulltk.Button(DrumRow, command=lambda: SearchForWindow(Drum, DrumWindowDisplayName, "WindowClassName", "WindowDisplayName" ), text="Choose Window", width=14)
         DrumWindowSpecificChooseWindowButton.grid(row=1, column=8)
         DrumWindowSpecificChooseWindowButton.grid_forget()
 
-        DrumWindowSpecifiWindowShow = tk.Entry(DrumRow, textvariable=DrumWindowDisplayName, state="readonly", width = 1)
+        DrumWindowSpecifiWindowShow = nulltk.Entry(DrumRow, textvariable=DrumWindowDisplayName, state="readonly", width = 1)
         DrumWindowSpecifiWindowShow.grid(row=1, column=5, sticky="ew")
         DrumWindowSpecifiWindowShow.grid_forget()
 
-        Divider = tk.Frame(DrumRow,width=2,bg="#555")
+        Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
         Divider.grid(row=1,column=7,sticky="news",padx=5)
 
-        Divider = tk.Frame(DrumRow,width=2,bg="#555")
+        Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
         Divider.grid(row=1,column=3,sticky="news",padx=5)
 
         DrumRowAlwaysFalsePad = tk.BooleanVar(value=False)
@@ -5349,7 +5389,7 @@ def AddMidiRow(Row=None, Loading=False):
         DrumRowAlwaysFalseKick = tk.BooleanVar(value=False)
         DrumRowAlwaysFalseHihat = tk.BooleanVar(value=False)
 
-        MainDrumRowToggles = tk.Frame(MainDrumFrame)
+        MainDrumRowToggles = nulltk.Frame(MainDrumFrame)
         MainDrumRowToggles.grid(row=0, column=0, sticky="ew", padx=2)
         MainDrumRowToggles.columnconfigure(0, weight=1)
         MainDrumRowToggles.columnconfigure(1, weight=1)
@@ -5358,7 +5398,7 @@ def AddMidiRow(Row=None, Loading=False):
         MainDrumRowToggles.columnconfigure(4, weight=1)
         MainDrumRowToggles.rowconfigure(0, weight=1)
 
-        DrumRowDrumRow = tk.Frame(MainDrumFrame)
+        DrumRowDrumRow = nulltk.Frame(MainDrumFrame)
         DrumRowDrumRow.grid(row=0, column=0, sticky="ew", padx=2)
         DrumRowDrumRow.columnconfigure(0, weight=1)
         DrumRowDrumRow.rowconfigure(0, weight=0)
@@ -5367,21 +5407,21 @@ def AddMidiRow(Row=None, Loading=False):
         MainDrumRowToggles.rowconfigure(1, weight=1)
         DrumRowDrumRow.grid_forget()
 
-        DrumRowCymbalRow = tk.Frame(MainDrumFrame)
+        DrumRowCymbalRow = nulltk.Frame(MainDrumFrame)
         DrumRowCymbalRow.grid(row=0, column=0, sticky="ew", padx=2)
         DrumRowCymbalRow.columnconfigure(0, weight=1)
         DrumRowCymbalRow.rowconfigure(0, weight=0)
         DrumRowCymbalRow.rowconfigure(1, weight=1)
         DrumRowCymbalRow.grid_forget()
 
-        DrumRowKickRow = tk.Frame(MainDrumFrame)
+        DrumRowKickRow = nulltk.Frame(MainDrumFrame)
         DrumRowKickRow.grid(row=0, column=0, sticky="ew", padx=2)
         DrumRowKickRow.columnconfigure(0, weight=1)
         DrumRowKickRow.rowconfigure(0, weight=0)
         DrumRowKickRow.rowconfigure(1, weight=1)
         DrumRowKickRow.grid_forget()
 
-        DrumRowHihatRow = tk.Frame(MainDrumFrame)
+        DrumRowHihatRow = nulltk.Frame(MainDrumFrame)
         DrumRowHihatRow.grid(row=0, column=0, sticky="ew", padx=2)
         DrumRowHihatRow.columnconfigure(0, weight=1)
         DrumRowHihatRow.rowconfigure(0, weight=0)
@@ -5443,7 +5483,7 @@ def AddMidiRow(Row=None, Loading=False):
 
             def SetupPadRow(Loading=False):
                 SoundWidgets.clear()
-                DrumRowTopRow = tk.Frame(DrumRowDrumRow)
+                DrumRowTopRow = nulltk.Frame(DrumRowDrumRow)
                 DrumRowTopRow.grid(row=0, column=0, sticky="ew", padx=2)
 
                 DrumRowTopRow.columnconfigure(0, weight=0 )
@@ -5454,7 +5494,7 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowTopRow.columnconfigure(5, weight=1 )
                 DrumRowTopRow.rowconfigure(0, weight=0 )
 
-                DrumCollapseButton = tk.Button(DrumRowTopRow, text="▼", command=lambda:CollapseDrum(Drum, PadsContainer), width = 2)
+                DrumCollapseButton = nulltk.Button(DrumRowTopRow, text="▼", command=lambda:CollapseDrum(Drum, PadsContainer), width = 2)
                 DrumCollapseButton.grid(row=0, column=0, sticky="ew", padx=2)
 
                 def CollapseDrum(Drum, PadsContainer, Loading=False):
@@ -5481,11 +5521,11 @@ def AddMidiRow(Row=None, Loading=False):
 
                     SaveConfig("NullMidi")
 
-                DrumRowDrumToMainToggle = tk.Checkbutton(DrumRowTopRow, text="Pad", variable=DrumRowAlwaysTruePad, command=lambda:SwitchDrumType("Main"))
+                DrumRowDrumToMainToggle = nulltk.Checkbutton(DrumRowTopRow, text="Pad", variable=DrumRowAlwaysTruePad, command=lambda:SwitchDrumType("Main"))
                 DrumRowDrumToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
-                Divider = tk.Frame(DrumRowTopRow,width=2,bg="#555")
+                Divider = nulltk.Frame(DrumRowTopRow,width=2,bg="#555")
                 Divider.grid(row=0,column=2,sticky="ns",padx=5)
-                DrumRowWhichDrum = tk.Label(DrumRowTopRow, text="Pad Name:")
+                DrumRowWhichDrum = nulltk.Label(DrumRowTopRow, text="Pad Name:")
                 DrumRowWhichDrum.grid(row=0,column=3,sticky="w",padx=5)
                 DrumName = tk.StringVar(value=Drum.get("DrumName", ""))
 
@@ -5493,14 +5533,14 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum['DrumName'] = DrumName.get()
                     SaveConfig("NullMidi")
 
-                DrumRowDrumName = tk.Entry(DrumRowTopRow, textvariable=DrumName, width=30)
+                DrumRowDrumName = nulltk.Entry(DrumRowTopRow, textvariable=DrumName, width=30)
                 DrumRowDrumName.grid(row=0, column=4, sticky="ew", padx=2)
                 DrumName.trace_add("write", lambda *args: UpdateDrumName(Drum))
 
-                RemoveDrumObjectFromList= tk.Button(DrumRowTopRow, text="Delete Drum?", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
+                RemoveDrumObjectFromList= nulltk.Button(DrumRowTopRow, text="Delete Drum?", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
                 RemoveDrumObjectFromList.grid(row=0, column=5, sticky="ew", padx=2)
 
-                PadsContainer = tk.Frame(DrumRowDrumRow, bd=2, relief="solid")
+                PadsContainer = nulltk.Frame(DrumRowDrumRow, bd=2, relief="solid")
                 PadsContainer.grid(row=1, column=0, sticky="ew", padx=2)
                 PadsContainer.columnconfigure(0,weight=4)
                 PadsContainer.columnconfigure(1,weight=2)
@@ -5508,32 +5548,32 @@ def AddMidiRow(Row=None, Loading=False):
 
 
                 #------------ CenterRow
-                DrumRowCenterPad = tk.Frame(PadsContainer)
+                DrumRowCenterPad = nulltk.Frame(PadsContainer)
                 DrumRowCenterPad.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
                 DrumRowCenterPad.rowconfigure(0, weight=1)
                 DrumRowCenterPad.rowconfigure(1, weight=1)
                 DrumRowCenterPad.rowconfigure(2, weight=0)
                 DrumRowCenterPad.columnconfigure(0, weight=1)
 
-                DrumRowCenterLabel = tk.Label(DrumRowCenterPad, text= "Center Of Pad", width= 8, font=("TkDefaultFont", 12, "bold"))
+                DrumRowCenterLabel = nulltk.Label(DrumRowCenterPad, text= "Center Of Pad", width= 8, font=("TkDefaultFont", 12, "bold"))
                 DrumRowCenterLabel.grid(row=0, column=0, sticky="ew")
 
 
 
-                DrumRowInputsFrame = tk.Frame(DrumRowCenterPad)
+                DrumRowInputsFrame = nulltk.Frame(DrumRowCenterPad)
                 DrumRowInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                DrumRowCenterInputsLabel = tk.Label(DrumRowInputsFrame, text= "Inputs:", width =8 )
+                DrumRowCenterInputsLabel = nulltk.Label(DrumRowInputsFrame, text= "Inputs:", width =8 )
                 DrumRowCenterInputsLabel.grid(row=0, column=0)
 
-                DrumRowCenterMidiInputButton = tk.Button(DrumRowInputsFrame,text=("Set Midi"if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))),command=lambda: DetectNote(DrumRowCenterMidiInputButton,Row["Device"],Drum, "CenterMidiInput"), width =22)
+                DrumRowCenterMidiInputButton = nulltk.Button(DrumRowInputsFrame,text=("Set Midi"if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))),command=lambda: DetectNote(DrumRowCenterMidiInputButton,Row["Device"],Drum, "CenterMidiInput"), width =22)
                 DrumRowCenterMidiInputButton.grid(row=0, column=1)
 
-                DrumRowCenterKeyOutputButton = tk.Button(DrumRowInputsFrame,text=("+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key"),command=lambda: DetectKey(DrumRowCenterKeyOutputButton,Drum,"CenterKeyOutput","NullMidi"),width=22)                
+                DrumRowCenterKeyOutputButton = nulltk.Button(DrumRowInputsFrame,text=("+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key"),command=lambda: DetectKey(DrumRowCenterKeyOutputButton,Drum,"CenterKeyOutput","NullMidi"),width=22)                
                 DrumRowCenterKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
 
-                DrumCenterSounds = tk.LabelFrame(DrumRowCenterPad, text = "Sounds")
+                DrumCenterSounds = nulltk.LabelFrame(DrumRowCenterPad, text = "Sounds")
                 DrumCenterSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
                 SoundWidgets[DrumCenterSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
 
@@ -5551,20 +5591,20 @@ def AddMidiRow(Row=None, Loading=False):
                 CenterGhostNote = tk.IntVar(value=Drum.get("CenterGhostNoteThreshold", 100))
                 CenterSlam= tk.IntVar(value=Drum.get("CenterSlamNoteThreshold", 100))
 
-                DrumRowCenterVolumeSliderLabel = tk.Label(DrumCenterSounds, text= "Volume", width = 12, height=2)
+                DrumRowCenterVolumeSliderLabel = nulltk.Label(DrumCenterSounds, text= "Volume", width = 12, height=2)
                 DrumRowCenterVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                DrumRowCenterVolumeSlider = tk.Scale(DrumCenterSounds,from_=0,to=100,orient="horizontal",variable=CenterVolumeVar,showvalue=False, length=44,)
+                DrumRowCenterVolumeSlider = nulltk.Scale(DrumCenterSounds,from_=0,to=100,orient="horizontal",variable=CenterVolumeVar,showvalue=False, length=44,)
                 DrumRowCenterVolumeSlider.grid(row=0, column=1, sticky="ew")
-                DrumRowCenterVolumeShowLabel = tk.Label(DrumCenterSounds,textvariable=CenterVolumeVar)
+                DrumRowCenterVolumeShowLabel = nulltk.Label(DrumCenterSounds,textvariable=CenterVolumeVar)
                 DrumRowCenterVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
 
-                DrumRowCenterSoundPathLabel = tk.Label(DrumCenterSounds, text= "Sound\nPath:", width = 12, height=2)
+                DrumRowCenterSoundPathLabel = nulltk.Label(DrumCenterSounds, text= "Sound\nPath:", width = 12, height=2)
                 DrumRowCenterSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
-                DrumRowCenterSoundLocationIF = tk.Entry(DrumCenterSounds, textvariable=DrumRowCenterSoundLocationVar, state="readonly", width=44)
+                DrumRowCenterSoundLocationIF = nulltk.Entry(DrumCenterSounds, textvariable=DrumRowCenterSoundLocationVar, state="readonly", width=44)
                 DrumRowCenterSoundLocationIF.grid(row=1, column=1, sticky="ew")
-                DrumRowCenterBrowseButton = tk.Button(DrumCenterSounds, command=lambda: SearchForSoundFile(Drum ,DrumRowCenterSoundLocationVar, "CenterSoundFilePath" ), text="Browse", width=8)
+                DrumRowCenterBrowseButton = nulltk.Button(DrumCenterSounds, command=lambda: SearchForSoundFile(Drum ,DrumRowCenterSoundLocationVar, "CenterSoundFilePath" ), text="Browse", width=8)
                 DrumRowCenterBrowseButton.grid(row=1, column=2)
 
                 def UpdateCenterVolume(*args):
@@ -5579,55 +5619,55 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["CenterSlamNoteThreshold"] = CenterSlam.get()
                     SaveConfig("NullMidi")
 
-                DrumRowCenterGhostLabel = tk.Label(DrumCenterSounds, text= "Ghost Note\n Velocity Cap", width = 12, height=2)
+                DrumRowCenterGhostLabel = nulltk.Label(DrumCenterSounds, text= "Ghost Note\n Velocity Cap", width = 12, height=2)
                 DrumRowCenterGhostLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                DrumRowCenterGhostSlider = tk.Scale(DrumCenterSounds,from_=1,to=127,orient="horizontal",variable=CenterGhostNote,showvalue=False, length=44,)
+                DrumRowCenterGhostSlider = nulltk.Scale(DrumCenterSounds,from_=1,to=127,orient="horizontal",variable=CenterGhostNote,showvalue=False, length=44,)
                 DrumRowCenterGhostSlider.grid(row=2, column=1, sticky="ew")
 
-                DrumRowCenterGhostShowLabel = tk.Label(DrumCenterSounds,textvariable=CenterGhostNote)
+                DrumRowCenterGhostShowLabel = nulltk.Label(DrumCenterSounds,textvariable=CenterGhostNote)
                 DrumRowCenterGhostShowLabel.grid(row=2, column=2, sticky="w")
 
 
-                DrumRowCenterSlamLabel = tk.Label(DrumCenterSounds, text= "Slam Note\n Velocity Min", width = 12, height=2)
+                DrumRowCenterSlamLabel = nulltk.Label(DrumCenterSounds, text= "Slam Note\n Velocity Min", width = 12, height=2)
                 DrumRowCenterSlamLabel.grid(row=3, column=0, sticky="e", pady=(0,8))
-                DrumRowCenterSlamSlider = tk.Scale(DrumCenterSounds,from_=1,to=127,orient="horizontal",variable=CenterSlam,showvalue=False, length=44,)
+                DrumRowCenterSlamSlider = nulltk.Scale(DrumCenterSounds,from_=1,to=127,orient="horizontal",variable=CenterSlam,showvalue=False, length=44,)
                 DrumRowCenterSlamSlider.grid(row=3, column=1, sticky="ew")
-                DrumRowCenterSlamShowLabel = tk.Label(DrumCenterSounds,textvariable=CenterSlam)
+                DrumRowCenterSlamShowLabel = nulltk.Label(DrumCenterSounds,textvariable=CenterSlam)
                 DrumRowCenterSlamShowLabel.grid(row=3, column=2, sticky="w")
 
         
-                Divider = tk.Frame(PadsContainer,width=2,bg="#555")
+                Divider = nulltk.Frame(PadsContainer,width=2,bg="#555")
                 Divider.grid(row=1,column=1,sticky="ns",padx=5)
 
 
                 #------------ RimRow
-                DrumRowRimPad = tk.Frame(PadsContainer)
+                DrumRowRimPad = nulltk.Frame(PadsContainer)
                 DrumRowRimPad.grid(row=1, column=2, sticky="ew", padx=2, pady=2)
                 DrumRowRimPad.rowconfigure(0, weight=1)
                 DrumRowRimPad.rowconfigure(1, weight=1)
                 DrumRowRimPad.rowconfigure(2, weight=0)
                 DrumRowRimPad.columnconfigure(0, weight=1)
 
-                DrumRowRimLabel = tk.Label(DrumRowRimPad, text= "Rim Of Pad", width= 8, font=("TkDefaultFont", 12, "bold"))
+                DrumRowRimLabel = nulltk.Label(DrumRowRimPad, text= "Rim Of Pad", width= 8, font=("TkDefaultFont", 12, "bold"))
                 DrumRowRimLabel.grid(row=0, column=0, sticky="ew")
 
 
 
-                DrumRowInputsFrame = tk.Frame(DrumRowRimPad)
+                DrumRowInputsFrame = nulltk.Frame(DrumRowRimPad)
                 DrumRowInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                DrumRowRimInputsLabel = tk.Label(DrumRowInputsFrame, text= "Inputs:", width =8 )
+                DrumRowRimInputsLabel = nulltk.Label(DrumRowInputsFrame, text= "Inputs:", width =8 )
                 DrumRowRimInputsLabel.grid(row=0, column=0)
 
-                DrumRowRimMidiInputButton = tk.Button(DrumRowInputsFrame,text=("Set Midi"if Drum.get("RimMidiInput") is None else str(Drum.get("RimMidiInput"))),command=lambda: DetectNote(DrumRowRimMidiInputButton,Row["Device"],Drum, "RimMidiInput"), width =22)
+                DrumRowRimMidiInputButton = nulltk.Button(DrumRowInputsFrame,text=("Set Midi"if Drum.get("RimMidiInput") is None else str(Drum.get("RimMidiInput"))),command=lambda: DetectNote(DrumRowRimMidiInputButton,Row["Device"],Drum, "RimMidiInput"), width =22)
                 DrumRowRimMidiInputButton.grid(row=0, column=1)
 
-                DrumRowRimKeyOutputButton = tk.Button(DrumRowInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowRimKeyOutputButton,Drum, "RimKeyOutput","NullMidi"), width=22)
+                DrumRowRimKeyOutputButton = nulltk.Button(DrumRowInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowRimKeyOutputButton,Drum, "RimKeyOutput","NullMidi"), width=22)
                 DrumRowRimKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
 
-                DrumRimSounds = tk.LabelFrame(DrumRowRimPad, text = "Sounds")
+                DrumRimSounds = nulltk.LabelFrame(DrumRowRimPad, text = "Sounds")
                 DrumRimSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
                 SoundWidgets[DrumRimSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 DrumRimSounds.columnconfigure(0,weight=0)
@@ -5644,20 +5684,20 @@ def AddMidiRow(Row=None, Loading=False):
                 RimGhostNote = tk.IntVar(value=Drum.get("RimGhostNoteThreshold", 100))
                 RimSlam= tk.IntVar(value=Drum.get("RimSlamNoteThreshold", 100))
 
-                DrumRowRimVolumeSliderLabel = tk.Label(DrumRimSounds, text= "Volume", width = 12, height=2)
+                DrumRowRimVolumeSliderLabel = nulltk.Label(DrumRimSounds, text= "Volume", width = 12, height=2)
                 DrumRowRimVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                DrumRowRimVolumeSlider = tk.Scale(DrumRimSounds,from_=0,to=100,orient="horizontal",variable=RimVolumeVar,showvalue=False, length=44,)
+                DrumRowRimVolumeSlider = nulltk.Scale(DrumRimSounds,from_=0,to=100,orient="horizontal",variable=RimVolumeVar,showvalue=False, length=44,)
                 DrumRowRimVolumeSlider.grid(row=0, column=1, sticky="ew")
-                DrumRowRimVolumeShowLabel = tk.Label(DrumRimSounds,textvariable=RimVolumeVar)
+                DrumRowRimVolumeShowLabel = nulltk.Label(DrumRimSounds,textvariable=RimVolumeVar)
                 DrumRowRimVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
 
-                DrumRowRimSoundPathLabel = tk.Label(DrumRimSounds, text= "Sound\nPath:", width = 12, height=2)
+                DrumRowRimSoundPathLabel = nulltk.Label(DrumRimSounds, text= "Sound\nPath:", width = 12, height=2)
                 DrumRowRimSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
-                DrumRowRimSoundLocationIF = tk.Entry(DrumRimSounds, textvariable=DrumRowRimSoundLocationVar, state="readonly", width=44)
+                DrumRowRimSoundLocationIF = nulltk.Entry(DrumRimSounds, textvariable=DrumRowRimSoundLocationVar, state="readonly", width=44)
                 DrumRowRimSoundLocationIF.grid(row=1, column=1, sticky="ew")
-                DrumRowRimBrowseButton = tk.Button(DrumRimSounds, command=lambda: SearchForSoundFile(Drum ,DrumRowRimSoundLocationVar, "RimSoundFilePath" ), text="Browse", width=8)
+                DrumRowRimBrowseButton = nulltk.Button(DrumRimSounds, command=lambda: SearchForSoundFile(Drum ,DrumRowRimSoundLocationVar, "RimSoundFilePath" ), text="Browse", width=8)
                 DrumRowRimBrowseButton.grid(row=1, column=2)
                 
 
@@ -5673,21 +5713,21 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["RimSlamNoteThreshold"] = RimSlam.get()
                     SaveConfig("NullMidi")
 
-                DrumRowRimGhostLabel = tk.Label(DrumRimSounds, text= "Ghost Note\n Velocity Cap", width = 12, height=2)
+                DrumRowRimGhostLabel = nulltk.Label(DrumRimSounds, text= "Ghost Note\n Velocity Cap", width = 12, height=2)
                 DrumRowRimGhostLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                DrumRowRimGhostSlider = tk.Scale(DrumRimSounds,from_=1,to=127,orient="horizontal",variable=RimGhostNote,showvalue=False, length=44,)
+                DrumRowRimGhostSlider = nulltk.Scale(DrumRimSounds,from_=1,to=127,orient="horizontal",variable=RimGhostNote,showvalue=False, length=44,)
                 DrumRowRimGhostSlider.grid(row=2, column=1, sticky="ew")
 
-                DrumRowRimGhostShowLabel = tk.Label(DrumRimSounds,textvariable=RimGhostNote)
+                DrumRowRimGhostShowLabel = nulltk.Label(DrumRimSounds,textvariable=RimGhostNote)
                 DrumRowRimGhostShowLabel.grid(row=2, column=2, sticky="w")
 
 
-                DrumRowRimSlamLabel = tk.Label(DrumRimSounds, text= "Slam Note\n Velocity Min", width = 12, height=2)
+                DrumRowRimSlamLabel = nulltk.Label(DrumRimSounds, text= "Slam Note\n Velocity Min", width = 12, height=2)
                 DrumRowRimSlamLabel.grid(row=3, column=0, sticky="e", pady=(0,8))
-                DrumRowRimSlamSlider = tk.Scale(DrumRimSounds,from_=1,to=127,orient="horizontal",variable=RimSlam,showvalue=False, length=44,)
+                DrumRowRimSlamSlider = nulltk.Scale(DrumRimSounds,from_=1,to=127,orient="horizontal",variable=RimSlam,showvalue=False, length=44,)
                 DrumRowRimSlamSlider.grid(row=3, column=1, sticky="ew")
-                DrumRowRimSlamShowLabel = tk.Label(DrumRimSounds,textvariable=RimSlam)
+                DrumRowRimSlamShowLabel = nulltk.Label(DrumRimSounds,textvariable=RimSlam)
                 DrumRowRimSlamShowLabel.grid(row=3, column=2, sticky="w")
 
                 MidiScrollBox.BindMouseWheel(Frame)
@@ -5709,7 +5749,7 @@ def AddMidiRow(Row=None, Loading=False):
 
             def SetupCymbalRow(Loading=False):
                 SoundWidgets.clear()
-                CymbalRowTopRow = tk.Frame(DrumRowCymbalRow)
+                CymbalRowTopRow = nulltk.Frame(DrumRowCymbalRow)
                 CymbalRowTopRow.grid(row=0, column=0, sticky="ew", padx=2)
 
                 CymbalRowTopRow.columnconfigure(0, weight=0 )
@@ -5720,7 +5760,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowTopRow.columnconfigure(5, weight=1 )
                 CymbalRowTopRow.rowconfigure(0, weight=0 )
 
-                CymbalCollapseButton = tk.Button(CymbalRowTopRow, text="▼", command=lambda:CollapseCymbal(Drum, CymbalsContainer), width = 2)
+                CymbalCollapseButton = nulltk.Button(CymbalRowTopRow, text="▼", command=lambda:CollapseCymbal(Drum, CymbalsContainer), width = 2)
                 CymbalCollapseButton.grid(row=0, column=0, sticky="ew", padx=2)
 
                 def CollapseCymbal(Drum, CymbalsContainer, Loading=False):
@@ -5746,11 +5786,11 @@ def AddMidiRow(Row=None, Loading=False):
                         
                     SaveConfig("NullMidi")
 
-                CymbalRowCymbalToMainToggle = tk.Checkbutton(CymbalRowTopRow, text="Cymbals", variable=DrumRowAlwaysTrueCymbal, command=lambda:SwitchDrumType("Main"))
+                CymbalRowCymbalToMainToggle = nulltk.Checkbutton(CymbalRowTopRow, text="Cymbals", variable=DrumRowAlwaysTrueCymbal, command=lambda:SwitchDrumType("Main"))
                 CymbalRowCymbalToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
-                Divider = tk.Frame(CymbalRowTopRow,width=2,bg="#555")
+                Divider = nulltk.Frame(CymbalRowTopRow,width=2,bg="#555")
                 Divider.grid(row=0,column=2,sticky="ns",padx=5)
-                CymbalRowWhichCymbal = tk.Label(CymbalRowTopRow, text="Cymbal Name:")
+                CymbalRowWhichCymbal = nulltk.Label(CymbalRowTopRow, text="Cymbal Name:")
                 CymbalRowWhichCymbal.grid(row=0,column=3,sticky="w",padx=5)
                 CymbalName = tk.StringVar(value=Drum.get("DrumName", ""))
 
@@ -5758,14 +5798,14 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum['DrumName'] = CymbalName.get()
                     SaveConfig("NullMidi")
 
-                CymbalRowCymbalName = tk.Entry(CymbalRowTopRow, textvariable=CymbalName, width=30)
+                CymbalRowCymbalName = nulltk.Entry(CymbalRowTopRow, textvariable=CymbalName, width=30)
                 CymbalRowCymbalName.grid(row=0, column=4, sticky="ew", padx=2)
                 CymbalName.trace_add("write", lambda *args: UpdateDrumName(Drum))
 
-                RemoveCymbalObjectFromList= tk.Button(CymbalRowTopRow, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveCymbalObjectFromList))
+                RemoveCymbalObjectFromList= nulltk.Button(CymbalRowTopRow, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveCymbalObjectFromList))
                 RemoveCymbalObjectFromList.grid(row=0, column=5, sticky="ew", padx=2)
 
-                CymbalsContainer = tk.Frame(DrumRowCymbalRow, bd=2, relief="solid")
+                CymbalsContainer = nulltk.Frame(DrumRowCymbalRow, bd=2, relief="solid")
                 CymbalsContainer.grid(row=1, column=0, sticky="ew", padx=2)
                 CymbalsContainer.rowconfigure(0,weight=1)
                 CymbalsContainer.columnconfigure(0,weight=3)
@@ -5775,29 +5815,29 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalsContainer.columnconfigure(4,weight=3)
 
                 #------------ BellRow
-                CymbalRowBellRow = tk.Frame(CymbalsContainer)
+                CymbalRowBellRow = nulltk.Frame(CymbalsContainer)
                 CymbalRowBellRow.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
                 CymbalRowBellRow.rowconfigure(0, weight=1)
                 CymbalRowBellRow.rowconfigure(1, weight=1)
                 CymbalRowBellRow.rowconfigure(2, weight=0)
                 CymbalRowBellRow.columnconfigure(0, weight=1)
 
-                CymbalRowBellLabel = tk.Label(CymbalRowBellRow, text="Bell Of Cymbal", width=8, font=("TkDefaultFont", 12, "bold"))
+                CymbalRowBellLabel = nulltk.Label(CymbalRowBellRow, text="Bell Of Cymbal", width=8, font=("TkDefaultFont", 12, "bold"))
                 CymbalRowBellLabel.grid(row=0, column=0, sticky="ew")
 
-                CymbalRowBellInputsFrame = tk.Frame(CymbalRowBellRow)
+                CymbalRowBellInputsFrame = nulltk.Frame(CymbalRowBellRow)
                 CymbalRowBellInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                CymbalRowBellInputsLabel = tk.Label(CymbalRowBellInputsFrame, text="Inputs:", width=8)
+                CymbalRowBellInputsLabel = nulltk.Label(CymbalRowBellInputsFrame, text="Inputs:", width=8)
                 CymbalRowBellInputsLabel.grid(row=0, column=0)
 
-                CymbalRowBellMidiInputButton = tk.Button(CymbalRowBellInputsFrame, text=("Set Midi" if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))), command=lambda: DetectNote(CymbalRowBellMidiInputButton, Row["Device"], Drum, "CenterMidiInput"), width=22)
+                CymbalRowBellMidiInputButton = nulltk.Button(CymbalRowBellInputsFrame, text=("Set Midi" if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))), command=lambda: DetectNote(CymbalRowBellMidiInputButton, Row["Device"], Drum, "CenterMidiInput"), width=22)
                 CymbalRowBellMidiInputButton.grid(row=0, column=1)
 
-                CymbalRowBellKeyOutputButton = tk.Button(CymbalRowBellInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBellKeyOutputButton, Drum, "CenterKeyOutput","NullMidi"), width=22)
+                CymbalRowBellKeyOutputButton = nulltk.Button(CymbalRowBellInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBellKeyOutputButton, Drum, "CenterKeyOutput","NullMidi"), width=22)
                 CymbalRowBellKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                CymbalRowBellSounds = tk.LabelFrame(CymbalRowBellRow, text="Sounds")
+                CymbalRowBellSounds = nulltk.LabelFrame(CymbalRowBellRow, text="Sounds")
                 CymbalRowBellSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
                 SoundWidgets[CymbalRowBellSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 CymbalRowBellSounds.columnconfigure(0, weight=0)
@@ -5814,22 +5854,22 @@ def AddMidiRow(Row=None, Loading=False):
                 BellGhostNote = tk.IntVar(value=Drum.get("CenterGhostNoteThreshold", 100))
                 BellSlam = tk.IntVar(value=Drum.get("CenterSlamNoteThreshold", 100))
 
-                CymbalRowBellVolumeSliderLabel = tk.Label(CymbalRowBellSounds, text="Volume", width=12, height=2)
+                CymbalRowBellVolumeSliderLabel = nulltk.Label(CymbalRowBellSounds, text="Volume", width=12, height=2)
                 CymbalRowBellVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBellVolumeSlider = tk.Scale(CymbalRowBellSounds, from_=0, to=100, orient="horizontal", variable=BellVolumeVar, showvalue=False, length=35)
+                CymbalRowBellVolumeSlider = nulltk.Scale(CymbalRowBellSounds, from_=0, to=100, orient="horizontal", variable=BellVolumeVar, showvalue=False, length=35)
                 CymbalRowBellVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                CymbalRowBellVolumeShowLabel = tk.Label(CymbalRowBellSounds, textvariable=BellVolumeVar)
+                CymbalRowBellVolumeShowLabel = nulltk.Label(CymbalRowBellSounds, textvariable=BellVolumeVar)
                 CymbalRowBellVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                CymbalRowBellSoundPathLabel = tk.Label(CymbalRowBellSounds, text="Sound\nPath:",height=2, width=12, )
+                CymbalRowBellSoundPathLabel = nulltk.Label(CymbalRowBellSounds, text="Sound\nPath:",height=2, width=12, )
                 CymbalRowBellSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBellSoundLocationIF = tk.Entry(CymbalRowBellSounds, textvariable=CymbalRowBellSoundLocationVar, state="readonly", width=35)
+                CymbalRowBellSoundLocationIF = nulltk.Entry(CymbalRowBellSounds, textvariable=CymbalRowBellSoundLocationVar, state="readonly", width=35)
                 CymbalRowBellSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                CymbalRowBellBrowseButton = tk.Button(CymbalRowBellSounds, command=lambda: SearchForSoundFile(Drum, CymbalRowBellSoundLocationVar, "CenterSoundFilePath"), text="Browse", width=8)
+                CymbalRowBellBrowseButton = nulltk.Button(CymbalRowBellSounds, command=lambda: SearchForSoundFile(Drum, CymbalRowBellSoundLocationVar, "CenterSoundFilePath"), text="Browse", width=8)
                 CymbalRowBellBrowseButton.grid(row=1, column=2)
 
                 def UpdateBellVolume(*args):
@@ -5844,54 +5884,54 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["CenterSlamNoteThreshold"] = BellSlam.get()
                     SaveConfig("NullMidi")
 
-                CymbalRowBellGhostLabel = tk.Label(CymbalRowBellSounds, text="Ghost Note\n Velocity Cap", width=12, height=2)
+                CymbalRowBellGhostLabel = nulltk.Label(CymbalRowBellSounds, text="Ghost Note\n Velocity Cap", width=12, height=2)
                 CymbalRowBellGhostLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBellGhostSlider = tk.Scale(CymbalRowBellSounds, from_=1, to=127, orient="horizontal", variable=BellGhostNote, showvalue=False, length=35)
+                CymbalRowBellGhostSlider = nulltk.Scale(CymbalRowBellSounds, from_=1, to=127, orient="horizontal", variable=BellGhostNote, showvalue=False, length=35)
                 CymbalRowBellGhostSlider.grid(row=2, column=1, sticky="ew")
 
-                CymbalRowBellGhostShowLabel = tk.Label(CymbalRowBellSounds, textvariable=BellGhostNote)
+                CymbalRowBellGhostShowLabel = nulltk.Label(CymbalRowBellSounds, textvariable=BellGhostNote)
                 CymbalRowBellGhostShowLabel.grid(row=2, column=2, sticky="w")
 
-                CymbalRowBellSlamLabel = tk.Label(CymbalRowBellSounds, text="Slam Note\n Velocity Min", width=12, height=2)
+                CymbalRowBellSlamLabel = nulltk.Label(CymbalRowBellSounds, text="Slam Note\n Velocity Min", width=12, height=2)
                 CymbalRowBellSlamLabel.grid(row=3, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBellSlamSlider = tk.Scale(CymbalRowBellSounds, from_=1, to=127, orient="horizontal", variable=BellSlam, showvalue=False, length=35)
+                CymbalRowBellSlamSlider = nulltk.Scale(CymbalRowBellSounds, from_=1, to=127, orient="horizontal", variable=BellSlam, showvalue=False, length=35)
                 CymbalRowBellSlamSlider.grid(row=3, column=1, sticky="ew")
 
-                CymbalRowBellSlamShowLabel = tk.Label(CymbalRowBellSounds, textvariable=BellSlam)
+                CymbalRowBellSlamShowLabel = nulltk.Label(CymbalRowBellSounds, textvariable=BellSlam)
                 CymbalRowBellSlamShowLabel.grid(row=3, column=2, sticky="w")
 
-                Divider = tk.Frame(CymbalsContainer, width=2, bg="#555")
+                Divider = nulltk.Frame(CymbalsContainer, width=2, bg="#555")
                 Divider.grid(row=1, column=1, sticky="ns", padx=5)
 
                 
 
 
                 #------------ EdgeRow
-                CymbalRowEdgeRow = tk.Frame(CymbalsContainer)
+                CymbalRowEdgeRow = nulltk.Frame(CymbalsContainer)
                 CymbalRowEdgeRow.grid(row=1, column=2, sticky="ew", padx=2, pady=2)
                 CymbalRowEdgeRow.rowconfigure(0, weight=1)
                 CymbalRowEdgeRow.rowconfigure(1, weight=1)
                 CymbalRowEdgeRow.rowconfigure(2, weight=0)
                 CymbalRowEdgeRow.columnconfigure(0, weight=1)
 
-                CymbalRowEdgeLabel = tk.Label(CymbalRowEdgeRow, text="Edge Of Cymbal", width=8, font=("TkDefaultFont", 12, "bold"))
+                CymbalRowEdgeLabel = nulltk.Label(CymbalRowEdgeRow, text="Edge Of Cymbal", width=8, font=("TkDefaultFont", 12, "bold"))
                 CymbalRowEdgeLabel.grid(row=0, column=0, sticky="ew")
 
-                CymbalRowEdgeInputsFrame = tk.Frame(CymbalRowEdgeRow)
+                CymbalRowEdgeInputsFrame = nulltk.Frame(CymbalRowEdgeRow)
                 CymbalRowEdgeInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                CymbalRowEdgeInputsLabel = tk.Label(CymbalRowEdgeInputsFrame, text="Inputs:", width=8)
+                CymbalRowEdgeInputsLabel = nulltk.Label(CymbalRowEdgeInputsFrame, text="Inputs:", width=8)
                 CymbalRowEdgeInputsLabel.grid(row=0, column=0)
 
-                CymbalRowEdgeMidiInputButton = tk.Button(CymbalRowEdgeInputsFrame, text=("Set Midi" if Drum.get("RimMidiInput") is None else str(Drum.get("RimMidiInput"))), command=lambda: DetectNote(CymbalRowEdgeMidiInputButton, Row["Device"], Drum, "RimMidiInput"), width=22)
+                CymbalRowEdgeMidiInputButton = nulltk.Button(CymbalRowEdgeInputsFrame, text=("Set Midi" if Drum.get("RimMidiInput") is None else str(Drum.get("RimMidiInput"))), command=lambda: DetectNote(CymbalRowEdgeMidiInputButton, Row["Device"], Drum, "RimMidiInput"), width=22)
                 CymbalRowEdgeMidiInputButton.grid(row=0, column=1)
 
-                CymbalRowEdgeKeyOutputButton = tk.Button(CymbalRowEdgeInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowEdgeKeyOutputButton, Drum, "RimKeyOutput","NullMidi"), width=22)
+                CymbalRowEdgeKeyOutputButton = nulltk.Button(CymbalRowEdgeInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("RimKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowEdgeKeyOutputButton, Drum, "RimKeyOutput","NullMidi"), width=22)
                 CymbalRowEdgeKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                CymbalRowEdgeSounds = tk.LabelFrame(CymbalRowEdgeRow, text="Sounds")
+                CymbalRowEdgeSounds = nulltk.LabelFrame(CymbalRowEdgeRow, text="Sounds")
                 CymbalRowEdgeSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
                 SoundWidgets[CymbalRowEdgeSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 CymbalRowEdgeSounds.columnconfigure(0, weight=0)
@@ -5908,22 +5948,22 @@ def AddMidiRow(Row=None, Loading=False):
                 EdgeGhostNote = tk.IntVar(value=Drum.get("RimGhostNoteThreshold", 100))
                 EdgeSlam = tk.IntVar(value=Drum.get("RimSlamNoteThreshold", 100))
 
-                CymbalRowEdgeVolumeSliderLabel = tk.Label(CymbalRowEdgeSounds, text="Volume", width=12, height=2)
+                CymbalRowEdgeVolumeSliderLabel = nulltk.Label(CymbalRowEdgeSounds, text="Volume", width=12, height=2)
                 CymbalRowEdgeVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowEdgeVolumeSlider = tk.Scale(CymbalRowEdgeSounds, from_=0, to=100, orient="horizontal", variable=EdgeVolumeVar, showvalue=False, length=22)
+                CymbalRowEdgeVolumeSlider = nulltk.Scale(CymbalRowEdgeSounds, from_=0, to=100, orient="horizontal", variable=EdgeVolumeVar, showvalue=False, length=22)
                 CymbalRowEdgeVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                CymbalRowEdgeVolumeShowLabel = tk.Label(CymbalRowEdgeSounds, textvariable=EdgeVolumeVar)
+                CymbalRowEdgeVolumeShowLabel = nulltk.Label(CymbalRowEdgeSounds, textvariable=EdgeVolumeVar)
                 CymbalRowEdgeVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                CymbalRowEdgeSoundPathLabel = tk.Label(CymbalRowEdgeSounds, text="Sound\nPath:", width=12, height=2)
+                CymbalRowEdgeSoundPathLabel = nulltk.Label(CymbalRowEdgeSounds, text="Sound\nPath:", width=12, height=2)
                 CymbalRowEdgeSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowEdgeSoundLocationIF = tk.Entry(CymbalRowEdgeSounds, textvariable=CymbalRowEdgeSoundLocationVar, state="readonly", width=22)
+                CymbalRowEdgeSoundLocationIF = nulltk.Entry(CymbalRowEdgeSounds, textvariable=CymbalRowEdgeSoundLocationVar, state="readonly", width=22)
                 CymbalRowEdgeSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                CymbalRowEdgeBrowseButton = tk.Button(CymbalRowEdgeSounds, command=lambda: SearchForSoundFile(Drum, CymbalRowEdgeSoundLocationVar, "RimSoundFilePath"), text="Browse", width=8)
+                CymbalRowEdgeBrowseButton = nulltk.Button(CymbalRowEdgeSounds, command=lambda: SearchForSoundFile(Drum, CymbalRowEdgeSoundLocationVar, "RimSoundFilePath"), text="Browse", width=8)
                 CymbalRowEdgeBrowseButton.grid(row=1, column=2)
 
                 def UpdateEdgeVolume(*args):
@@ -5938,52 +5978,52 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["RimSlamNoteThreshold"] = EdgeSlam.get()
                     SaveConfig("NullMidi")
 
-                CymbalRowEdgeGhostLabel = tk.Label(CymbalRowEdgeSounds, text="Ghost Note\n Velocity Cap", width=12, height=2)
+                CymbalRowEdgeGhostLabel = nulltk.Label(CymbalRowEdgeSounds, text="Ghost Note\n Velocity Cap", width=12, height=2)
                 CymbalRowEdgeGhostLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowEdgeGhostSlider = tk.Scale(CymbalRowEdgeSounds, from_=1, to=127, orient="horizontal", variable=EdgeGhostNote, showvalue=False, length=22)
+                CymbalRowEdgeGhostSlider = nulltk.Scale(CymbalRowEdgeSounds, from_=1, to=127, orient="horizontal", variable=EdgeGhostNote, showvalue=False, length=22)
                 CymbalRowEdgeGhostSlider.grid(row=2, column=1, sticky="ew")
 
-                CymbalRowEdgeGhostShowLabel = tk.Label(CymbalRowEdgeSounds, textvariable=EdgeGhostNote)
+                CymbalRowEdgeGhostShowLabel = nulltk.Label(CymbalRowEdgeSounds, textvariable=EdgeGhostNote)
                 CymbalRowEdgeGhostShowLabel.grid(row=2, column=2, sticky="w")
 
-                CymbalRowEdgeSlamLabel = tk.Label(CymbalRowEdgeSounds, text="Slam Note\n Velocity Min", width=12, height=2)
+                CymbalRowEdgeSlamLabel = nulltk.Label(CymbalRowEdgeSounds, text="Slam Note\n Velocity Min", width=12, height=2)
                 CymbalRowEdgeSlamLabel.grid(row=3, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowEdgeSlamSlider = tk.Scale(CymbalRowEdgeSounds, from_=1, to=127, orient="horizontal", variable=EdgeSlam, showvalue=False, length=22)
+                CymbalRowEdgeSlamSlider = nulltk.Scale(CymbalRowEdgeSounds, from_=1, to=127, orient="horizontal", variable=EdgeSlam, showvalue=False, length=22)
                 CymbalRowEdgeSlamSlider.grid(row=3, column=1, sticky="ew")
 
-                CymbalRowEdgeSlamShowLabel = tk.Label(CymbalRowEdgeSounds, textvariable=EdgeSlam)
+                CymbalRowEdgeSlamShowLabel = nulltk.Label(CymbalRowEdgeSounds, textvariable=EdgeSlam)
                 CymbalRowEdgeSlamShowLabel.grid(row=3, column=2, sticky="w")
 
 
-                Divider = tk.Frame(CymbalsContainer, width=2, bg="#555")
+                Divider = nulltk.Frame(CymbalsContainer, width=2, bg="#555")
                 Divider.grid(row=1, column=3, sticky="ns", padx=5)
 
                 #------------ BowRow
-                CymbalRowBowRow = tk.Frame(CymbalsContainer)
+                CymbalRowBowRow = nulltk.Frame(CymbalsContainer)
                 CymbalRowBowRow.grid(row=1, column=4, sticky="ew", padx=2, pady=2)
                 CymbalRowBowRow.rowconfigure(0, weight=1)
                 CymbalRowBowRow.rowconfigure(1, weight=1)
                 CymbalRowBowRow.rowconfigure(2, weight=0)
                 CymbalRowBowRow.columnconfigure(0, weight=1)
 
-                CymbalRowBowLabel = tk.Label(CymbalRowBowRow, text="Bow Of Cymbal", width=8, font=("TkDefaultFont", 12, "bold"))
+                CymbalRowBowLabel = nulltk.Label(CymbalRowBowRow, text="Bow Of Cymbal", width=8, font=("TkDefaultFont", 12, "bold"))
                 CymbalRowBowLabel.grid(row=0, column=0, sticky="ew")
 
-                CymbalRowBowInputsFrame = tk.Frame(CymbalRowBowRow)
+                CymbalRowBowInputsFrame = nulltk.Frame(CymbalRowBowRow)
                 CymbalRowBowInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                CymbalRowBowInputsLabel = tk.Label(CymbalRowBowInputsFrame, text="Inputs:", width=8)
+                CymbalRowBowInputsLabel = nulltk.Label(CymbalRowBowInputsFrame, text="Inputs:", width=8)
                 CymbalRowBowInputsLabel.grid(row=0, column=0)
 
-                CymbalRowBowMidiInputButton = tk.Button(CymbalRowBowInputsFrame, text=("Set Midi" if Drum.get("BowMidiInput") is None else str(Drum.get("BowMidiInput"))), command=lambda: DetectNote(CymbalRowBowMidiInputButton, Row["Device"], Drum, "BowMidiInput"), width=22)
+                CymbalRowBowMidiInputButton = nulltk.Button(CymbalRowBowInputsFrame, text=("Set Midi" if Drum.get("BowMidiInput") is None else str(Drum.get("BowMidiInput"))), command=lambda: DetectNote(CymbalRowBowMidiInputButton, Row["Device"], Drum, "BowMidiInput"), width=22)
                 CymbalRowBowMidiInputButton.grid(row=0, column=1)
 
-                CymbalRowBowKeyOutputButton = tk.Button(CymbalRowBowInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("BowKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBowKeyOutputButton, Drum, "BowKeyOutput","NullMidi"), width=22)
+                CymbalRowBowKeyOutputButton = nulltk.Button(CymbalRowBowInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("BowKeyOutput")) or "Set Key", command=lambda: DetectKey(CymbalRowBowKeyOutputButton, Drum, "BowKeyOutput","NullMidi"), width=22)
                 CymbalRowBowKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                CymbalRowBowSounds = tk.LabelFrame(CymbalRowBowRow, text="Sounds")
+                CymbalRowBowSounds = nulltk.LabelFrame(CymbalRowBowRow, text="Sounds")
                 CymbalRowBowSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
                 SoundWidgets[CymbalRowBowSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 CymbalRowBowSounds.columnconfigure(0, weight=0)
@@ -6000,22 +6040,22 @@ def AddMidiRow(Row=None, Loading=False):
                 BowGhostNote = tk.IntVar(value=Drum.get("BowGhostNoteThreshold", 100))
                 BowSlam = tk.IntVar(value=Drum.get("BowSlamNoteThreshold", 100))
 
-                CymbalRowBowVolumeSliderLabel = tk.Label(CymbalRowBowSounds, text="Volume", width=12, height=2)
+                CymbalRowBowVolumeSliderLabel = nulltk.Label(CymbalRowBowSounds, text="Volume", width=12, height=2)
                 CymbalRowBowVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBowVolumeSlider = tk.Scale(CymbalRowBowSounds, from_=0, to=100, orient="horizontal", variable=BowVolumeVar, showvalue=False, length=22)
+                CymbalRowBowVolumeSlider = nulltk.Scale(CymbalRowBowSounds, from_=0, to=100, orient="horizontal", variable=BowVolumeVar, showvalue=False, length=22)
                 CymbalRowBowVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                CymbalRowBowVolumeShowLabel = tk.Label(CymbalRowBowSounds, textvariable=BowVolumeVar)
+                CymbalRowBowVolumeShowLabel = nulltk.Label(CymbalRowBowSounds, textvariable=BowVolumeVar)
                 CymbalRowBowVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                CymbalRowBowSoundPathLabel = tk.Label(CymbalRowBowSounds, text="Sound\nPath:", width=12, height=2)
+                CymbalRowBowSoundPathLabel = nulltk.Label(CymbalRowBowSounds, text="Sound\nPath:", width=12, height=2)
                 CymbalRowBowSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBowSoundLocationIF = tk.Entry(CymbalRowBowSounds, textvariable=CymbalRowBowSoundLocationVar, state="readonly", width=22)
+                CymbalRowBowSoundLocationIF = nulltk.Entry(CymbalRowBowSounds, textvariable=CymbalRowBowSoundLocationVar, state="readonly", width=22)
                 CymbalRowBowSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                CymbalRowBowBrowseButton = tk.Button(CymbalRowBowSounds, command=lambda: SearchForSoundFile(Drum, CymbalRowBowSoundLocationVar, "BowSoundFilePath"), text="Browse", width=8)
+                CymbalRowBowBrowseButton = nulltk.Button(CymbalRowBowSounds, command=lambda: SearchForSoundFile(Drum, CymbalRowBowSoundLocationVar, "BowSoundFilePath"), text="Browse", width=8)
                 CymbalRowBowBrowseButton.grid(row=1, column=2)
 
                 def UpdateBowVolume(*args):
@@ -6030,22 +6070,22 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["BowSlamNoteThreshold"] = BowSlam.get()
                     SaveConfig("NullMidi")
 
-                CymbalRowBowGhostLabel = tk.Label(CymbalRowBowSounds, text="Ghost Note\n Velocity Cap", width=12, height=2)
+                CymbalRowBowGhostLabel = nulltk.Label(CymbalRowBowSounds, text="Ghost Note\n Velocity Cap", width=12, height=2)
                 CymbalRowBowGhostLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBowGhostSlider = tk.Scale(CymbalRowBowSounds, from_=1, to=127, orient="horizontal", variable=BowGhostNote, showvalue=False, length=22)
+                CymbalRowBowGhostSlider = nulltk.Scale(CymbalRowBowSounds, from_=1, to=127, orient="horizontal", variable=BowGhostNote, showvalue=False, length=22)
                 CymbalRowBowGhostSlider.grid(row=2, column=1, sticky="ew")
 
-                CymbalRowBowGhostShowLabel = tk.Label(CymbalRowBowSounds, textvariable=BowGhostNote)
+                CymbalRowBowGhostShowLabel = nulltk.Label(CymbalRowBowSounds, textvariable=BowGhostNote)
                 CymbalRowBowGhostShowLabel.grid(row=2, column=2, sticky="w")
 
-                CymbalRowBowSlamLabel = tk.Label(CymbalRowBowSounds, text="Slam Note\n Velocity Min", width=12, height=2)
+                CymbalRowBowSlamLabel = nulltk.Label(CymbalRowBowSounds, text="Slam Note\n Velocity Min", width=12, height=2)
                 CymbalRowBowSlamLabel.grid(row=3, column=0, sticky="e", pady=(0,8))
 
-                CymbalRowBowSlamSlider = tk.Scale(CymbalRowBowSounds, from_=1, to=127, orient="horizontal", variable=BowSlam, showvalue=False, length=22)
+                CymbalRowBowSlamSlider = nulltk.Scale(CymbalRowBowSounds, from_=1, to=127, orient="horizontal", variable=BowSlam, showvalue=False, length=22)
                 CymbalRowBowSlamSlider.grid(row=3, column=1, sticky="ew")
 
-                CymbalRowBowSlamShowLabel = tk.Label(CymbalRowBowSounds, textvariable=BowSlam)
+                CymbalRowBowSlamShowLabel = nulltk.Label(CymbalRowBowSounds, textvariable=BowSlam)
                 CymbalRowBowSlamShowLabel.grid(row=3, column=2, sticky="w")
 
                 MidiScrollBox.BindMouseWheel(Frame)
@@ -6073,7 +6113,7 @@ def AddMidiRow(Row=None, Loading=False):
 
             def SetupKickRow(Loading=False):
                 SoundWidgets.clear()
-                KickRowTopRow = tk.Frame(DrumRowKickRow)
+                KickRowTopRow = nulltk.Frame(DrumRowKickRow)
                 KickRowTopRow.grid(row=0, column=0, sticky="ew", padx=2)
 
                 KickRowTopRow.columnconfigure(0, weight=0 )
@@ -6082,7 +6122,7 @@ def AddMidiRow(Row=None, Loading=False):
                 KickRowTopRow.columnconfigure(3, weight=0 )
                 KickRowTopRow.rowconfigure(0, weight=0 )
 
-                KickCollapseButton = tk.Button(KickRowTopRow, text="▼", command=lambda:CollapseKick(Drum, KickContainer), width = 2)
+                KickCollapseButton = nulltk.Button(KickRowTopRow, text="▼", command=lambda:CollapseKick(Drum, KickContainer), width = 2)
                 KickCollapseButton.grid(row=0, column=0, sticky="ew", padx=2)
 
                 def CollapseKick(Drum, KickContainer, Loading=False):
@@ -6108,22 +6148,22 @@ def AddMidiRow(Row=None, Loading=False):
                         
                     SaveConfig("NullMidi")
 
-                DrumRowDrumToMainToggle = tk.Checkbutton(KickRowTopRow, text="Bass", variable=DrumRowAlwaysTruePad, command=lambda:SwitchDrumType("Main"))
+                DrumRowDrumToMainToggle = nulltk.Checkbutton(KickRowTopRow, text="Bass", variable=DrumRowAlwaysTruePad, command=lambda:SwitchDrumType("Main"))
                 DrumRowDrumToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
-                Divider = tk.Frame(KickRowTopRow,width=2,bg="#555")
+                Divider = nulltk.Frame(KickRowTopRow,width=2,bg="#555")
                 Divider.grid(row=0,column=2,sticky="ns",padx=5)
 
-                RemoveDrumObjectFromList= tk.Button(KickRowTopRow, text="Remove Drum", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
+                RemoveDrumObjectFromList= nulltk.Button(KickRowTopRow, text="Remove Drum", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
                 RemoveDrumObjectFromList.grid(row=0, column=3, sticky="ew", padx=2)
 
-                KickContainer = tk.Frame(DrumRowKickRow, bd=2, relief="solid")
+                KickContainer = nulltk.Frame(DrumRowKickRow, bd=2, relief="solid")
                 KickContainer.grid(row=1, column=0, sticky="ew", padx=2)
                 KickContainer.columnconfigure(0,weight=1)
 
 
 
                 #---kicks
-                DrumRowKickPad = tk.Frame(KickContainer)
+                DrumRowKickPad = nulltk.Frame(KickContainer)
                 DrumRowKickPad.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
                 DrumRowKickPad.rowconfigure(0, weight=1)
@@ -6131,23 +6171,23 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowKickPad.rowconfigure(2, weight=0)
                 DrumRowKickPad.columnconfigure(0, weight=1)
 
-                DrumRowKickLabel = tk.Label(DrumRowKickPad,text="Kick Drum",width=8,font=("TkDefaultFont", 12, "bold"))
+                DrumRowKickLabel = nulltk.Label(DrumRowKickPad,text="Kick Drum",width=8,font=("TkDefaultFont", 12, "bold"))
                 DrumRowKickLabel.grid(row=0, column=0, sticky="ew")
 
-                DrumRowKickInputsFrame = tk.Frame(DrumRowKickPad)
+                DrumRowKickInputsFrame = nulltk.Frame(DrumRowKickPad)
                 DrumRowKickInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                DrumRowKickInputsLabel = tk.Label(DrumRowKickInputsFrame,text="Inputs:",width=8)
+                DrumRowKickInputsLabel = nulltk.Label(DrumRowKickInputsFrame,text="Inputs:",width=8)
                 DrumRowKickInputsLabel.grid(row=0, column=0)
 
-                DrumRowKickMidiInputButton = tk.Button(DrumRowKickInputsFrame,text=("Set Midi" if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))),command=lambda: DetectNote(DrumRowKickMidiInputButton,Row["Device"],Drum,"CenterMidiInput"),width=22)
+                DrumRowKickMidiInputButton = nulltk.Button(DrumRowKickInputsFrame,text=("Set Midi" if Drum.get("CenterMidiInput") is None else str(Drum.get("CenterMidiInput"))),command=lambda: DetectNote(DrumRowKickMidiInputButton,Row["Device"],Drum,"CenterMidiInput"),width=22)
                 DrumRowKickMidiInputButton.grid(row=0, column=1)
 
-                DrumRowKickKeyOutputButton = tk.Button(DrumRowKickInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowKickKeyOutputButton,Drum,"CenterKeyOutput","NullMidi"),width=22)
+                DrumRowKickKeyOutputButton = nulltk.Button(DrumRowKickInputsFrame,text="+".join(FormatKeyName(K)for K in Drum.get("CenterKeyOutput")) or "Set Key",command=lambda: DetectKey(DrumRowKickKeyOutputButton,Drum,"CenterKeyOutput","NullMidi"),width=22)
                 DrumRowKickKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
 
-                DrumRowKickSounds = tk.LabelFrame(DrumRowKickPad,text="Sounds")
+                DrumRowKickSounds = nulltk.LabelFrame(DrumRowKickPad,text="Sounds")
                 DrumRowKickSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
                 SoundWidgets[DrumRowKickSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
 
@@ -6160,23 +6200,23 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowKickSoundLocationVar = tk.StringVar(value=Drum.get("CenterSoundFilePath", ""))
 
 
-                DrumRowKickVolumeSliderLabel = tk.Label(DrumRowKickSounds,text="Volume",width=12,height=2)
+                DrumRowKickVolumeSliderLabel = nulltk.Label(DrumRowKickSounds,text="Volume",width=12,height=2)
                 DrumRowKickVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                DrumRowKickVolumeSlider = tk.Scale(DrumRowKickSounds,from_=0,to=100,orient="horizontal",variable=CenterVolumeVar,showvalue=False,length=44)
+                DrumRowKickVolumeSlider = nulltk.Scale(DrumRowKickSounds,from_=0,to=100,orient="horizontal",variable=CenterVolumeVar,showvalue=False,length=44)
                 DrumRowKickVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                DrumRowKickVolumeShowLabel = tk.Label(DrumRowKickSounds,textvariable=CenterVolumeVar)
+                DrumRowKickVolumeShowLabel = nulltk.Label(DrumRowKickSounds,textvariable=CenterVolumeVar)
                 DrumRowKickVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
 
-                DrumRowKickSoundPathLabel = tk.Label(DrumRowKickSounds,text="Sound\nPath:",width=12,height=2)
+                DrumRowKickSoundPathLabel = nulltk.Label(DrumRowKickSounds,text="Sound\nPath:",width=12,height=2)
                 DrumRowKickSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                DrumRowKickSoundLocationIF = tk.Entry(DrumRowKickSounds,textvariable=DrumRowKickSoundLocationVar,state="readonly",width=44)
+                DrumRowKickSoundLocationIF = nulltk.Entry(DrumRowKickSounds,textvariable=DrumRowKickSoundLocationVar,state="readonly",width=44)
                 DrumRowKickSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                DrumRowKickBrowseButton = tk.Button(DrumRowKickSounds,command=lambda: SearchForSoundFile(Drum,DrumRowKickSoundLocationVar, "CenterSoundFilePath"),text="Browse",width=8)
+                DrumRowKickBrowseButton = nulltk.Button(DrumRowKickSounds,command=lambda: SearchForSoundFile(Drum,DrumRowKickSoundLocationVar, "CenterSoundFilePath"),text="Browse",width=8)
                 DrumRowKickBrowseButton.grid(row=1, column=2)
 
 
@@ -6190,13 +6230,13 @@ def AddMidiRow(Row=None, Loading=False):
                     SaveConfig("NullMidi")
 
 
-                DrumRowKickMinimumVelocityLabel = tk.Label(DrumRowKickSounds,text="Minimum Kick\nVelocity",width=12,height=2)
+                DrumRowKickMinimumVelocityLabel = nulltk.Label(DrumRowKickSounds,text="Minimum Kick\nVelocity",width=12,height=2)
                 DrumRowKickMinimumVelocityLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                DrumRowKickMinimumVelocitySlider = tk.Scale(DrumRowKickSounds,from_=1,to=127,orient="horizontal",variable=KickDrumMinimumVelocityVar,showvalue=False,length=44)
+                DrumRowKickMinimumVelocitySlider = nulltk.Scale(DrumRowKickSounds,from_=1,to=127,orient="horizontal",variable=KickDrumMinimumVelocityVar,showvalue=False,length=44)
                 DrumRowKickMinimumVelocitySlider.grid(row=2, column=1, sticky="ew")
 
-                DrumRowKickMinimumVelocityShowLabel = tk.Label(DrumRowKickSounds,textvariable=KickDrumMinimumVelocityVar)
+                DrumRowKickMinimumVelocityShowLabel = nulltk.Label(DrumRowKickSounds,textvariable=KickDrumMinimumVelocityVar)
                 DrumRowKickMinimumVelocityShowLabel.grid(row=2, column=2, sticky="w")
 
                 MidiScrollBox.BindMouseWheel(Frame)
@@ -6211,7 +6251,7 @@ def AddMidiRow(Row=None, Loading=False):
             def SetupHihatRow(Loading=False):
                 SoundWidgets.clear()
 
-                HihatRowTopRow = tk.Frame(DrumRowHihatRow)
+                HihatRowTopRow = nulltk.Frame(DrumRowHihatRow)
                 HihatRowTopRow.grid(row=0, column=0, sticky="ew", padx=2)
 
                 HihatRowTopRow.columnconfigure(0, weight=0)
@@ -6220,7 +6260,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowTopRow.columnconfigure(3, weight=0)
                 HihatRowTopRow.rowconfigure(0, weight=0)
 
-                HihatContainer = tk.Frame(DrumRowHihatRow, bd=2, relief="solid")
+                HihatContainer = nulltk.Frame(DrumRowHihatRow, bd=2, relief="solid")
                 HihatContainer.grid(row=1, column=0, sticky="ew", padx=2)
 
                 HihatContainer.columnconfigure(0, weight=1)
@@ -6257,22 +6297,22 @@ def AddMidiRow(Row=None, Loading=False):
                             Drum['Collapsed'] = True
                     SaveConfig("NullMidi")
 
-                HihatCollapseButton = tk.Button(HihatRowTopRow, text="▼", command=lambda:CollapseHiHat(Drum, HihatContainer), width=2)
+                HihatCollapseButton = nulltk.Button(HihatRowTopRow, text="▼", command=lambda:CollapseHiHat(Drum, HihatContainer), width=2)
                 HihatCollapseButton.grid(row=0, column=0, sticky="ew", padx=2)
 
-                HihatRowToMainToggle = tk.Checkbutton(HihatRowTopRow, text="HiHat", variable=DrumRowAlwaysTrueHiHat, command=lambda:SwitchDrumType("Main"))
+                HihatRowToMainToggle = nulltk.Checkbutton(HihatRowTopRow, text="HiHat", variable=DrumRowAlwaysTrueHiHat, command=lambda:SwitchDrumType("Main"))
                 HihatRowToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
 
-                Divider = tk.Frame(HihatRowTopRow, width=2, bg="#555")
+                Divider = nulltk.Frame(HihatRowTopRow, width=2, bg="#555")
                 Divider.grid(row=0, column=2, sticky="ns", padx=5)
 
-                RemoveHiHatObjectFromList = tk.Button(HihatRowTopRow, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveHiHatObjectFromList))
+                RemoveHiHatObjectFromList = nulltk.Button(HihatRowTopRow, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveHiHatObjectFromList))
                 RemoveHiHatObjectFromList.grid(row=0, column=3, sticky="ew", padx=2)
 
 
 
                 #------------ ClosedRow
-                HihatRowClosedRow = tk.Frame(HihatContainer)
+                HihatRowClosedRow = nulltk.Frame(HihatContainer)
                 HihatRowClosedRow.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
 
                 HihatRowClosedRow.rowconfigure(0, weight=1)
@@ -6280,22 +6320,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowClosedRow.rowconfigure(2, weight=0)
                 HihatRowClosedRow.columnconfigure(0, weight=1)
 
-                HihatRowClosedLabel = tk.Label(HihatRowClosedRow, text="Closed HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
+                HihatRowClosedLabel = nulltk.Label(HihatRowClosedRow, text="Closed HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
                 HihatRowClosedLabel.grid(row=0, column=0, sticky="ew")
 
-                HihatRowClosedInputsFrame = tk.Frame(HihatRowClosedRow)
+                HihatRowClosedInputsFrame = nulltk.Frame(HihatRowClosedRow)
                 HihatRowClosedInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                HihatRowClosedInputsLabel = tk.Label(HihatRowClosedInputsFrame, text="Inputs:", width=8)
+                HihatRowClosedInputsLabel = nulltk.Label(HihatRowClosedInputsFrame, text="Inputs:", width=8)
                 HihatRowClosedInputsLabel.grid(row=0, column=0)
 
-                HihatRowClosedMidiInputButton = tk.Button(HihatRowClosedInputsFrame, text=("Set Midi" if Drum.get("HiHatClosedMidiInput") is None else str(Drum.get("HiHatClosedMidiInput"))), command=lambda: DetectNote(HihatRowClosedMidiInputButton, Row["Device"], Drum, "HiHatClosedMidiInput"), width=22)
+                HihatRowClosedMidiInputButton = nulltk.Button(HihatRowClosedInputsFrame, text=("Set Midi" if Drum.get("HiHatClosedMidiInput") is None else str(Drum.get("HiHatClosedMidiInput"))), command=lambda: DetectNote(HihatRowClosedMidiInputButton, Row["Device"], Drum, "HiHatClosedMidiInput"), width=22)
                 HihatRowClosedMidiInputButton.grid(row=0, column=1)
 
-                HihatRowClosedKeyOutputButton = tk.Button(HihatRowClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowClosedKeyOutputButton, Drum, "HiHatClosedKeyOutput","NullMidi"), width=22)
+                HihatRowClosedKeyOutputButton = nulltk.Button(HihatRowClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowClosedKeyOutputButton, Drum, "HiHatClosedKeyOutput","NullMidi"), width=22)
                 HihatRowClosedKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                HihatRowClosedSounds = tk.LabelFrame(HihatRowClosedRow, text="Sounds")
+                HihatRowClosedSounds = nulltk.LabelFrame(HihatRowClosedRow, text="Sounds")
                 HihatRowClosedSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
 
                 SoundWidgets[HihatRowClosedSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
@@ -6308,22 +6348,22 @@ def AddMidiRow(Row=None, Loading=False):
                 ClosedVolumeVar = tk.IntVar(value=Drum.get("HiHatClosedVolume", 75))
                 ClosedThresholdVar = tk.IntVar(value=Drum.get("HiHatClosedThreshold", 100))
 
-                HihatRowClosedVolumeSliderLabel = tk.Label(HihatRowClosedSounds, text="Volume", width=12, height=2)
+                HihatRowClosedVolumeSliderLabel = nulltk.Label(HihatRowClosedSounds, text="Volume", width=12, height=2)
                 HihatRowClosedVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                HihatRowClosedVolumeSlider = tk.Scale(HihatRowClosedSounds, from_=0, to=100, orient="horizontal", variable=ClosedVolumeVar, showvalue=False, length=22)
+                HihatRowClosedVolumeSlider = nulltk.Scale(HihatRowClosedSounds, from_=0, to=100, orient="horizontal", variable=ClosedVolumeVar, showvalue=False, length=22)
                 HihatRowClosedVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                HihatRowClosedVolumeShowLabel = tk.Label(HihatRowClosedSounds, textvariable=ClosedVolumeVar)
+                HihatRowClosedVolumeShowLabel = nulltk.Label(HihatRowClosedSounds, textvariable=ClosedVolumeVar)
                 HihatRowClosedVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                HihatRowClosedSoundPathLabel = tk.Label(HihatRowClosedSounds, text="Sound\nPath:", width=12, height=2)
+                HihatRowClosedSoundPathLabel = nulltk.Label(HihatRowClosedSounds, text="Sound\nPath:", width=12, height=2)
                 HihatRowClosedSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                HihatRowClosedSoundLocationIF = tk.Entry(HihatRowClosedSounds, textvariable=HihatRowClosedSoundLocationVar, state="readonly", width=22)
+                HihatRowClosedSoundLocationIF = nulltk.Entry(HihatRowClosedSounds, textvariable=HihatRowClosedSoundLocationVar, state="readonly", width=22)
                 HihatRowClosedSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                HihatRowClosedBrowseButton = tk.Button(HihatRowClosedSounds, command=lambda: SearchForSoundFile(Drum, HihatRowClosedSoundLocationVar, "HiHatClosedPath"), text="Browse", width=8)
+                HihatRowClosedBrowseButton = nulltk.Button(HihatRowClosedSounds, command=lambda: SearchForSoundFile(Drum, HihatRowClosedSoundLocationVar, "HiHatClosedPath"), text="Browse", width=8)
                 HihatRowClosedBrowseButton.grid(row=1, column=2)
 
                 def UpdateClosedVolume(*args):
@@ -6334,22 +6374,22 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["HiHatClosedThreshold"] = ClosedThresholdVar.get()
                     SaveConfig("NullMidi")
 
-                HihatRowClosedThresholdLabel = tk.Label(HihatRowClosedSounds, text="Closed\nThreshold", width=12, height=2)
+                HihatRowClosedThresholdLabel = nulltk.Label(HihatRowClosedSounds, text="Closed\nThreshold", width=12, height=2)
                 HihatRowClosedThresholdLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                HihatRowClosedThresholdSlider = tk.Scale(HihatRowClosedSounds, from_=0, to=127, orient="horizontal", variable=ClosedThresholdVar, showvalue=False, length=22)
+                HihatRowClosedThresholdSlider = nulltk.Scale(HihatRowClosedSounds, from_=0, to=127, orient="horizontal", variable=ClosedThresholdVar, showvalue=False, length=22)
                 HihatRowClosedThresholdSlider.grid(row=2, column=1, sticky="ew")
 
-                HihatRowClosedThresholdShowLabel = tk.Label(HihatRowClosedSounds, textvariable=ClosedThresholdVar)
+                HihatRowClosedThresholdShowLabel = nulltk.Label(HihatRowClosedSounds, textvariable=ClosedThresholdVar)
                 HihatRowClosedThresholdShowLabel.grid(row=2, column=2, sticky="w")
 
                 
 
-                Divider = tk.Frame(HihatContainer, width=2, bg="#555")
+                Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
                 Divider.grid(row=0, column=1, sticky="ns", padx=5)
 
                                 #------------ HalfRow
-                HihatRowHalfRow = tk.Frame(HihatContainer)
+                HihatRowHalfRow = nulltk.Frame(HihatContainer)
                 HihatRowHalfRow.grid(row=0, column=2, sticky="ew", padx=2, pady=2)
 
                 HihatRowHalfRow.rowconfigure(0, weight=1)
@@ -6357,24 +6397,24 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowHalfRow.rowconfigure(2, weight=0)
                 HihatRowHalfRow.columnconfigure(0, weight=1)
 
-                HihatRowHalfLabel = tk.Label(HihatRowHalfRow, text="Half HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
+                HihatRowHalfLabel = nulltk.Label(HihatRowHalfRow, text="Half HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
                 HihatRowHalfLabel.grid(row=0, column=0, sticky="ew")
 
-                HihatRowHalfInputsFrame = tk.Frame(HihatRowHalfRow)
+                HihatRowHalfInputsFrame = nulltk.Frame(HihatRowHalfRow)
                 HihatRowHalfInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                HihatRowHalfInputsLabel = tk.Label(HihatRowHalfInputsFrame, text="Inputs:", width=8)
+                HihatRowHalfInputsLabel = nulltk.Label(HihatRowHalfInputsFrame, text="Inputs:", width=8)
                 HihatRowHalfInputsLabel.grid(row=0, column=0)
 
-                HihatRowHalfMidiInputButton = tk.Button(HihatRowHalfInputsFrame, text=("Set Midi" if Drum.get("HiHatHalfMidiInput") is None else str(Drum.get("HiHatHalfMidiInput"))), command=lambda: DetectNote(HihatRowHalfMidiInputButton, Row["Device"], Drum, "HiHatHalfMidiInput"), width=22)
+                HihatRowHalfMidiInputButton = nulltk.Button(HihatRowHalfInputsFrame, text=("Set Midi" if Drum.get("HiHatHalfMidiInput") is None else str(Drum.get("HiHatHalfMidiInput"))), command=lambda: DetectNote(HihatRowHalfMidiInputButton, Row["Device"], Drum, "HiHatHalfMidiInput"), width=22)
                 HihatRowHalfMidiInputButton.grid(row=0, column=1)
 
-                HihatRowHalfKeyOutputButton = tk.Button(HihatRowHalfInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatHalfKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowHalfKeyOutputButton, Drum, "HiHatHalfKeyOutput","NullMidi"), width=22)
+                HihatRowHalfKeyOutputButton = nulltk.Button(HihatRowHalfInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatHalfKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowHalfKeyOutputButton, Drum, "HiHatHalfKeyOutput","NullMidi"), width=22)
                 HihatRowHalfKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 
 
-                HihatRowHalfSounds = tk.LabelFrame(HihatRowHalfRow, text="Sounds")
+                HihatRowHalfSounds = nulltk.LabelFrame(HihatRowHalfRow, text="Sounds")
                 HihatRowHalfSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
 
                 SoundWidgets[HihatRowHalfSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
@@ -6387,22 +6427,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HalfVolumeVar = tk.IntVar(value=Drum.get("HiHatHalfVolume", 75))
                 
 
-                HihatRowHalfVolumeSliderLabel = tk.Label(HihatRowHalfSounds, text="Volume", width=12, height=2)
+                HihatRowHalfVolumeSliderLabel = nulltk.Label(HihatRowHalfSounds, text="Volume", width=12, height=2)
                 HihatRowHalfVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                HihatRowHalfVolumeSlider = tk.Scale(HihatRowHalfSounds, from_=0, to=100, orient="horizontal", variable=HalfVolumeVar, showvalue=False, length=22)
+                HihatRowHalfVolumeSlider = nulltk.Scale(HihatRowHalfSounds, from_=0, to=100, orient="horizontal", variable=HalfVolumeVar, showvalue=False, length=22)
                 HihatRowHalfVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                HihatRowHalfVolumeShowLabel = tk.Label(HihatRowHalfSounds, textvariable=HalfVolumeVar)
+                HihatRowHalfVolumeShowLabel = nulltk.Label(HihatRowHalfSounds, textvariable=HalfVolumeVar)
                 HihatRowHalfVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                HihatRowHalfSoundPathLabel = tk.Label(HihatRowHalfSounds, text="Sound\nPath:", width=12, height=2)
+                HihatRowHalfSoundPathLabel = nulltk.Label(HihatRowHalfSounds, text="Sound\nPath:", width=12, height=2)
                 HihatRowHalfSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                HihatRowHalfSoundLocationIF = tk.Entry(HihatRowHalfSounds, textvariable=HihatRowHalfSoundLocationVar, state="readonly", width=22)
+                HihatRowHalfSoundLocationIF = nulltk.Entry(HihatRowHalfSounds, textvariable=HihatRowHalfSoundLocationVar, state="readonly", width=22)
                 HihatRowHalfSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                HihatRowHalfBrowseButton = tk.Button(HihatRowHalfSounds, command=lambda: SearchForSoundFile(Drum, HihatRowHalfSoundLocationVar, "HiHatHalfPath"), text="Browse", width=8)
+                HihatRowHalfBrowseButton = nulltk.Button(HihatRowHalfSounds, command=lambda: SearchForSoundFile(Drum, HihatRowHalfSoundLocationVar, "HiHatHalfPath"), text="Browse", width=8)
                 HihatRowHalfBrowseButton.grid(row=1, column=2)
 
                 def UpdateHalfVolume(*args):
@@ -6410,13 +6450,13 @@ def AddMidiRow(Row=None, Loading=False):
                     SaveConfig("NullMidi")
 
                 
-                Divider = tk.Frame(HihatContainer, width=2, bg="#555")
+                Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
                 Divider.grid(row=0, column=3, sticky="ns", padx=5)
 
 
 
                 #------------ OpenRow
-                HihatRowOpenRow = tk.Frame(HihatContainer)
+                HihatRowOpenRow = nulltk.Frame(HihatContainer)
                 HihatRowOpenRow.grid(row=0, column=4, sticky="ew", padx=2, pady=2)
 
                 HihatRowOpenRow.rowconfigure(0, weight=1)
@@ -6424,22 +6464,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowOpenRow.rowconfigure(2, weight=0)
                 HihatRowOpenRow.columnconfigure(0, weight=1)
 
-                HihatRowOpenLabel = tk.Label(HihatRowOpenRow, text="Open HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
+                HihatRowOpenLabel = nulltk.Label(HihatRowOpenRow, text="Open HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
                 HihatRowOpenLabel.grid(row=0, column=0, sticky="ew")
 
-                HihatRowOpenInputsFrame = tk.Frame(HihatRowOpenRow)
+                HihatRowOpenInputsFrame = nulltk.Frame(HihatRowOpenRow)
                 HihatRowOpenInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                HihatRowOpenInputsLabel = tk.Label(HihatRowOpenInputsFrame, text="Inputs:", width=8)
+                HihatRowOpenInputsLabel = nulltk.Label(HihatRowOpenInputsFrame, text="Inputs:", width=8)
                 HihatRowOpenInputsLabel.grid(row=0, column=0)
 
-                HihatRowOpenMidiInputButton = tk.Button(HihatRowOpenInputsFrame, text=("Set Midi" if Drum.get("HiHatOpenMidiInput") is None else str(Drum.get("HiHatOpenMidiInput"))), command=lambda: DetectNote(HihatRowOpenMidiInputButton, Row["Device"], Drum, "HiHatOpenMidiInput"), width=22)
+                HihatRowOpenMidiInputButton = nulltk.Button(HihatRowOpenInputsFrame, text=("Set Midi" if Drum.get("HiHatOpenMidiInput") is None else str(Drum.get("HiHatOpenMidiInput"))), command=lambda: DetectNote(HihatRowOpenMidiInputButton, Row["Device"], Drum, "HiHatOpenMidiInput"), width=22)
                 HihatRowOpenMidiInputButton.grid(row=0, column=1)
 
-                HihatRowOpenKeyOutputButton = tk.Button(HihatRowOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowOpenKeyOutputButton, Drum, "HiHatOpenKeyOutput","NullMidi"), width=22)
+                HihatRowOpenKeyOutputButton = nulltk.Button(HihatRowOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowOpenKeyOutputButton, Drum, "HiHatOpenKeyOutput","NullMidi"), width=22)
                 HihatRowOpenKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                HihatRowOpenSounds = tk.LabelFrame(HihatRowOpenRow, text="Sounds")
+                HihatRowOpenSounds = nulltk.LabelFrame(HihatRowOpenRow, text="Sounds")
                 HihatRowOpenSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
 
                 SoundWidgets[HihatRowOpenSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
@@ -6452,22 +6492,22 @@ def AddMidiRow(Row=None, Loading=False):
                 OpenVolumeVar = tk.IntVar(value=Drum.get("HiHatOpenVolume", 75))
                 OpenThresholdVar = tk.IntVar(value=Drum.get("HiHatOpenThreshold", 0))
 
-                HihatRowOpenVolumeSliderLabel = tk.Label(HihatRowOpenSounds, text="Volume", width=12, height=2)
+                HihatRowOpenVolumeSliderLabel = nulltk.Label(HihatRowOpenSounds, text="Volume", width=12, height=2)
                 HihatRowOpenVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                HihatRowOpenVolumeSlider = tk.Scale(HihatRowOpenSounds, from_=0, to=100, orient="horizontal", variable=OpenVolumeVar, showvalue=False, length=22)
+                HihatRowOpenVolumeSlider = nulltk.Scale(HihatRowOpenSounds, from_=0, to=100, orient="horizontal", variable=OpenVolumeVar, showvalue=False, length=22)
                 HihatRowOpenVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                HihatRowOpenVolumeShowLabel = tk.Label(HihatRowOpenSounds, textvariable=OpenVolumeVar)
+                HihatRowOpenVolumeShowLabel = nulltk.Label(HihatRowOpenSounds, textvariable=OpenVolumeVar)
                 HihatRowOpenVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                HihatRowOpenSoundPathLabel = tk.Label(HihatRowOpenSounds, text="Sound\nPath:", width=12, height=2)
+                HihatRowOpenSoundPathLabel = nulltk.Label(HihatRowOpenSounds, text="Sound\nPath:", width=12, height=2)
                 HihatRowOpenSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                HihatRowOpenSoundLocationIF = tk.Entry(HihatRowOpenSounds, textvariable=HihatRowOpenSoundLocationVar, state="readonly", width=22)
+                HihatRowOpenSoundLocationIF = nulltk.Entry(HihatRowOpenSounds, textvariable=HihatRowOpenSoundLocationVar, state="readonly", width=22)
                 HihatRowOpenSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                HihatRowOpenBrowseButton = tk.Button(HihatRowOpenSounds, command=lambda: SearchForSoundFile(Drum, HihatRowOpenSoundLocationVar, "HiHatOpenPath"), text="Browse", width=8)
+                HihatRowOpenBrowseButton = nulltk.Button(HihatRowOpenSounds, command=lambda: SearchForSoundFile(Drum, HihatRowOpenSoundLocationVar, "HiHatOpenPath"), text="Browse", width=8)
                 HihatRowOpenBrowseButton.grid(row=1, column=2)
 
                 def UpdateOpenVolume(*args):
@@ -6478,20 +6518,20 @@ def AddMidiRow(Row=None, Loading=False):
                     Drum["HiHatOpenThreshold"] = OpenThresholdVar.get()
                     SaveConfig("NullMidi")
 
-                HihatRowOpenThresholdLabel = tk.Label(HihatRowOpenSounds, text="Open\nThreshold", width=12, height=2)
+                HihatRowOpenThresholdLabel = nulltk.Label(HihatRowOpenSounds, text="Open\nThreshold", width=12, height=2)
                 HihatRowOpenThresholdLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                HihatRowOpenThresholdSlider = tk.Scale(HihatRowOpenSounds, from_=0, to=127, orient="horizontal", variable=OpenThresholdVar, showvalue=False, length=22)
+                HihatRowOpenThresholdSlider = nulltk.Scale(HihatRowOpenSounds, from_=0, to=127, orient="horizontal", variable=OpenThresholdVar, showvalue=False, length=22)
                 HihatRowOpenThresholdSlider.grid(row=2, column=1, sticky="ew")
 
-                HihatRowOpenThresholdShowLabel = tk.Label(HihatRowOpenSounds, textvariable=OpenThresholdVar)
+                HihatRowOpenThresholdShowLabel = nulltk.Label(HihatRowOpenSounds, textvariable=OpenThresholdVar)
                 HihatRowOpenThresholdShowLabel.grid(row=2, column=2, sticky="w")
 
                 
 
 
                 #------------ StompRow
-                HihatRowStompRow = tk.Frame(HihatContainer)
+                HihatRowStompRow = nulltk.Frame(HihatContainer)
                 HihatRowStompRow.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
                 HihatRowStompRow.rowconfigure(0, weight=1)
@@ -6499,22 +6539,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowStompRow.rowconfigure(2, weight=0)
                 HihatRowStompRow.columnconfigure(0, weight=1)
 
-                HihatRowStompLabel = tk.Label(HihatRowStompRow, text="HiHat Stomp", width=8, font=("TkDefaultFont", 12, "bold"))
+                HihatRowStompLabel = nulltk.Label(HihatRowStompRow, text="HiHat Stomp", width=8, font=("TkDefaultFont", 12, "bold"))
                 HihatRowStompLabel.grid(row=0, column=0, sticky="ew")
 
-                HihatRowStompInputsFrame = tk.Frame(HihatRowStompRow)
+                HihatRowStompInputsFrame = nulltk.Frame(HihatRowStompRow)
                 HihatRowStompInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                HihatRowStompInputsLabel = tk.Label(HihatRowStompInputsFrame, text="Inputs:", width=8)
+                HihatRowStompInputsLabel = nulltk.Label(HihatRowStompInputsFrame, text="Inputs:", width=8)
                 HihatRowStompInputsLabel.grid(row=0, column=0)
 
-                HihatRowStompMidiInputButton = tk.Button(HihatRowStompInputsFrame, text=("Set Midi" if Drum.get("HiHatStompMidiInput") is None else str(Drum.get("HiHatStompMidiInput"))), command=lambda: DetectNote(HihatRowStompMidiInputButton, Row["Device"], Drum, "HiHatStompMidiInput"), width=22)
+                HihatRowStompMidiInputButton = nulltk.Button(HihatRowStompInputsFrame, text=("Set Midi" if Drum.get("HiHatStompMidiInput") is None else str(Drum.get("HiHatStompMidiInput"))), command=lambda: DetectNote(HihatRowStompMidiInputButton, Row["Device"], Drum, "HiHatStompMidiInput"), width=22)
                 HihatRowStompMidiInputButton.grid(row=0, column=1)
 
-                HihatRowStompKeyOutputButton = tk.Button(HihatRowStompInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatStompKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowStompKeyOutputButton, Drum, "HiHatStompKeyOutput","NullMidi"), width=22)
+                HihatRowStompKeyOutputButton = nulltk.Button(HihatRowStompInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatStompKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowStompKeyOutputButton, Drum, "HiHatStompKeyOutput","NullMidi"), width=22)
                 HihatRowStompKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                HihatRowStompSounds = tk.LabelFrame(HihatRowStompRow, text="Sounds")
+                HihatRowStompSounds = nulltk.LabelFrame(HihatRowStompRow, text="Sounds")
                 HihatRowStompSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
 
                 SoundWidgets[HihatRowStompSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
@@ -6526,22 +6566,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowStompSoundLocationVar = tk.StringVar(value=Drum.get("HiHatStompPath", ""))
                 StompVolumeVar = tk.IntVar(value=Drum.get("HiHatStompVolume", 100))
 
-                HihatRowStompVolumeSliderLabel = tk.Label(HihatRowStompSounds, text="Volume", width=12, height=2)
+                HihatRowStompVolumeSliderLabel = nulltk.Label(HihatRowStompSounds, text="Volume", width=12, height=2)
                 HihatRowStompVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                HihatRowStompVolumeSlider = tk.Scale(HihatRowStompSounds, from_=0, to=100, orient="horizontal", variable=StompVolumeVar, showvalue=False, length=22)
+                HihatRowStompVolumeSlider = nulltk.Scale(HihatRowStompSounds, from_=0, to=100, orient="horizontal", variable=StompVolumeVar, showvalue=False, length=22)
                 HihatRowStompVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                HihatRowStompVolumeShowLabel = tk.Label(HihatRowStompSounds, textvariable=StompVolumeVar)
+                HihatRowStompVolumeShowLabel = nulltk.Label(HihatRowStompSounds, textvariable=StompVolumeVar)
                 HihatRowStompVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                HihatRowStompSoundPathLabel = tk.Label(HihatRowStompSounds, text="Sound\nPath:", width=12, height=2)
+                HihatRowStompSoundPathLabel = nulltk.Label(HihatRowStompSounds, text="Sound\nPath:", width=12, height=2)
                 HihatRowStompSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                HihatRowStompSoundLocationIF = tk.Entry(HihatRowStompSounds, textvariable=HihatRowStompSoundLocationVar, state="readonly", width=22)
+                HihatRowStompSoundLocationIF = nulltk.Entry(HihatRowStompSounds, textvariable=HihatRowStompSoundLocationVar, state="readonly", width=22)
                 HihatRowStompSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                HihatRowStompBrowseButton = tk.Button(HihatRowStompSounds, command=lambda: SearchForSoundFile(Drum, HihatRowStompSoundLocationVar, "HiHatStompPath"), text="Browse", width=8)
+                HihatRowStompBrowseButton = nulltk.Button(HihatRowStompSounds, command=lambda: SearchForSoundFile(Drum, HihatRowStompSoundLocationVar, "HiHatStompPath"), text="Browse", width=8)
                 HihatRowStompBrowseButton.grid(row=1, column=2)
 
                 HihatRowStompSoundLocationVar = tk.StringVar(value=Drum.get("HiHatStompPath", ""))
@@ -6554,13 +6594,13 @@ def AddMidiRow(Row=None, Loading=False):
 
                 HihatOpenFadeInVar = tk.IntVar(value=Drum.get("HiHatFadeIn", 60))
 
-                HihatRowOpenFadeInSliderLabel = tk.Label(HihatRowStompSounds, text="Open Fade In", width=12, height=2)
+                HihatRowOpenFadeInSliderLabel = nulltk.Label(HihatRowStompSounds, text="Open Fade In", width=12, height=2)
                 HihatRowOpenFadeInSliderLabel.grid(row=2, column=0, sticky="e", pady=(0,8))
 
-                HihatRowOpenFadeInSlider = tk.Scale(HihatRowStompSounds, from_=0, to=500, orient="horizontal", variable=HihatOpenFadeInVar, showvalue=False, length=22)
+                HihatRowOpenFadeInSlider = nulltk.Scale(HihatRowStompSounds, from_=0, to=500, orient="horizontal", variable=HihatOpenFadeInVar, showvalue=False, length=22)
                 HihatRowOpenFadeInSlider.grid(row=2, column=1, sticky="ew")
 
-                HihatRowFadeInShowLabel = tk.Label(HihatRowStompSounds, textvariable=HihatOpenFadeInVar)
+                HihatRowFadeInShowLabel = nulltk.Label(HihatRowStompSounds, textvariable=HihatOpenFadeInVar)
                 HihatRowFadeInShowLabel.grid(row=2, column=2, sticky="w")
 
                 def UpdateFadeIn(*args):
@@ -6571,13 +6611,13 @@ def AddMidiRow(Row=None, Loading=False):
 
                 HihatOpenTimeVar = tk.IntVar(value=Drum.get("HiHatOpenTime", 75))
 
-                HihatRowOpenTimeSliderLabel = tk.Label(HihatRowStompSounds, text="Time To\n Open HiHats", width=12, height=2)
+                HihatRowOpenTimeSliderLabel = nulltk.Label(HihatRowStompSounds, text="Time To\n Open HiHats", width=12, height=2)
                 HihatRowOpenTimeSliderLabel.grid(row=3, column=0, sticky="e", pady=(0,8))
 
-                HihatRowOpenTimeSlider = tk.Scale(HihatRowStompSounds, from_=0, to=500, orient="horizontal", variable=HihatOpenTimeVar, showvalue=False, length=22)
+                HihatRowOpenTimeSlider = nulltk.Scale(HihatRowStompSounds, from_=0, to=500, orient="horizontal", variable=HihatOpenTimeVar, showvalue=False, length=22)
                 HihatRowOpenTimeSlider.grid(row=3, column=1, sticky="ew")
 
-                HihatRowTimeShowLabel = tk.Label(HihatRowStompSounds, textvariable=HihatOpenTimeVar)
+                HihatRowTimeShowLabel = nulltk.Label(HihatRowStompSounds, textvariable=HihatOpenTimeVar)
                 HihatRowTimeShowLabel.grid(row=3, column=2, sticky="w")
 
                 def UpdateHiHatOpenTime(*args):
@@ -6585,13 +6625,13 @@ def AddMidiRow(Row=None, Loading=False):
                     SaveConfig("NullMidi")
 
 
-                Divider = tk.Frame(HihatContainer, width=2, bg="#555")
+                Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
                 Divider.grid(row=1, column=1, sticky="ns", padx=5)
 
 
 
                 #------------ BellOpenRow
-                HihatRowBellOpenRow = tk.Frame(HihatContainer)
+                HihatRowBellOpenRow = nulltk.Frame(HihatContainer)
                 HihatRowBellOpenRow.grid(row=1, column=2, sticky="ew", padx=2, pady=2)
 
                 HihatRowBellOpenRow.rowconfigure(0, weight=1)
@@ -6599,22 +6639,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellOpenRow.rowconfigure(2, weight=0)
                 HihatRowBellOpenRow.columnconfigure(0, weight=1)
 
-                HihatRowBellOpenLabel = tk.Label(HihatRowBellOpenRow, text="Bell Open HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
+                HihatRowBellOpenLabel = nulltk.Label(HihatRowBellOpenRow, text="Bell Open HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
                 HihatRowBellOpenLabel.grid(row=0, column=0, sticky="ew")
 
-                HihatRowBellOpenInputsFrame = tk.Frame(HihatRowBellOpenRow)
+                HihatRowBellOpenInputsFrame = nulltk.Frame(HihatRowBellOpenRow)
                 HihatRowBellOpenInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                HihatRowBellOpenInputsLabel = tk.Label(HihatRowBellOpenInputsFrame, text="Inputs:", width=8)
+                HihatRowBellOpenInputsLabel = nulltk.Label(HihatRowBellOpenInputsFrame, text="Inputs:", width=8)
                 HihatRowBellOpenInputsLabel.grid(row=0, column=0)
 
-                HihatRowBellOpenMidiInputButton = tk.Button(HihatRowBellOpenInputsFrame, text=("Set Midi" if Drum.get("HiHatBellOpenMidiInput") is None else str(Drum.get("HiHatBellOpenMidiInput"))), command=lambda: DetectNote(HihatRowBellOpenMidiInputButton, Row["Device"], Drum, "HiHatBellOpenMidiInput"), width=22)
+                HihatRowBellOpenMidiInputButton = nulltk.Button(HihatRowBellOpenInputsFrame, text=("Set Midi" if Drum.get("HiHatBellOpenMidiInput") is None else str(Drum.get("HiHatBellOpenMidiInput"))), command=lambda: DetectNote(HihatRowBellOpenMidiInputButton, Row["Device"], Drum, "HiHatBellOpenMidiInput"), width=22)
                 HihatRowBellOpenMidiInputButton.grid(row=0, column=1)
 
-                HihatRowBellOpenKeyOutputButton = tk.Button(HihatRowBellOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellOpenKeyOutputButton, Drum, "HiHatBellOpenKeyOutput","NullMidi"), width=22)
+                HihatRowBellOpenKeyOutputButton = nulltk.Button(HihatRowBellOpenInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellOpenKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellOpenKeyOutputButton, Drum, "HiHatBellOpenKeyOutput","NullMidi"), width=22)
                 HihatRowBellOpenKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                HihatRowBellOpenSounds = tk.LabelFrame(HihatRowBellOpenRow, text="Sounds")
+                HihatRowBellOpenSounds = nulltk.LabelFrame(HihatRowBellOpenRow, text="Sounds")
                 HihatRowBellOpenSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
 
                 SoundWidgets[HihatRowBellOpenSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
@@ -6626,22 +6666,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellOpenSoundLocationVar = tk.StringVar(value=Drum.get("HiHatBellOpenPath", ""))
                 BellOpenVolumeVar = tk.IntVar(value=Drum.get("HiHatBellOpenVolume", 75))
 
-                HihatRowBellOpenVolumeSliderLabel = tk.Label(HihatRowBellOpenSounds, text="Volume", width=12, height=2)
+                HihatRowBellOpenVolumeSliderLabel = nulltk.Label(HihatRowBellOpenSounds, text="Volume", width=12, height=2)
                 HihatRowBellOpenVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                HihatRowBellOpenVolumeSlider = tk.Scale(HihatRowBellOpenSounds, from_=0, to=100, orient="horizontal", variable=BellOpenVolumeVar, showvalue=False, length=22)
+                HihatRowBellOpenVolumeSlider = nulltk.Scale(HihatRowBellOpenSounds, from_=0, to=100, orient="horizontal", variable=BellOpenVolumeVar, showvalue=False, length=22)
                 HihatRowBellOpenVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                HihatRowBellOpenVolumeShowLabel = tk.Label(HihatRowBellOpenSounds, textvariable=BellOpenVolumeVar)
+                HihatRowBellOpenVolumeShowLabel = nulltk.Label(HihatRowBellOpenSounds, textvariable=BellOpenVolumeVar)
                 HihatRowBellOpenVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                HihatRowBellOpenSoundPathLabel = tk.Label(HihatRowBellOpenSounds, text="Sound\nPath:", width=12, height=2)
+                HihatRowBellOpenSoundPathLabel = nulltk.Label(HihatRowBellOpenSounds, text="Sound\nPath:", width=12, height=2)
                 HihatRowBellOpenSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                HihatRowBellOpenSoundLocationIF = tk.Entry(HihatRowBellOpenSounds, textvariable=HihatRowBellOpenSoundLocationVar, state="readonly", width=22)
+                HihatRowBellOpenSoundLocationIF = nulltk.Entry(HihatRowBellOpenSounds, textvariable=HihatRowBellOpenSoundLocationVar, state="readonly", width=22)
                 HihatRowBellOpenSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                HihatRowBellOpenBrowseButton = tk.Button(HihatRowBellOpenSounds, command=lambda: SearchForSoundFile(Drum, HihatRowBellOpenSoundLocationVar, "HiHatBellOpenPath"), text="Browse", width=8)
+                HihatRowBellOpenBrowseButton = nulltk.Button(HihatRowBellOpenSounds, command=lambda: SearchForSoundFile(Drum, HihatRowBellOpenSoundLocationVar, "HiHatBellOpenPath"), text="Browse", width=8)
                 HihatRowBellOpenBrowseButton.grid(row=1, column=2)
 
                 def UpdateBellOpenVolume(*args):
@@ -6650,13 +6690,13 @@ def AddMidiRow(Row=None, Loading=False):
 
                 
 
-                Divider = tk.Frame(HihatContainer, width=2, bg="#555")
+                Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
                 Divider.grid(row=1, column=3, sticky="ns", padx=5)
 
 
 
                 #------------ BellClosedRow
-                HihatRowBellClosedRow = tk.Frame(HihatContainer)
+                HihatRowBellClosedRow = nulltk.Frame(HihatContainer)
                 HihatRowBellClosedRow.grid(row=1, column=4, sticky="ew", padx=2, pady=2)
 
                 HihatRowBellClosedRow.rowconfigure(0, weight=1)
@@ -6664,22 +6704,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellClosedRow.rowconfigure(2, weight=0)
                 HihatRowBellClosedRow.columnconfigure(0, weight=1)
 
-                HihatRowBellClosedLabel = tk.Label(HihatRowBellClosedRow, text="Bell Closed HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
+                HihatRowBellClosedLabel = nulltk.Label(HihatRowBellClosedRow, text="Bell Closed HiHat", width=8, font=("TkDefaultFont", 12, "bold"))
                 HihatRowBellClosedLabel.grid(row=0, column=0, sticky="ew")
 
-                HihatRowBellClosedInputsFrame = tk.Frame(HihatRowBellClosedRow)
+                HihatRowBellClosedInputsFrame = nulltk.Frame(HihatRowBellClosedRow)
                 HihatRowBellClosedInputsFrame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
 
-                HihatRowBellClosedInputsLabel = tk.Label(HihatRowBellClosedInputsFrame, text="Inputs:", width=8)
+                HihatRowBellClosedInputsLabel = nulltk.Label(HihatRowBellClosedInputsFrame, text="Inputs:", width=8)
                 HihatRowBellClosedInputsLabel.grid(row=0, column=0)
 
-                HihatRowBellClosedMidiInputButton = tk.Button(HihatRowBellClosedInputsFrame, text=("Set Midi" if Drum.get("HiHatBellClosedMidiInput") is None else str(Drum.get("HiHatBellClosedMidiInput"))), command=lambda: DetectNote(HihatRowBellClosedMidiInputButton, Row["Device"], Drum, "HiHatBellClosedMidiInput"), width=22)
+                HihatRowBellClosedMidiInputButton = nulltk.Button(HihatRowBellClosedInputsFrame, text=("Set Midi" if Drum.get("HiHatBellClosedMidiInput") is None else str(Drum.get("HiHatBellClosedMidiInput"))), command=lambda: DetectNote(HihatRowBellClosedMidiInputButton, Row["Device"], Drum, "HiHatBellClosedMidiInput"), width=22)
                 HihatRowBellClosedMidiInputButton.grid(row=0, column=1)
 
-                HihatRowBellClosedKeyOutputButton = tk.Button(HihatRowBellClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellClosedKeyOutputButton, Drum, "HiHatBellClosedKeyOutput","NullMidi"), width=22)
+                HihatRowBellClosedKeyOutputButton = nulltk.Button(HihatRowBellClosedInputsFrame, text="+".join(FormatKeyName(K)for K in Drum.get("HiHatBellClosedKeyOutput")) or "Set Key", command=lambda: DetectKey(HihatRowBellClosedKeyOutputButton, Drum, "HiHatBellClosedKeyOutput","NullMidi"), width=22)
                 HihatRowBellClosedKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
-                HihatRowBellClosedSounds = tk.LabelFrame(HihatRowBellClosedRow, text="Sounds")
+                HihatRowBellClosedSounds = nulltk.LabelFrame(HihatRowBellClosedRow, text="Sounds")
                 HihatRowBellClosedSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
 
                 SoundWidgets[HihatRowBellClosedSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
@@ -6691,22 +6731,22 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellClosedSoundLocationVar = tk.StringVar(value=Drum.get("HiHatBellClosedPath", ""))
                 BellClosedVolumeVar = tk.IntVar(value=Drum.get("HiHatBellClosedVolume", 75))
 
-                HihatRowBellClosedVolumeSliderLabel = tk.Label(HihatRowBellClosedSounds, text="Volume", width=12, height=2)
+                HihatRowBellClosedVolumeSliderLabel = nulltk.Label(HihatRowBellClosedSounds, text="Volume", width=12, height=2)
                 HihatRowBellClosedVolumeSliderLabel.grid(row=0, column=0, sticky="e", pady=(0,8))
 
-                HihatRowBellClosedVolumeSlider = tk.Scale(HihatRowBellClosedSounds, from_=0, to=100, orient="horizontal", variable=BellClosedVolumeVar, showvalue=False, length=22)
+                HihatRowBellClosedVolumeSlider = nulltk.Scale(HihatRowBellClosedSounds, from_=0, to=100, orient="horizontal", variable=BellClosedVolumeVar, showvalue=False, length=22)
                 HihatRowBellClosedVolumeSlider.grid(row=0, column=1, sticky="ew")
 
-                HihatRowBellClosedVolumeShowLabel = tk.Label(HihatRowBellClosedSounds, textvariable=BellClosedVolumeVar)
+                HihatRowBellClosedVolumeShowLabel = nulltk.Label(HihatRowBellClosedSounds, textvariable=BellClosedVolumeVar)
                 HihatRowBellClosedVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-                HihatRowBellClosedSoundPathLabel = tk.Label(HihatRowBellClosedSounds, text="Sound\nPath:", width=12, height=2)
+                HihatRowBellClosedSoundPathLabel = nulltk.Label(HihatRowBellClosedSounds, text="Sound\nPath:", width=12, height=2)
                 HihatRowBellClosedSoundPathLabel.grid(row=1, column=0, sticky="e", pady=(0,8))
 
-                HihatRowBellClosedSoundLocationIF = tk.Entry(HihatRowBellClosedSounds, textvariable=HihatRowBellClosedSoundLocationVar, state="readonly", width=22)
+                HihatRowBellClosedSoundLocationIF = nulltk.Entry(HihatRowBellClosedSounds, textvariable=HihatRowBellClosedSoundLocationVar, state="readonly", width=22)
                 HihatRowBellClosedSoundLocationIF.grid(row=1, column=1, sticky="ew")
 
-                HihatRowBellClosedBrowseButton = tk.Button(HihatRowBellClosedSounds, command=lambda: SearchForSoundFile(Drum, HihatRowBellClosedSoundLocationVar,"HiHatBellClosedPath"), text="Browse", width=8)
+                HihatRowBellClosedBrowseButton = nulltk.Button(HihatRowBellClosedSounds, command=lambda: SearchForSoundFile(Drum, HihatRowBellClosedSoundLocationVar,"HiHatBellClosedPath"), text="Browse", width=8)
                 HihatRowBellClosedBrowseButton.grid(row=1, column=2)
 
                 def UpdateBellClosedVolume(*args):
@@ -6758,15 +6798,15 @@ def AddMidiRow(Row=None, Loading=False):
 
             SaveConfig("NullMidi")
 
-        DrumRowDrumToggle = tk.Checkbutton(MainDrumRowToggles, text="Pad?", variable=DrumRowAlwaysFalsePad, command=lambda:SwitchDrumType("Pad"))
+        DrumRowDrumToggle = nulltk.Checkbutton(MainDrumRowToggles, text="Pad?", variable=DrumRowAlwaysFalsePad, command=lambda:SwitchDrumType("Pad"))
         DrumRowDrumToggle.grid(row=0, column=0, sticky="ew", padx=2)
-        DrumRowCymbalToggle = tk.Checkbutton(MainDrumRowToggles, text="Cymbal?", variable=DrumRowAlwaysFalseCymbal, command=lambda: SwitchDrumType("Cymbal"))
+        DrumRowCymbalToggle = nulltk.Checkbutton(MainDrumRowToggles, text="Cymbal?", variable=DrumRowAlwaysFalseCymbal, command=lambda: SwitchDrumType("Cymbal"))
         DrumRowCymbalToggle.grid(row=0, column=1, sticky="ew", padx=2)
-        DrumRowKickToggle = tk.Checkbutton(MainDrumRowToggles, text="Kick?", variable=DrumRowAlwaysFalseKick, command=lambda: SwitchDrumType("Kick"))
+        DrumRowKickToggle = nulltk.Checkbutton(MainDrumRowToggles, text="Kick?", variable=DrumRowAlwaysFalseKick, command=lambda: SwitchDrumType("Kick"))
         DrumRowKickToggle.grid(row=0, column=2, sticky="ew", padx=2)
-        DrumRowHihatToggle = tk.Checkbutton(MainDrumRowToggles, text="Hihat?", variable=DrumRowAlwaysFalseHihat, command=lambda: SwitchDrumType("Hihat"))
+        DrumRowHihatToggle = nulltk.Checkbutton(MainDrumRowToggles, text="Hihat?", variable=DrumRowAlwaysFalseHihat, command=lambda: SwitchDrumType("Hihat"))
         DrumRowHihatToggle.grid(row=0, column=3, sticky="ew", padx=2)
-        RemoveDrumObjectFromListMainDrum = tk.Button(MainDrumRowToggles, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromListMainDrum))
+        RemoveDrumObjectFromListMainDrum = nulltk.Button(MainDrumRowToggles, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromListMainDrum))
         RemoveDrumObjectFromListMainDrum.grid(row=0, column=4, sticky="ew", padx=2)
 
         MidiScrollBox.BindMouseWheel(Frame)
@@ -6796,30 +6836,30 @@ def AddMidiRow(Row=None, Loading=False):
         SaveConfig("NullMidi")
     
 
-    DrumGhostVolumeLabel = tk.Label(DrumRow, text= "Ghost Note\n Volume", width = 12, height=2)
+    DrumGhostVolumeLabel = nulltk.Label(DrumRow, text= "Ghost Note\n Volume", width = 12, height=2)
     DrumGhostVolumeLabel.grid(row=0, column=0, sticky="e")
-    DrumGhostVolumeSlider = tk.Scale(DrumRow,from_=1,to=25,orient="horizontal",variable=DrumGhostNoteVolume,showvalue=False, length=44,)
+    DrumGhostVolumeSlider = nulltk.Scale(DrumRow,from_=1,to=25,orient="horizontal",variable=DrumGhostNoteVolume,showvalue=False, length=44,)
     DrumGhostVolumeSlider.grid(row=0, column=1, sticky="ew")
-    DrumGhostVolumeShowLabel = tk.Label(DrumRow,textvariable=DrumGhostNoteVolume)
+    DrumGhostVolumeShowLabel = nulltk.Label(DrumRow,textvariable=DrumGhostNoteVolume)
     DrumGhostVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
-    Divider = tk.Frame(DrumRow,width=2,bg="#555")
+    Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
     Divider.grid(row=0,column=3,sticky="news",padx=5)
 
-    DrumSlamVolumeLabel = tk.Label(DrumRow, text= "Slam Note\n Volume", width = 12, height=2)
+    DrumSlamVolumeLabel = nulltk.Label(DrumRow, text= "Slam Note\n Volume", width = 12, height=2)
     DrumSlamVolumeLabel.grid(row=0, column=4, sticky="e")
-    DrumSlamVolumeSlider = tk.Scale(DrumRow,from_=76,to=100,orient="horizontal",variable=DrumSlamNoteVolume,showvalue=False, length=44,)
+    DrumSlamVolumeSlider = nulltk.Scale(DrumRow,from_=76,to=100,orient="horizontal",variable=DrumSlamNoteVolume,showvalue=False, length=44,)
     DrumSlamVolumeSlider.grid(row=0, column=5, sticky="ew")
-    DrumSlamVolumeShowLabel = tk.Label(DrumRow,textvariable=DrumSlamNoteVolume)
+    DrumSlamVolumeShowLabel = nulltk.Label(DrumRow,textvariable=DrumSlamNoteVolume)
     DrumSlamVolumeShowLabel.grid(row=0, column=6, sticky="w")
 
-    Divider = tk.Frame(DrumRow,width=2,bg="#555")
+    Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
     Divider.grid(row=0,column=7,sticky="news",padx=5)
 
-    DynamicVolume = tk.Checkbutton(DrumRow,variable=DynamicVolumeCheck, text="Dynamic Volume", command=lambda: UpdateDynamics(), width=15)
+    DynamicVolume = nulltk.Checkbutton(DrumRow,variable=DynamicVolumeCheck, text="Dynamic Volume", command=lambda: UpdateDynamics(), width=15)
     DynamicVolume.grid(row=0, column=8, sticky="ew", padx=2)
 
-    AddDrumObjectToList = tk.Button(DrumRow, text="Add Drum", command=lambda:AddDrumToList())
+    AddDrumObjectToList = nulltk.Button(DrumRow, text="Add Drum", command=lambda:AddDrumToList())
     AddDrumObjectToList.grid(row=1, column=0, sticky="ew", padx=2, columnspan=2)
 
     MidiScrollBox.BindMouseWheel(Frame)
@@ -8041,7 +8081,7 @@ def PullRelease(Repo, StatusVar):
 
         Popup.grab_set()
 
-        tk.Label(
+        nulltk.Label(
             Popup,
             text="Select Release Assets"
         ).pack(pady=5)
@@ -8068,7 +8108,7 @@ def PullRelease(Repo, StatusVar):
 
             Var = tk.BooleanVar()
 
-            tk.Checkbutton(
+            nulltk.Checkbutton(
                 Scroll.Inner,
                 text=f"{Name} ({Size} MB)",
                 variable=Var
@@ -8085,7 +8125,7 @@ def PullRelease(Repo, StatusVar):
 
         OpenOnFinish = tk.BooleanVar(value=False)
 
-        tk.Checkbutton(
+        nulltk.Checkbutton(
             Popup,
             text="Open Folder After Download",
             variable=OpenOnFinish
@@ -8105,7 +8145,7 @@ def PullRelease(Repo, StatusVar):
 
             Popup.destroy()
 
-        tk.Button(
+        nulltk.Button(
             Popup,
             text="Download Selected",
             command=DownloadSelected
@@ -8263,7 +8303,7 @@ def GetReleaseDisplay(Repo):
 
 def AddRepoObject(Repo):
     global RepoBoxes
-    Frame = tk.LabelFrame(NullGitcontainer, text=Repo["Name"], bd=2, relief="solid")
+    Frame = nulltk.LabelFrame(NullGitcontainer, text=Repo["Name"], bd=2, relief="solid")
     Frame.pack(fill="x", padx=5, pady=5)
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=2)
@@ -8301,10 +8341,10 @@ def AddRepoObject(Repo):
         Frame.focus_set()
 
 
-    StatusLabel = tk.Label(Frame, textvariable=StatusVar, width=15, padx=5)
+    StatusLabel = nulltk.Label(Frame, textvariable=StatusVar, width=15, padx=5)
     StatusLabel.grid(row=0, column=0, sticky="ew")
 
-    BranchBox = ttk.Combobox(Frame, values=DisplayValues, textvariable=CurrentBranch, state="readonly")
+    BranchBox = nulltk.Combobox(Frame, values=DisplayValues, textvariable=CurrentBranch, state="readonly")
     BranchBox.grid(row=0, column=1, sticky="ew",padx=10)
     BranchBox.bind("<<ComboboxSelected>>", lambda e: OnRepoOptionChanged())
     BranchBox.unbind_class("TCombobox", "<Button-4>")
@@ -8317,33 +8357,33 @@ def AddRepoObject(Repo):
 
     
 
-    tk.Button(Frame, text="Pull Repo", width=10, command=lambda: PullRepo(Repo, StatusVar)).grid(row=1, column=0, sticky="ew",pady=5, padx=5)
+    nulltk.Button(Frame, text="Pull Repo", width=10, command=lambda: PullRepo(Repo, StatusVar)).grid(row=1, column=0, sticky="ew",pady=5, padx=5)
     
-    CommitLabel = tk.Entry(Frame,textvariable=CommitVar, state="readonly")
+    CommitLabel = nulltk.Entry(Frame,textvariable=CommitVar, state="readonly")
     CommitLabel.grid(row=1,column=1,columnspan=3,sticky="ew",padx=10,pady=5)
 
     ttk.Separator(Frame, orient="horizontal").grid(row=2, column=0, sticky="ew", columnspan=99, pady=6)
     
-    InnerFrame = tk.Frame(Frame)
+    InnerFrame = nulltk.Frame(Frame)
     InnerFrame.grid(row=6, column=0, sticky="ew", padx=5, pady=2,columnspan=3)
     InnerFrame.columnconfigure(0, weight=1)
     InnerFrame.columnconfigure(1, weight=1)
-    tk.Button(InnerFrame, text="Open Repo In Browser", command=lambda: OpenRepo(Repo, False)).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-    tk.Button(InnerFrame, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
+    nulltk.Button(InnerFrame, text="Open Repo In Browser", command=lambda: OpenRepo(Repo, False)).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
+    nulltk.Button(InnerFrame, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
 
     ttk.Separator(Frame, orient="horizontal").grid(row=7, column=0, sticky="ew", columnspan=99, pady=6)
     if IsOwner(Repo['Path']):
         CommitMessage = tk.StringVar()
-        CommitMessageShow = tk.Label(Frame, text="Commit Message:", width=15, padx=5)
+        CommitMessageShow = nulltk.Label(Frame, text="Commit Message:", width=15, padx=5)
         CommitMessageShow.grid(row=3, column=0, sticky="ew")
-        CommitEntry = tk.Entry(Frame, width=30, textvariable=CommitMessage)
+        CommitEntry = nulltk.Entry(Frame, width=30, textvariable=CommitMessage)
         CommitEntry.grid(row=3, column=1, sticky="ew", padx=5)
-        tk.Button(Frame, text="Push Repo", width=10, command=lambda: PushGit(Repo, CommitMessage, StatusVar, CommitVar)).grid(row=4, column=0, padx=5)
+        nulltk.Button(Frame, text="Push Repo", width=10, command=lambda: PushGit(Repo, CommitMessage, StatusVar, CommitVar)).grid(row=4, column=0, padx=5)
         ttk.Separator(Frame, orient="horizontal").grid(row=5, column=0, sticky="ew", columnspan=99, pady=6)
-        tk.Button(Frame, text="Manage Repo", command=lambda: ManageRepo(Repo)).grid(row=8, column=0, columnspan=99, sticky="ew", padx=5, pady=5)
+        nulltk.Button(Frame, text="Manage Repo", command=lambda: ManageRepo(Repo)).grid(row=8, column=0, columnspan=99, sticky="ew", padx=5, pady=5)
         
     else:
-        DeleteButton = tk.Button(Frame, text="Delete Repo From NullGit", command=lambda: DeleteRepoInNull(Repo, DeleteButton))
+        DeleteButton = nulltk.Button(Frame, text="Delete Repo From NullGit", command=lambda: DeleteRepoInNull(Repo, DeleteButton))
         DeleteButton.grid(row=8, column=0, sticky="ew", padx=5, pady=5, columnspan=3)
 
     threading.Thread(target=UpdateRepoStatus,args=(Repo, StatusVar),daemon=True).start()
@@ -8696,15 +8736,15 @@ def EditGitIgnoreFile():
     Popup.transient(Root)
     Popup.grab_set()
 
-    Frame = tk.Frame(Popup)
+    Frame = nulltk.Frame(Popup)
     Frame.pack(padx=10, pady=10)
 
-    tk.Label(
+    nulltk.Label(
         Frame,
         text="What do you want to ignore?"
     ).pack(fill="x", pady=(0, 10))
 
-    tk.Button(
+    nulltk.Button(
         Frame,
         text="Select File",
         command=lambda: SelectGitIgnore(
@@ -8713,7 +8753,7 @@ def EditGitIgnoreFile():
         )
     ).pack(fill="x", pady=3)
 
-    tk.Button(
+    nulltk.Button(
         Frame,
         text="Select Folder",
         command=lambda: SelectGitIgnore(
@@ -9156,9 +9196,9 @@ def GetWindowClass(WindowID):
 
 def AddNewTracker(Name=None, Loading=False):
     global AppClassification
-    Frame = tk.Frame(ClassiciationListContainer, pady=5)
+    Frame = nulltk.Frame(ClassiciationListContainer, pady=5)
     Frame.pack(fill="x", expand=True)
-    TrackerFrame = tk.Frame(Frame, bd=2, relief="solid", pady=2)
+    TrackerFrame = nulltk.Frame(Frame, bd=2, relief="solid", pady=2)
 
     TrackerFrame.pack(fill="x", expand=True)
     TrackerFrame.columnconfigure(0, weight=0)
@@ -9237,9 +9277,9 @@ def AddNewTracker(Name=None, Loading=False):
         UpdateTrackerQuality()
         return
 
-    DeleteButton = tk.Button(TrackerFrame,text = "Delete Category",command=lambda: RemoveTracker(DeleteButton,TrackerFrame), width = 15)
+    DeleteButton = nulltk.Button(TrackerFrame,text = "Delete Category",command=lambda: RemoveTracker(DeleteButton,TrackerFrame), width = 15)
     DeleteButton.grid(row=0,column=0,padx=3,pady=3,sticky="ew")
-    ClassificationEntry = tk.Entry(TrackerFrame,textvariable=ClassificationNameVar)
+    ClassificationEntry = nulltk.Entry(TrackerFrame,textvariable=ClassificationNameVar)
     ClassificationEntry.grid(row=0,column=1,padx=3,pady=3,sticky="ew")
 
     ClassificationEntry.bind("<FocusOut>",RenameClassification)
@@ -9265,10 +9305,10 @@ def AddNewTracker(Name=None, Loading=False):
         return
     
 
-    AddWindowButton = tk.Button(TrackerFrame,text="Add Window",command=lambda: AddWindowTrackerSpecialty(AppClassification,OriginalName), width = 11)
+    AddWindowButton = nulltk.Button(TrackerFrame,text="Add Window",command=lambda: AddWindowTrackerSpecialty(AppClassification,OriginalName), width = 11)
     AddWindowButton.grid(row=0,column=2,padx=3,pady=3,sticky="ew")
 
-    RemoveWindowButton = tk.Button(TrackerFrame,text="Del Window",command=lambda:DeleteCategory(OriginalName), width = 11)
+    RemoveWindowButton = nulltk.Button(TrackerFrame,text="Del Window",command=lambda:DeleteCategory(OriginalName), width = 11)
     RemoveWindowButton.grid(row=0,column=3,padx=3,pady=3,sticky="ew")
 
     CategoryWindowsVar = tk.StringVar()
@@ -9287,7 +9327,7 @@ def AddNewTracker(Name=None, Loading=False):
             )
         return
 
-    AllCategoryWindows = tk.Label(TrackerFrame,textvariable=CategoryWindowsVar ,anchor="nw",justify="left")
+    AllCategoryWindows = nulltk.Label(TrackerFrame,textvariable=CategoryWindowsVar ,anchor="nw",justify="left")
     AllCategoryWindows.grid(row=1, column=0, sticky="nsew", rowspan=3, columnspan=3)
 
     if Loading:
@@ -9316,7 +9356,7 @@ def DeleteCategoryWindow(Category):
     ScrollFrame.pack(fill="both", expand=True)
 
     for WindowName in AppClassification.get(Category,[]):
-        Button = tk.Button(ScrollFrame.Inner,text=f"Remove {FormatWindowName(WindowName)}")
+        Button = nulltk.Button(ScrollFrame.Inner,text=f"Remove {FormatWindowName(WindowName)}")
         Button.config(command=lambda W=WindowName, B=Button: RemoveCategoryWindow(Category,W,B,Popup))
         Button.pack(fill="x")
     return
@@ -9407,7 +9447,7 @@ def DeleteIgnoredTracker():
     ScrollFrame.pack(fill="both", expand=True)
 
     for App in AppClassification.get("Ignored", []):
-        Button = tk.Button(ScrollFrame.Inner,text=f"Remove {App}")
+        Button = nulltk.Button(ScrollFrame.Inner,text=f"Remove {App}")
         Button.config(command=lambda A=App, B=Button:RemoveIgnoredTracker(A, B))
         Button.pack(fill="x")
 
@@ -9495,7 +9535,7 @@ def ClickYearButton(Year):
     Root.update_idletasks()
     for Month in sorted(Data.keys()):
 
-        Button = tk.Button(
+        Button = nulltk.Button(
             MonthChoicesButtons,
             text=Month,
             command=lambda M=Month, Y=Year: ClickMonthButton(Y, M),
@@ -9536,7 +9576,7 @@ def ClickMonthButton(Year, Month):
         Suffix = GetDaySuffix(Day)
         DisplayText = (f"{Day}{Suffix} - " f"{CycleDate.strftime('%I:%M%p')}")
 
-        Button = tk.Button(
+        Button = nulltk.Button(
             CycleChoicesButtons,
             text=DisplayText,
             command=lambda C=Cycle, Y=Year, M=Month: ClickCycleButton(Y, M, C),
@@ -9866,7 +9906,7 @@ def AddClipBoardEntry(ClipBoardContents):
             "Path": None,
             "Focus": DisplayName,
             "Hash": ClipBoardContents["Hash"],
-            "DeleteConfirmation": False
+            "": False
         }
 
     elif ClipBoardContents["Type"] == "Image":
@@ -9917,9 +9957,9 @@ def AddClipBoardEntry(ClipBoardContents):
     SaveClipBoard()
 
 def BuildClipBoardRow(Row):
-    global ClipBoardRows, ClipBoardHistory
+    global ClipBoardRows, ClipBoardHistory, DeletionCheckBoxes
 
-    CBRow = tk.Frame(
+    CBRow = nulltk.Frame(
         ClipBoardList.Inner,
         bd=2,
         relief="solid"
@@ -9970,31 +10010,16 @@ def BuildClipBoardRow(Row):
             RowCollapse.config(text="▼")
             Row["Collapsed"] = True
 
-    RowCollapse = tk.Button(
-        CBRow,
-        text="▶",
-        width=2,
-        command=CollapseRow
-    )
+    RowCollapse = nulltk.Button(CBRow,text="▶",width=2,command=CollapseRow)
+    RowCollapse.grid(row=0,column=0,sticky="ew",padx=2)
+    SourceLabel = nulltk.Label(CBRow,text=f"{Row['Focus']} at {Row['TimeOfCopy']} — {Row['Type'].upper()}",width = 50)
+    SourceLabel.grid(row=0,column=2,sticky="ew")
+    DeleteVar = tk.BooleanVar(value=False)
+    DeletionBox = nulltk.Checkbutton(CBRow,variable=DeleteVar, text="Delete")
+    DeletionBox.grid(row=0,column=1,sticky="w")
 
-    RowCollapse.grid(
-        row=0,
-        column=0,
-        sticky="ew",
-        padx=2
-    )
-
-    SourceLabel = tk.Label(
-        CBRow,
-        text=f"{Row['Focus']} at {Row['TimeOfCopy']} — {Row['Type'].upper()}",
-        width = 50
-    )
-
-    SourceLabel.grid(
-        row=0,
-        column=1,
-        sticky="ew"
-    )
+    CBRow.DeleteVar = DeleteVar
+    CBRow.RowData = Row
 
     def ReCopy():
         global DontCopyToClipBoardData
@@ -10026,7 +10051,7 @@ def BuildClipBoardRow(Row):
                 check=True
             )
 
-    CopyButton = tk.Button(
+    CopyButton = nulltk.Button(
         CBRow,
         text="Re-Copy",
         command=ReCopy,
@@ -10035,72 +10060,13 @@ def BuildClipBoardRow(Row):
 
     CopyButton.grid(
         row=0,
-        column=2,
-        sticky="ew"
-    )
-
-    def DeleteRow(Button, timeout=4):
-        global ClipBoardRows, ClipBoardHistory
-        EndTime = time.time() + timeout
-
-        def Tick():
-
-            if not Button.winfo_exists():
-                return
-
-            Remaining = int(
-                EndTime - time.time()
-            )
-
-            if Remaining <= 0:
-                Button.config(text="Delete")
-                Row["DeleteConfirmation"] = False
-                return
-
-            Button.config(
-                text=f"R U Sure? {Remaining}"
-            )
-
-            Root.after(1000, Tick)
-
-        if not Row["DeleteConfirmation"]:
-            Row["DeleteConfirmation"] = True
-            Tick()
-            return
-
-        if Row["Path"]:
-
-            try:
-                if os.path.isfile(Row["Path"]):
-                    os.remove(Row["Path"])
-            except Exception as e:
-                print(e)
-
-        if Row in ClipBoardHistory:
-            ClipBoardHistory.remove(Row)
-
-        ClipBoardRows.remove(CBRow)
-
-        SaveClipBoard()
-
-        CBRow.destroy()
-
-    DeleteButton = tk.Button(
-        CBRow,
-        text="Delete",
-        command=lambda: DeleteRow(DeleteButton),
-        width = 50
-    )
-
-    DeleteButton.grid(
-        row=0,
         column=3,
         sticky="ew"
     )
 
     if Row["Type"] == "Text":
 
-        TextHolder = tk.Frame(CBRow)
+        TextHolder = nulltk.Frame(CBRow)
 
         TextHolder.grid(
             row=1,
@@ -10111,7 +10077,7 @@ def BuildClipBoardRow(Row):
 
         Lines = Row["Text"].count("\n") + 1
 
-        BigAssTextField = tk.Text(
+        BigAssTextField = nulltk.Text(
             TextHolder,
             wrap="word",
             height=max(3, Lines)
@@ -10135,7 +10101,7 @@ def BuildClipBoardRow(Row):
 
     elif Row["Type"] == "Image":
 
-        ImageHolder = tk.Frame(CBRow)
+        ImageHolder = nulltk.Frame(CBRow)
 
         ImageHolder.grid(
             row=1,
@@ -10158,7 +10124,7 @@ def BuildClipBoardRow(Row):
                 Thumb
             )
 
-            ImageLabel = tk.Label(
+            ImageLabel = nulltk.Label(
                 ImageHolder,
                 image=Thumbnail
             )
@@ -10171,7 +10137,7 @@ def BuildClipBoardRow(Row):
 
         except Exception as e:
 
-            tk.Label(
+            nulltk.Label(
                 ImageHolder,
                 text=f"Failed Loading Image\n{e}"
             ).pack()
@@ -10185,7 +10151,7 @@ def BuildClipBoardRow(Row):
                 ]
             )
 
-        OpenButton = tk.Button(
+        OpenButton = nulltk.Button(
             ImageHolder,
             text="Open Full Image",
             command=OpenImage
@@ -10230,6 +10196,35 @@ def SaveClipBoard():
                 "Saving clipboard failed:",
                 e
             )
+
+def DeleteClipboardItems():
+    global ClipBoardRows, ClipBoardHistory
+    for CBRow in ClipBoardRows[:]:
+        if CBRow.DeleteVar.get():
+            Row = CBRow.RowData
+
+            if Row["Path"]:
+                try:
+                    if os.path.isfile(Row["Path"]):
+                        os.remove(Row["Path"])
+                except Exception as e:
+                    print(e)
+
+            ClipBoardRows.remove(CBRow)
+            ClipBoardHistory.remove(Row)
+
+            CBRow.destroy()
+    return
+
+def SelectAllClipBoard():
+    for CBRow in ClipBoardRows[:]:
+        CBRow.DeleteVar.set(True)
+    return
+
+def SelectNoneClipBoard():
+    for CBRow in ClipBoardRows[:]:
+        CBRow.DeleteVar.set(False)
+    return
 
 def AddOperatorWindow():
     SearchForWindow(None,None,None,None,"Operator")
@@ -10296,11 +10291,11 @@ def CreateOperatorRow(Window):
         MainFrame.destroy()
         SaveConfig("NullFocus")
 
-    MainFrame = tk.LabelFrame(OperatorList.Inner, text=Window['DisplayName'], bd=2)
+    MainFrame = nulltk.LabelFrame(OperatorList.Inner, text=Window['DisplayName'], bd=2)
     MainFrame.pack(fill="x", expand=True)
     MainFrame.columnconfigure(4,weight=1)
 
-    OperatorFocused = tk.Checkbutton(MainFrame, text="Focused|UnFocused", variable=CurrentPage, command=lambda:ChangedPage())
+    OperatorFocused = nulltk.Checkbutton(MainFrame, text="Focused|UnFocused", variable=CurrentPage, command=lambda:ChangedPage())
     OperatorFocused.grid(row=0, column=0, sticky="ew")
 
     def OperatorUIUpdater():
@@ -10343,29 +10338,29 @@ def CreateOperatorRow(Window):
         SaveConfig("NullFocus")
         return
 
-    OperatorKeyActionSwitcher = tk.Checkbutton(MainFrame, text="Keys|Action", variable=KeyOrAction, command=lambda:OperatorUIUpdater())
+    OperatorKeyActionSwitcher = nulltk.Checkbutton(MainFrame, text="Keys|Action", variable=KeyOrAction, command=lambda:OperatorUIUpdater())
     OperatorKeyActionSwitcher.grid(row=0, column=1, sticky="ew", padx=2)
 
     #--- keys
-    OperatorKeyOutputButton = tk.Button(MainFrame,text=("+".join(FormatKeyName(K)for K in Window[GetCurrentPage()]["Keys"]) or "Set Key"),command=lambda: DetectKey(OperatorKeyOutputButton,Window[GetCurrentPage()],'Keys',"NullFocus"),width=25)
+    OperatorKeyOutputButton = nulltk.Button(MainFrame,text=("+".join(FormatKeyName(K)for K in Window[GetCurrentPage()]["Keys"]) or "Set Key"),command=lambda: DetectKey(OperatorKeyOutputButton,Window[GetCurrentPage()],'Keys',"NullFocus"),width=25)
 
-    OperatorWindowSpecificSwitcher = tk.Checkbutton(MainFrame, text="All|Window", variable=WindowSpecific, command=lambda:OperatorUIUpdater())
-    OperatorWindowSpecifiWindowShow = tk.Entry(MainFrame, textvariable=OnlyThisWindow, state="readonly")
-    OperatorWindowSpecificChooseWindowButton = tk.Button(MainFrame, command=lambda: SearchForWindow(Window[GetCurrentPage()], OnlyThisWindow, "OnlyThisWindow", "WindowDisplayName", "NullFocusOperator"), text="Choose Window", width=14)
+    OperatorWindowSpecificSwitcher = nulltk.Checkbutton(MainFrame, text="All|Window", variable=WindowSpecific, command=lambda:OperatorUIUpdater())
+    OperatorWindowSpecifiWindowShow = nulltk.Entry(MainFrame, textvariable=OnlyThisWindow, state="readonly")
+    OperatorWindowSpecificChooseWindowButton = nulltk.Button(MainFrame, command=lambda: SearchForWindow(Window[GetCurrentPage()], OnlyThisWindow, "OnlyThisWindow", "WindowDisplayName", "NullFocusOperator"), text="Choose Window", width=14)
 
     #-------- Action
     #--- file
-    OperatorFileSwitcher = tk.Checkbutton(MainFrame, text="File|Custom", variable=FileOrCommand, command=lambda:OperatorUIUpdater())
+    OperatorFileSwitcher = nulltk.Checkbutton(MainFrame, text="File|Custom", variable=FileOrCommand, command=lambda:OperatorUIUpdater())
 
-    OperatorChooseFile = tk.Button(MainFrame, command=lambda: SearchForAnyFile(Window[GetCurrentPage()],FilePath,"FilePath"), text="Browse", width=8)
+    OperatorChooseFile = nulltk.Button(MainFrame, command=lambda: SearchForAnyFile(Window[GetCurrentPage()],FilePath,"FilePath"), text="Browse", width=8)
 
-    OperatorActionEntryShow = tk.Entry(MainFrame, textvariable=FilePath, state="readonly")
+    OperatorActionEntryShow = nulltk.Entry(MainFrame, textvariable=FilePath, state="readonly")
     #--- command
-    OperatorCustomRunButton= tk.Button(MainFrame, command=lambda: MidiCustomRun(Window[GetCurrentPage()]['Command']), text="Run", width=8)
-    OperatorCustomEntryShow = tk.Entry(MainFrame, textvariable=Command,)
+    OperatorCustomRunButton= nulltk.Button(MainFrame, command=lambda: MidiCustomRun(Window[GetCurrentPage()]['Command']), text="Run", width=8)
+    OperatorCustomEntryShow = nulltk.Entry(MainFrame, textvariable=Command,)
     
     #--- remove
-    OperatorRemoveButton = tk.Button(MainFrame, command=lambda: RemoveOperator(Window,OperatorRemoveButton), text="Remove", width=16)
+    OperatorRemoveButton = nulltk.Button(MainFrame, command=lambda: RemoveOperator(Window,OperatorRemoveButton), text="Remove", width=16)
     OperatorRemoveButton.grid(row=0, column=20)
 
     OperatorList.BindMouseWheel(MainFrame)
@@ -10489,7 +10484,7 @@ def SearchForEmoji():
     Matching = Matching[:100]
     ColumnCount = 3
     for i, EmojiData in enumerate(Matching):
-        Button = tk.Button(NullMojiAllSearchColumnListInner,text=EmojiData["Emoji"],font=("Noto Color Emoji",15),command=lambda E=EmojiData: CopyEmoji(E),width = 4)
+        Button = nulltk.Button(NullMojiAllSearchColumnListInner,text=EmojiData["Emoji"],font=("Noto Color Emoji",15),command=lambda E=EmojiData: CopyEmoji(E),width = 4)
         Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2)
         Button.Emoji = EmojiData
         NullMojiSearchButtons.append(Button)
@@ -10522,26 +10517,26 @@ def CreateCustomEmojiBar(Key, DictEntry):
 
     
 
-    EmojiFrame = tk.Frame(NullMojiAllCustomsColumnListInner, padx=5, pady=5)
+    EmojiFrame = nulltk.Frame(NullMojiAllCustomsColumnListInner, padx=5, pady=5)
     EmojiFrame.pack(expand=True,fill="x")
     EmojiFrame.rowconfigure(0,weight=1)
     EmojiFrame.columnconfigure(0,weight=1)
     CustomEmojiRows.append(EmojiFrame)
 
-    InnerEmojiFrame = tk.Frame(EmojiFrame, bd=2, relief="solid",)
+    InnerEmojiFrame = nulltk.Frame(EmojiFrame, bd=2, relief="solid",)
     InnerEmojiFrame.grid(row=0,column=0, sticky="ew")
     InnerEmojiFrame.rowconfigure(0,weight=1)
     InnerEmojiFrame.columnconfigure(0,weight=1)
     InnerEmojiFrame.columnconfigure(1,weight=0)
     InnerEmojiFrame.columnconfigure(2,weight=0)
 
-    EmojiFrameEmojiLabel = tk.Label(InnerEmojiFrame, text=DictEntry['Emoji'])
+    EmojiFrameEmojiLabel = nulltk.Label(InnerEmojiFrame, text=DictEntry['Emoji'])
     EmojiFrameEmojiLabel.grid(row=0,column=0, sticky="ew")
 
-    CustomEmojiCopyEmoji = tk.Button(InnerEmojiFrame, text="Copy", command=lambda: CopyEmoji(DictEntry))
+    CustomEmojiCopyEmoji = nulltk.Button(InnerEmojiFrame, text="Copy", command=lambda: CopyEmoji(DictEntry))
     CustomEmojiCopyEmoji.grid(row=0,column=1,padx=3,pady=3,sticky="ew")
 
-    DeleteCustomEmoji = tk.Button(InnerEmojiFrame, text="Del Custom", command=lambda: RemoveCustomEmoji(Key, DictEntry, DeleteCustomEmoji))
+    DeleteCustomEmoji = nulltk.Button(InnerEmojiFrame, text="Del Custom", command=lambda: RemoveCustomEmoji(Key, DictEntry, DeleteCustomEmoji))
     DeleteCustomEmoji.grid(row=0,column=2,padx=3,pady=3,sticky="ew")
     return
 
@@ -10590,9 +10585,9 @@ def NullMojiFocus():
     Y = int((ScreenHeight / 2) - (PopupHeight / 2))
     NullMojiPopup.geometry(f"{PopupWidth}x{PopupHeight}+{X}+{Y}")
     SearchVar = tk.StringVar()
-    SearchBar = tk.Entry(NullMojiPopup,textvariable=SearchVar,font=("Arial",18))
+    SearchBar = nulltk.Entry(NullMojiPopup,textvariable=SearchVar,font=("Arial",18))
     SearchBar.pack(fill="x",padx=10,pady=10)
-    ResultsFrame = tk.Frame(NullMojiPopup)
+    ResultsFrame = nulltk.Frame(NullMojiPopup)
     ResultsFrame.pack(fill="both",expand=True)
     NullMojiPopup.lift()
     NullMojiPopup.attributes("-topmost", True)
@@ -10624,7 +10619,7 @@ def NullMojiFocus():
         ColumnCount = 3
         for i, EmojiData in enumerate(Matching):
 
-            Button = tk.Button(
+            Button = nulltk.Button(
                 ResultsFrame,
                 text=EmojiData["Emoji"],
                 font=("Noto Color Emoji",15),
@@ -10713,7 +10708,7 @@ def BuildRecentEmojis():
     NullMojiRecentButtons.clear()
     ColumnCount = 4
     for i, RecentEmoji in enumerate(RecentEmojis):
-        Button = tk.Button(NullMojiAllRecentColumnListInner,text=RecentEmoji["Emoji"],font=("Noto Color Emoji",15),command=lambda E=RecentEmoji: CopyEmoji(E), width=3)
+        Button = nulltk.Button(NullMojiAllRecentColumnListInner,text=RecentEmoji["Emoji"],font=("Noto Color Emoji",15),command=lambda E=RecentEmoji: CopyEmoji(E), width=3)
         Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2,)
         Button.bind("<Button-3>",lambda event, E=RecentEmoji, B=Button:RemoveRecentEmoji(E, B))
         NullMojiRecentButtons.append(Button)
@@ -10751,19 +10746,18 @@ def FocusBackOnOldWindow():
 # ————————————————————————————————————————————————————————————
 # Setup UI
 # ————————————————————————————————————————————————————————————
-Notebook = ttk.Notebook(Main)
+Notebook = nulltk.Notebook(Main)
 Notebook.pack(fill="both", expand=True)
-NullSuite = tk.Frame(Notebook)
-NullWire = tk.Frame(Notebook)
-NullMonitor = tk.Frame(Notebook)
-NullMidi = tk.Frame(Notebook)
-NullProton = tk.Frame(Notebook)
+NullSuite = nulltk.Frame(Notebook)
+NullWire = nulltk.Frame(Notebook)
+NullMonitor = nulltk.Frame(Notebook)
+NullMidi = nulltk.Frame(Notebook)
+NullProton = nulltk.Frame(Notebook)
+NullGit = nulltk.Frame(Notebook)
+NullFocus = nulltk.Frame(Notebook)
+NullMoji = nulltk.Frame(Notebook)
 
-NullGit = tk.Frame(Notebook)
-NullFocus = tk.Frame(Notebook)
-NullMoji = tk.Frame(Notebook)
-
-Notebook.add(NullSuite, text="NullSuite")
+Notebook.add(NullSuite, text="Main Menu")
 Notebook.add(NullWire, text="NullWire")
 Notebook.add(NullMonitor, text="NullMonitor")
 Notebook.add(NullMidi, text = "NullMidi")
@@ -10775,18 +10769,14 @@ Notebook.add(NullMoji, text = "NullMoji")
 # ------------------------------
 # Null Suite UI
 # ------------------------------
-NullSuiteTabs = ttk.Notebook(NullSuite)
-NullSuiteTabs.pack(fill="both", expand=True)
-NullSuiteChangeLogPage = tk.Frame(NullSuiteTabs)
+NullSuiteChangeLogPage = nulltk.Frame(NullSuite)
+NullSuiteChangeLogPage.pack(fill="both", expand=True)
 NullSuiteChangeLogPage.rowconfigure(2, weight=1)
 NullSuiteChangeLogPage.columnconfigure(0, weight=1)
-NullSuiteThemePage = tk.Frame(NullSuiteTabs)
-NullSuiteTabs.add(NullSuiteChangeLogPage, text = "ChangeLog")
-NullSuiteTabs.add(NullSuiteThemePage, text="Theme")
 
-NullSuiteToggles = tk.Frame(NullSuiteChangeLogPage)
+NullSuiteToggles = nulltk.Frame(NullSuiteChangeLogPage)
 NullSuiteToggles.grid(row=0,column=0, pady=(5,2), sticky="ew")
-NullSuiteTogglesOptions = tk.Frame(NullSuiteChangeLogPage)
+NullSuiteTogglesOptions = nulltk.Frame(NullSuiteChangeLogPage)
 NullSuiteTogglesOptions.grid(row=1,column=0, pady=(2,20), sticky="ew")
 NullSuiteToggles.rowconfigure(0,weight=0)
 NullSuiteToggles.columnconfigure(0,weight=0)
@@ -10831,39 +10821,70 @@ def UpdateStartUpToggles(Which):
     SaveConfig("NullSuite")
     return
 
-NullWireActivator = tk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
+NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
 NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
 
-NullMonitorActivator = tk.Checkbutton(NullSuiteToggles, text="NullMonitor?", variable=NullMonitorActive,command=lambda: UpdateStartUpToggles("Cursor"))
+NullMonitorActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMonitor?", variable=NullMonitorActive,command=lambda: UpdateStartUpToggles("Cursor"))
 NullMonitorActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
 
-NullMidiActivator = tk.Checkbutton(NullSuiteToggles, text="NullMidi?", variable=NullMidiActive,command=lambda: UpdateStartUpToggles("Midi"))
+NullMidiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMidi?", variable=NullMidiActive,command=lambda: UpdateStartUpToggles("Midi"))
 NullMidiActivator.grid(row=0,column=2, padx=1,pady=1, sticky="w")
 
-NullProtonActivator = tk.Checkbutton(NullSuiteToggles, text="NullProton?", variable=NullProtonActive,command=lambda: UpdateStartUpToggles("Proton"))
+NullProtonActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullProton?", variable=NullProtonActive,command=lambda: UpdateStartUpToggles("Proton"))
 NullProtonActivator.grid(row=0,column=3, padx=1,pady=1, sticky="w")
 
-NullGitActivator = tk.Checkbutton(NullSuiteToggles, text="NullGit?", variable=NullGitActive,command=lambda: UpdateStartUpToggles("Git"))
+NullGitActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullGit?", variable=NullGitActive,command=lambda: UpdateStartUpToggles("Git"))
 NullGitActivator.grid(row=0,column=4, padx=1,pady=1, sticky="w")
 
-NullFocusActivator = tk.Checkbutton(NullSuiteToggles, text="NullFocus?", variable=NullFocusActive,command=lambda: UpdateStartUpToggles("Tracker"))
+NullFocusActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullFocus?", variable=NullFocusActive,command=lambda: UpdateStartUpToggles("Tracker"))
 NullFocusActivator.grid(row=0,column=5, padx=1,pady=1, sticky="w")
 
-NullMojiActivator = tk.Checkbutton(NullSuiteToggles, text="NullMoji?", variable=NullMojiActive,command=lambda: UpdateStartUpToggles("Moji"))
+NullMojiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMoji?", variable=NullMojiActive,command=lambda: UpdateStartUpToggles("Moji"))
 NullMojiActivator.grid(row=0,column=6, padx=1,pady=1, sticky="w")
 
-
-
-
-
-StartMinimizedActivator = tk.Checkbutton(NullSuiteTogglesOptions, text="Start Minimized?", variable=StartMinimizedActive,command=lambda: UpdateStartUpToggles("Start"))
+StartMinimizedActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start Minimized?", variable=StartMinimizedActive,command=lambda: UpdateStartUpToggles("Start"))
 StartMinimizedActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w")
 
-StartInTrayActivator = tk.Checkbutton(NullSuiteTogglesOptions, text="Start In Tray?", variable=StartInTrayActive,command=lambda: UpdateStartUpToggles("Tray"))
+StartInTrayActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start In Tray?", variable=StartInTrayActive,command=lambda: UpdateStartUpToggles("Tray"))
 StartInTrayActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
 
-DontLoadAppsActivator = tk.Checkbutton(NullSuiteTogglesOptions, text="Dont Load Apps On Startup", variable=DontLoadAppsOnStartUpActive,command=lambda: UpdateStartUpToggles("Apps"))
-DontLoadAppsActivator.grid(row=0,column=2, padx=1,pady=1, sticky="w")
+NullSuiteDarkModeToggle = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Dark Mode", variable= DarkTheme, command=lambda: ChangeTheme())
+NullSuiteDarkModeToggle.grid(row=0,column=2, padx=1,pady=1, sticky="we")
+
+ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=3,sticky="ns",padx=5)
+
+
+BlackVar = tk.IntVar(value=100)
+
+
+BlackValueText = nulltk.Label(NullSuiteTogglesOptions, text="Blackness")
+BlackValueText.grid(row=0, column=4, sticky="ew")
+
+BlackLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=BlackVar)
+BlackLevel.grid(row=0, column=5, sticky="ew")
+BlackLevel.bind("<ButtonRelease-1>", lambda e: CheckBlackOrWhitevalue("Dark"))
+BlackLevel.bind("<Button-4>", lambda e: (BlackLevel.set(min(100, BlackLevel.get()+5)), CheckBlackOrWhitevalue("Dark")))
+BlackLevel.bind("<Button-5>", lambda e: (BlackLevel.set(max(0, BlackLevel.get()-5)), CheckBlackOrWhitevalue("Dark")))
+BlackLevel.set(BlackVar.get())
+BlackLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=BlackVar, width=4)
+BlackLevelValue.grid(row=0, column=6, padx=5, sticky="w")
+
+ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=7,sticky="ns",padx=5)
+
+WhiteVar = tk.IntVar(value=100)
+
+WhiteValueText = nulltk.Label(NullSuiteTogglesOptions, text="Whiteness")
+WhiteValueText.grid(row=0, column=8, sticky="ew")
+
+WhiteLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=WhiteVar)
+WhiteLevel.grid(row=0, column=9, sticky="ew")
+WhiteLevel.bind("<ButtonRelease-1>", lambda e: CheckBlackOrWhitevalue("Light"))
+WhiteLevel.bind("<Button-4>", lambda e: (WhiteLevel.set(min(100, WhiteLevel.get()+5)), CheckBlackOrWhitevalue("Light")))
+WhiteLevel.bind("<Button-5>", lambda e: (WhiteLevel.set(max(0, WhiteLevel.get()-5)), CheckBlackOrWhitevalue("Light")))
+WhiteLevel.set(WhiteVar.get())
+WhiteLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=WhiteVar, width=4)
+WhiteLevelValue.grid(row=0, column=10, padx=5, sticky="w")
+
 
 NullSuiteList = ScrollableFrame(NullSuiteChangeLogPage)
 NullSuiteList.grid(row=2,column=0, sticky="ensw", columnspan=99)
@@ -10875,30 +10896,33 @@ NullSuiteListInner = NullSuiteList.Inner
 NullSuiteListInner.rowconfigure(0,weight=1)
 NullSuiteListInner.columnconfigure(0,weight=1)
 
-
-
-AboutNullWire = tk.Label(
+AboutNullWire = nulltk.Label(
     NullSuiteChangeLogPage,
     text="Welcome to NullSuite! A collective trashpile of applications from NullForgeStudios, for ease of use with LinuxMint!  Enjoy, This will ALWAYS be free, buuuuuuuut if you wanna donate to help it along... "
 )
 AboutNullWire.grid(row=3, column=0, sticky="ew", padx=5, pady=(5,0))
 
-link = tk.Label(
+link = nulltk.Label(
     NullSuiteChangeLogPage,
     text="Our Ko-fi",
-    fg="blue",
+    fg="purple",
     cursor="hand2"
 )
 link.grid(row=4, column=0, sticky="ew", padx=5, pady=(0,10))
+link.ThemeFG = False
 
 link.bind("<Button-1>", lambda e: webbrowser.open_new("https://ko-fi.com/nullforgestudios"))
+
+
+
+
 
 # ------------------------------
 # Null Proton UI
 # ------------------------------
-ProtonMain = tk.Frame(NullProton)
+ProtonMain = nulltk.Frame(NullProton)
 ProtonMain.pack(fill="both", expand=True, padx=10, pady=10)
-ProtonTop = tk.Frame(ProtonMain)
+ProtonTop = nulltk.Frame(ProtonMain)
 ProtonTop.pack(fill="x")
 ProtonTop.rowconfigure(0, weight=1)
 ProtonTop.rowconfigure(1, weight=1)
@@ -10908,9 +10932,9 @@ ProtonTop.columnconfigure(1, weight=2)
 ProtonTop.columnconfigure(2, weight=1)
 
 def MakeProtonRow(row, key, label):
-    tk.Label(ProtonTop, text=label, anchor="w").grid(row=row, column=0, padx=3, pady=5, sticky="w")
+    nulltk.Label(ProtonTop, text=label, anchor="w").grid(row=row, column=0, padx=3, pady=5, sticky="w")
 
-    entry = tk.Entry(ProtonTop, textvariable=ProtonVars[key], state="readonly")
+    entry = nulltk.Entry(ProtonTop, textvariable=ProtonVars[key], state="readonly")
     entry.grid(row=row, column=1, padx=3, pady=5, sticky="ew")
 
     def Pick():
@@ -10932,7 +10956,7 @@ def MakeProtonRow(row, key, label):
             ProtonVars[key].set(path)
             SaveConfig("NullProton")
 
-    tk.Button(ProtonTop, text="Browse", command=Pick).grid(row=row, column=2, sticky="ew")
+    nulltk.Button(ProtonTop, text="Browse", command=Pick).grid(row=row, column=2, sticky="ew")
 
 MakeProtonRow(0, "Default", "Default Proton:")
 MakeProtonRow(1, "A", "Proton A:")
@@ -10941,28 +10965,28 @@ ProtonScroll = ScrollableFrame(ProtonMain)
 ProtonScroll.pack(fill="both", expand=True)
 ProtonGameContainer = ProtonScroll.Inner
 ProtonGameContainer.columnconfigure(0, weight=1)
-tk.Frame(ProtonTop,height=2,bg="gray").grid(row=3,column=0,columnspan=3,sticky="ew",pady=6)
-tk.Button(ProtonTop, text="Add Game", command=AddGameRow).grid(row=4, column=2, sticky="ew",)
-checkboxframe = tk.Frame(ProtonTop)
+nulltk.Frame(ProtonTop,height=2,bg="gray").grid(row=3,column=0,columnspan=3,sticky="ew",pady=6)
+nulltk.Button(ProtonTop, text="Add Game", command=AddGameRow).grid(row=4, column=2, sticky="ew",)
+checkboxframe = nulltk.Frame(ProtonTop)
 checkboxframe.grid(row=4, column=1, sticky="ew")
 checkboxframe.columnconfigure(0,weight=1)
 checkboxframe.columnconfigure(1,weight=1)
 
 CloseVar = tk.BooleanVar(value=ProtonVars["Close"].get())
 MinVar = tk.BooleanVar(value=ProtonVars["Min"].get())
-closenp = tk.Checkbutton(checkboxframe,text="Close To Tray",variable=ProtonVars["Close"])
+closenp = nulltk.Checkbutton(checkboxframe,text="Close To Tray",variable=ProtonVars["Close"])
 closenp.grid(row=0, column=0, sticky="ew")
-minimize = tk.Checkbutton(checkboxframe,text="Minimize On Launch",variable=ProtonVars["Min"])
+minimize = nulltk.Checkbutton(checkboxframe,text="Minimize On Launch",variable=ProtonVars["Min"])
 minimize.grid(row=0, column=1, sticky="ew")
 
-tk.Frame(ProtonTop,height=3,bg="gray").grid(row=5,column=0,columnspan=3,sticky="ew",pady=6)
+nulltk.Frame(ProtonTop,height=3,bg="gray").grid(row=5,column=0,columnspan=3,sticky="ew",pady=6)
 
 ProtonVars["Close"].trace_add("write",lambda *args: SaveConfig("NullProton"))
 ProtonVars["Min"].trace_add("write",lambda *args: SaveConfig("NullProton"))
-ProtonOverlay = tk.Frame(ProtonScroll, bg="#000000")
+ProtonOverlay = nulltk.Frame(ProtonScroll, bg="#000000")
 ProtonOverlay.place(relx=0, rely=0, relwidth=1, relheight=1)
 ProtonOverlay.lower()
-OverlayLabel = tk.Label(
+OverlayLabel = nulltk.Label(
     ProtonOverlay,
     text="",
     fg="white",
@@ -10975,56 +10999,56 @@ OverlayLabel.pack(fill="both", expand=True, padx=10, pady=10)
 # ------------------------------
 # Null Midi UI
 # ------------------------------
-TopBar = tk.Frame(NullMidi)
+TopBar = nulltk.Frame(NullMidi)
 TopBar.pack(fill="x", padx=5, pady=5)
 MidiScrollBox = ScrollableFrame(NullMidi)
 MidiScrollBox.pack(fill="both", expand=True)
 MidiContainer = MidiScrollBox.Inner
-tk.Button(TopBar, text="Add New Input", command=lambda: AddMidiRow(None)).pack(fill="x")
+nulltk.Button(TopBar, text="Add New Input", command=lambda: AddMidiRow(None)).pack(fill="x")
 ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=5)
 # ------------------------------
 # Null MonitorUI
 # ------------------------------
-NullMonitorNotebook = ttk.Notebook(NullMonitor)
+NullMonitorNotebook = nulltk.Notebook(NullMonitor)
 NullMonitorNotebook.pack(fill="both", expand=True)
-NullMonitorPage = tk.Frame(NullMonitorNotebook)
-NullMonitorHowToPage = tk.Frame(NullMonitorNotebook)
-NullMonitorWallPapersPage = tk.Frame(NullMonitorNotebook)
+NullMonitorPage = nulltk.Frame(NullMonitorNotebook)
+NullMonitorHowToPage = nulltk.Frame(NullMonitorNotebook)
+NullMonitorWallPapersPage = nulltk.Frame(NullMonitorNotebook)
 NullMonitorNotebook.add(NullMonitorPage, text="Main")
 NullMonitorNotebook.add(NullMonitorHowToPage, text="HowTo")
 NullMonitorNotebook.add(NullMonitorWallPapersPage, text="WallPapers",state="disabled")
 NullMonitorNotebook.bind("<<NotebookTabChanged>>",NullMonitorNoteBookChange)
 # --------------- NullMonitor Main Page
-NullMonitorCheck = tk.Frame(NullMonitorPage)
+NullMonitorCheck = nulltk.Frame(NullMonitorPage)
 NullMonitorCheck.pack(fill="x", padx=5, pady=5)
-NullMonitorTopBar = tk.Frame(NullMonitorPage)
+NullMonitorTopBar = nulltk.Frame(NullMonitorPage)
 NullMonitorTopBar.pack(fill="x", padx=5, pady=5)
 NullMonitorTopBar.columnconfigure(0, weight=2)
 NullMonitorTopBar.columnconfigure(1, weight=1)
 NullMonitorTopBar.rowconfigure(0, weight=0)
 NullMonitorTopBar.rowconfigure(1, weight=0)
-NullMonitorProfileBox = tk.Frame(NullMonitorPage)
+NullMonitorProfileBox = nulltk.Frame(NullMonitorPage)
 NullMonitorProfileBox.pack(fill="x", padx=5, pady=5)
 NullMonitorProfileBox.columnconfigure(0, weight=2)
 NullMonitorProfileBox.columnconfigure(1, weight=1)
 NullMonitorProfileBox.rowconfigure(0, weight=0)
 NullMonitorProfileNameVar = tk.StringVar()
-NullMonitorProfileEntry = tk.Entry(NullMonitorProfileBox, textvariable=NullMonitorProfileNameVar)
+NullMonitorProfileEntry = nulltk.Entry(NullMonitorProfileBox, textvariable=NullMonitorProfileNameVar)
 NullMonitorProfileEntry.grid(row=0, column=0, sticky="ew", padx=(0,5))
-NullMonitorCreateBtn = tk.Button(NullMonitorProfileBox, text="Create Profile", command=CreateProfile)
+NullMonitorCreateBtn = nulltk.Button(NullMonitorProfileBox, text="Create Profile", command=CreateProfile)
 NullMonitorCreateBtn.grid(row=0, column=1, sticky="ew")
-NullMonitorEditables = tk.Frame(NullMonitorTopBar)
+NullMonitorEditables = nulltk.Frame(NullMonitorTopBar)
 NullMonitorEditables.grid(row=1, column=0, sticky="ew", padx=(0,5))
 NullMonitorStartDetectionVar = tk.IntVar(value=int(StartDetection * 1000))
-NullMonitorRow = tk.Frame(NullMonitorEditables)
+NullMonitorRow = nulltk.Frame(NullMonitorEditables)
 NullMonitorRow.pack(fill="x", pady=2)
-NullMonitordetectionlabel = tk.Label(NullMonitorRow, text="Detection:", width=11)
+NullMonitordetectionlabel = nulltk.Label(NullMonitorRow, text="Detection:", width=11)
 NullMonitordetectionlabel.grid(row=0, column=0, padx=(0,0), sticky="w")
-NullMonitorStartValueLabel = tk.Label(NullMonitorRow, text=f"{int(StartDetection * 1000)}   |", width=6)
+NullMonitorStartValueLabel = nulltk.Label(NullMonitorRow, text=f"{int(StartDetection * 1000)}   |", width=6)
 NullMonitorStartValueLabel.grid(row=0, column=2, padx=(0,0))
-NullMonitorScanValueLabel = tk.Label(NullMonitorRow, text=f"{ScanTime:.2f}", width=4)
+NullMonitorScanValueLabel = nulltk.Label(NullMonitorRow, text=f"{ScanTime:.2f}", width=4)
 NullMonitorScanValueLabel.grid(row=0, column=7, padx=(0,0))
-NullMonitorSlider1 = tk.Scale(
+NullMonitorSlider1 = nulltk.Scale(
     NullMonitorRow,
     from_=1,
     to=50,
@@ -11040,19 +11064,19 @@ NullMonitorSlider1.bind("<Button-4>", lambda e: (NullMonitorSlider1.set(min(50, 
 NullMonitorSlider1.bind("<Button-5>", lambda e: (NullMonitorSlider1.set(max(0, NullMonitorSlider1.get()-5)), UpdateStartDetection(NullMonitorSlider1.get())))
 NullMonitorSlider1.bind("<Enter>", lambda e: OnHoverEnter(e, "detection"))
 NullMonitorSlider1.bind("<Leave>", lambda e: DelayedHide())
-NullMonitoredge = tk.Label(NullMonitorRow, text="Buffer:", width= 7)
+NullMonitoredge = nulltk.Label(NullMonitorRow, text="Buffer:", width= 7)
 NullMonitoredge.grid(row=0, column=3, padx=(0,0), sticky="w")
 NullMonitorEdgeBufferVar = tk.IntVar(value=EdgeBuffer)
-NullMonitorEntry = tk.Entry(NullMonitorRow, textvariable=NullMonitorEdgeBufferVar, width=5)
+NullMonitorEntry = nulltk.Entry(NullMonitorRow, textvariable=NullMonitorEdgeBufferVar, width=5)
 NullMonitorEntry.grid(row=0, column=4, padx=(0,0))
 NullMonitorEntry.bind("<Enter>", lambda e: OnHoverEnter(e, "edge"))
 NullMonitorEntry.bind("<Leave>", lambda e: DelayedHide())
 NullMonitorEdgeBufferVar.trace_add("write", UpdateEdgeBuffer)
 ToolTip(NullMonitoredge, "How many pixels past the edge triggers a warp")
-NullMonitorScan = tk.Label(NullMonitorRow, text="|   ScanTime", width=12)
+NullMonitorScan = nulltk.Label(NullMonitorRow, text="|   ScanTime", width=12)
 NullMonitorScan.grid(row=0, column=5, padx=(0,0), sticky="w")
 NullMonitorScanTimeVar = tk.DoubleVar(value=ScanTime)
-NullMonitorSlider2 = tk.Scale(
+NullMonitorSlider2 = nulltk.Scale(
     NullMonitorRow,
     from_=0.010,
     to=0.20,
@@ -11071,16 +11095,16 @@ NullMonitorScroll.pack(fill="both", expand=True, padx=5, pady=5)
 NullMonitorProfileContainer = NullMonitorScroll.Inner
 NullMonitorProfileContainer.pack(padx=(0,10),fill="x")
 NullMonitorEnabledVar = tk.BooleanVar(value=ScanForMouse)
-NullMonitorDisabledOverlay = tk.Frame(NullMonitorTopBar,bg="#000000")
+NullMonitorDisabledOverlay = nulltk.Frame(NullMonitorTopBar,bg="#000000")
 NullMonitorDisabledOverlay.place(relx=0,rely=0,relwidth=1,relheight=1)
-NullMonitorOverlayText = tk.Label(NullMonitorDisabledOverlay,text="NullMonitor is currently disabled. When disabled, no cursor scanning occurs, and no background resources are used. Enable 'Scan For Mouse' to activate NullMonitor.",bg="#000000",fg="white")
+NullMonitorOverlayText = nulltk.Label(NullMonitorDisabledOverlay,text="NullMonitor is currently disabled. When disabled, no cursor scanning occurs, and no background resources are used. Enable 'Scan For Mouse' to activate NullMonitor.",bg="#000000",fg="white")
 NullMonitorOverlayText.pack(anchor="center")
-NullMonitorToggle = tk.Checkbutton(NullMonitorCheck,text="Scan For Mouse",variable=NullMonitorEnabledVar,command=ToggleNullMonitor)
+NullMonitorToggle = nulltk.Checkbutton(NullMonitorCheck,text="Scan For Mouse",variable=NullMonitorEnabledVar,command=ToggleNullMonitor)
 NullMonitorToggle.grid(row=0,column=1,columnspan=2,pady=(5,0))
 # --------------- NullMonitor HowTo Page
-NullMonitorMainRowHT = tk.Frame(NullMonitorHowToPage)
+NullMonitorMainRowHT = nulltk.Frame(NullMonitorHowToPage)
 NullMonitorMainRowHT.pack(fill="both",pady=20)
-NullMonitorHowToUse = tk.Label(NullMonitorMainRowHT, 
+NullMonitorHowToUse = nulltk.Label(NullMonitorMainRowHT, 
 text = 
 "Step 1. When you first launch NullMonitor, a default profile is created for you automatically. This profile uses your current monitor layout.\n\n"
 
@@ -11110,23 +11134,23 @@ NullMonitorHowToUse.pack(fill="both")
 
 NullMonitorWallPapersPage.columnconfigure(0,weight=1)
 NullMonitorWallPapersPage.rowconfigure(2,weight=1)
-WallpaperPreviewFrame = tk.LabelFrame(NullMonitorWallPapersPage,text="Monitor Layout")
+WallpaperPreviewFrame = nulltk.LabelFrame(NullMonitorWallPapersPage,text="Monitor Layout")
 WallpaperPreviewFrame.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
 WallpaperPreviewFrame.columnconfigure(0,weight=1)
 
-WallpaperLayoutContainer = tk.Frame(WallpaperPreviewFrame)
+WallpaperLayoutContainer = nulltk.Frame(WallpaperPreviewFrame)
 WallpaperLayoutContainer.grid(row=0,column=0,pady=5)
 
-WallpaperInfoFrame = tk.Frame(NullMonitorWallPapersPage)
+WallpaperInfoFrame = nulltk.Frame(NullMonitorWallPapersPage)
 WallpaperInfoFrame.grid(row=1,column=0,padx=5,pady=5,sticky="ew")
 WallpaperInfoFrame.columnconfigure(0,weight=1)
 WallpaperInfoFrame.columnconfigure(1,weight=0)
 WallpaperInfoFrame.columnconfigure(2,weight=1)
 
-desktoplabel = tk.Label(WallpaperInfoFrame, text="Desktop Wallpapers")
+desktoplabel = nulltk.Label(WallpaperInfoFrame, text="Desktop Wallpapers")
 desktoplabel.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
 ttk.Separator(WallpaperInfoFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
-lockscreenlabel = tk.Label(WallpaperInfoFrame, text="LockScreen Wallpapers")
+lockscreenlabel = nulltk.Label(WallpaperInfoFrame, text="LockScreen Wallpapers")
 lockscreenlabel.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
 
 
@@ -11136,41 +11160,41 @@ WallpaperScrollFrame.Inner.columnconfigure(0,weight=1)
 # ------------------------------
 # Null Wire UI
 # ------------------------------
-NullWireNotebook = ttk.Notebook(NullWire)
+NullWireNotebook = nulltk.Notebook(NullWire)
 NullWireNotebook.pack(fill="both", expand=True)
-NullWireRoutingPage = tk.Frame(NullWireNotebook)
-NullWireDevicesPage = tk.Frame(NullWireNotebook)
-NullWireHowTo = tk.Frame(NullWireNotebook)
+NullWireRoutingPage = nulltk.Frame(NullWireNotebook)
+NullWireDevicesPage = nulltk.Frame(NullWireNotebook)
+NullWireHowTo = nulltk.Frame(NullWireNotebook)
 NullWireNotebook.add(NullWireRoutingPage, text="Wires")
 NullWireNotebook.add(NullWireDevicesPage, text="Devices")
 NullWireNotebook.add(NullWireHowTo, text = "How To")
 # --------------- Routing Page
-NullWireRoutingTop = tk.Frame(NullWireRoutingPage)
+NullWireRoutingTop = nulltk.Frame(NullWireRoutingPage)
 NullWireRoutingTop.pack(fill="x")
-NullWireRoutingEntry = tk.Entry(NullWireRoutingTop)
+NullWireRoutingEntry = nulltk.Entry(NullWireRoutingTop)
 NullWireRoutingEntry.pack(side="left", fill="x", expand=True)
-NullWireAddButton = tk.Button(NullWireRoutingTop, text="Add")
+NullWireAddButton = nulltk.Button(NullWireRoutingTop, text="Add")
 NullWireAddButton.pack(side="left", fill="x", expand=True)
 NullWireScrollArea = ScrollableFrame(NullWireRoutingPage)
 NullWireScrollArea.pack(fill="both", expand=True)
 NullWireRoutingObjects = NullWireScrollArea.Inner
 NullWireAddButton.config(command=AddRoutingObject)
 # --------------- Devices Page
-NullWireMainRow = tk.Frame(NullWireDevicesPage)
+NullWireMainRow = nulltk.Frame(NullWireDevicesPage)
 NullWireMainRow.pack(fill="both", expand=True)
 NullWireMainRow.columnconfigure(0, weight=49, uniform="group")
 NullWireMainRow.columnconfigure(1, weight=2,  uniform="group")
 NullWireMainRow.columnconfigure(2, weight=49, uniform="group")
-NullWireLeftColumn = tk.Frame(NullWireMainRow)
+NullWireLeftColumn = nulltk.Frame(NullWireMainRow)
 NullWireLeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
-NullWireDivider = tk.Frame(NullWireMainRow, bg="#555", width=4)
+NullWireDivider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
 NullWireDivider.grid(row=0, column=1, sticky="ns")
-NullWireRightColumn = tk.Frame(NullWireMainRow)
+NullWireRightColumn = nulltk.Frame(NullWireMainRow)
 NullWireRightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
 # --------------- How To Page
-NullWireMainRowHT = tk.Frame(NullWireHowTo)
+NullWireMainRowHT = nulltk.Frame(NullWireHowTo)
 NullWireMainRowHT.pack(fill="both",pady=20)
-NullWireHowToUse = tk.Label(NullWireMainRowHT, 
+NullWireHowToUse = nulltk.Label(NullWireMainRowHT, 
 text = "Step 1. In the Devices Page. Go to A1. Click \"Set\", and Select your Audio Output Device. It does not have to be your default device.\n\n" \
 "Step 2. Now in Wires Page. In the white long box. Type a name, and then click \"Add\".\n\n"\
 "Step 3. You now have a routing wire. Click on the A1 toggle inside the box. This allows audio to go from the Wire, into your Audio Device.\n\n"\
@@ -11183,10 +11207,10 @@ NullWireHowToUse.pack(fill="both")
 # ------------------------------
 # Null Git UI
 # ------------------------------
-NullGitNotebook = ttk.Notebook(NullGit)
+NullGitNotebook = nulltk.Notebook(NullGit)
 NullGitNotebook.pack(fill="both", expand=True)
-NullGitMainPage = tk.Frame(NullGitNotebook)
-NullGitManagePage = tk.Frame(NullGitNotebook)
+NullGitMainPage = nulltk.Frame(NullGitNotebook)
+NullGitManagePage = nulltk.Frame(NullGitNotebook)
 NullGitNotebook.add(NullGitMainPage, text="Repos")
 NullGitNotebook.add(NullGitManagePage, text="Manage")
 NullGitNotebook.tab(NullGitManagePage,state="disabled")
@@ -11210,43 +11234,43 @@ NullGitCreateRepoLink = tk.StringVar()
 NullGitClonePath = tk.StringVar()
 NullGitCloneLink =tk.StringVar()
 
-NullGitOptionsArea = tk.LabelFrame(NullGitMainPage, text= "NullGit Options", bd=2, relief="solid")
+NullGitOptionsArea = nulltk.LabelFrame(NullGitMainPage, text= "NullGit Options", bd=2, relief="solid")
 NullGitOptionsArea.grid(row=0, column=0, sticky="ew", columnspan=99, padx=5)
 NullGitOptionsArea.columnconfigure(0, weight=1)
 NullGitOptionsArea.columnconfigure(1, weight=1)
-NullGitCheckUpdates = tk.Button(NullGitOptionsArea, text="Check For Updates",command=lambda:BuildRepoList())
+NullGitCheckUpdates = nulltk.Button(NullGitOptionsArea, text="Check For Updates",command=lambda:BuildRepoList())
 NullGitCheckUpdates.grid(row=0, column=0, columnspan=99, sticky="ew", padx=5, pady=(3,5))
-InstallGithubButton = tk.Button(NullGitOptionsArea, text="Install Github Login",command=lambda: InstallGitLoginThings())
+InstallGithubButton = nulltk.Button(NullGitOptionsArea, text="Install Github Login",command=lambda: InstallGitLoginThings())
 InstallGithubButton.grid(row=0, column=1, sticky="e", padx=5)
 InstallGithubButton.grid_forget()
 
 
 
-NullGitAddRepo = tk.LabelFrame(NullGitMainPage, text= "Add A Repo", bd=2, relief="solid")
+NullGitAddRepo = nulltk.LabelFrame(NullGitMainPage, text= "Add A Repo", bd=2, relief="solid")
 NullGitAddRepo.grid(row=1, column=0, sticky="ew", columnspan=99, padx=5)
 NullGitAddRepo.columnconfigure(1, weight=1)
-tk.Button(NullGitAddRepo, text="Browse For Repo", width =16,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="e", padx=5, pady=5)
-tk.Entry(NullGitAddRepo,width=30,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-tk.Button(NullGitAddRepo, text="Add Repo", width =16,command=lambda: AddRepo(NullGitInputPath.get())).grid(row=0, column=2, sticky="e", padx=5)
+nulltk.Button(NullGitAddRepo, text="Browse For Repo", width =16,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="e", padx=5, pady=5)
+nulltk.Entry(NullGitAddRepo,width=30,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
+nulltk.Button(NullGitAddRepo, text="Add Repo", width =16,command=lambda: AddRepo(NullGitInputPath.get())).grid(row=0, column=2, sticky="e", padx=5)
 
 
-NullGitCreateRepo = tk.LabelFrame(NullGitMainPage, text= "Create Repo", bd=2, relief="solid")
+NullGitCreateRepo = nulltk.LabelFrame(NullGitMainPage, text= "Create Repo", bd=2, relief="solid")
 NullGitCreateRepo.grid(row=2, column=0, sticky="ew", columnspan=99, padx=5)
 NullGitCreateRepo.columnconfigure(1, weight=1)
 NullGitCreateRepo.columnconfigure(2, weight=1)
-tk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
-tk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
-tk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=0, column=2, sticky="ew")
-tk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=0, column=3, sticky="ew", padx=5)
+nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
+nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=0, column=2, sticky="ew")
+nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=0, column=3, sticky="ew", padx=5)
 
-NullGitCloneRepo = tk.LabelFrame(NullGitMainPage, text= "Clone Repo", bd=2, relief="solid")
+NullGitCloneRepo = nulltk.LabelFrame(NullGitMainPage, text= "Clone Repo", bd=2, relief="solid")
 NullGitCloneRepo.grid(row=3, column=0, sticky="ew", columnspan=99, pady=(0, 10), padx=5)
 NullGitCloneRepo.columnconfigure(1, weight=1)
 NullGitCloneRepo.columnconfigure(2, weight=1)
-tk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-tk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-tk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7").grid(row=0, column=2, sticky="ew")
-tk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=0, column=3, sticky="w", padx=5)
+nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
+nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7").grid(row=0, column=2, sticky="ew")
+nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=0, column=3, sticky="w", padx=5)
 
 
 
@@ -11254,10 +11278,10 @@ tk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRep
 NullGitReposList = ScrollableFrame(NullGitMainPage)
 NullGitReposList.grid(row=8, column=0, sticky="nsew", padx=5, columnspan=3)
 NullGitcontainer = NullGitReposList.Inner
-DownloadOverlay = tk.Frame(NullGit,bg="#000000")
-DownloadOverlayLabel = tk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
+DownloadOverlay = nulltk.Frame(NullGit,bg="#000000")
+DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
 DownloadOverlayLabel.pack(expand=True)
-tk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
+nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
 
 # --------------- manage
 ManageRemoteURL = tk.StringVar()
@@ -11275,24 +11299,24 @@ NullGitManagePage.rowconfigure(4, weight=0)
 
 
 
-RepoFrame = tk.LabelFrame(NullGitManagePage,text="Repo Management",bd=3,relief="solid")
+RepoFrame = nulltk.LabelFrame(NullGitManagePage,text="Repo Management",bd=3,relief="solid")
 RepoFrame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
 RepoFrame.columnconfigure(0, weight=0)
 RepoFrame.columnconfigure(1, weight=1)
 RepoFrame.columnconfigure(2, weight=0)
 RepoFrame.rowconfigure(0, weight=1)
-BranchFrame = tk.LabelFrame(NullGitManagePage,text="Branch Management",bd=3,relief="solid")
+BranchFrame = nulltk.LabelFrame(NullGitManagePage,text="Branch Management",bd=3,relief="solid")
 BranchFrame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
 BranchFrame.columnconfigure(0, weight=0)
 BranchFrame.columnconfigure(1, weight=1)
 BranchFrame.columnconfigure(2, weight=0)
 BranchFrame.rowconfigure(0, weight=1)
-IgnoreFrame = tk.LabelFrame(NullGitManagePage,text="GitIgnore Management",bd=3,relief="solid")
+IgnoreFrame = nulltk.LabelFrame(NullGitManagePage,text="GitIgnore Management",bd=3,relief="solid")
 IgnoreFrame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
 IgnoreFrame.columnconfigure(0, weight=1)
 IgnoreFrame.rowconfigure(0, weight=0)
 IgnoreFrame.rowconfigure(1, weight=1)
-CommitFrame = tk.LabelFrame(NullGitManagePage,text="Commit Management",bd=3,relief="solid")
+CommitFrame = nulltk.LabelFrame(NullGitManagePage,text="Commit Management",bd=3,relief="solid")
 CommitFrame.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
 CommitFrame.columnconfigure(0, weight=1)
 CommitFrame.columnconfigure(1, weight=1)
@@ -11301,33 +11325,33 @@ CommitFrame.rowconfigure(1, weight=0)
 CommitFrame.rowconfigure(2, weight=0)
 CommitFrame.rowconfigure(3, weight=1)
 
-NuclearFrame = tk.LabelFrame(NullGitManagePage,text="Nuclear Commands",bd=3,relief="solid")
+NuclearFrame = nulltk.LabelFrame(NullGitManagePage,text="Nuclear Commands",bd=3,relief="solid")
 NuclearFrame.grid(row=4, column=0, sticky="ew", padx=5, pady=5)
 NuclearFrame.columnconfigure(0, weight=1)
 NuclearFrame.columnconfigure(1, weight=1)
 NuclearFrame.rowconfigure(0, weight=0)
 NuclearFrame.rowconfigure(1, weight=0)
 NuclearFrame.rowconfigure(2, weight=1)
-DeleteNullGitRepoButton = tk.Button(RepoFrame, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
+DeleteNullGitRepoButton = nulltk.Button(RepoFrame, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
 DeleteNullGitRepoButton.grid(row=0, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
 
 
-tk.Button(BranchFrame, text="Create Branch", width= 11, command=lambda:CreateBranchOnGit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-tk.Entry(BranchFrame, textvariable=ManageBranchName).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-tk.Button(BranchFrame, text="Rename Branch", width= 11, command=lambda:RenameBranchOnGit()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
-tk.Button(BranchFrame, text="Delete Branch", command=lambda:DeleteBranchOnGit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
+nulltk.Button(BranchFrame, text="Create Branch", width= 11, command=lambda:CreateBranchOnGit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
+nulltk.Entry(BranchFrame, textvariable=ManageBranchName).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
+nulltk.Button(BranchFrame, text="Rename Branch", width= 11, command=lambda:RenameBranchOnGit()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
+nulltk.Button(BranchFrame, text="Delete Branch", command=lambda:DeleteBranchOnGit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
 
 CurrentMergeBranch = tk.StringVar()
-MergeBranches = tk.Label(BranchFrame,text="Merge this branch into current:",font=("Arial", 12),justify="center")
+MergeBranches = nulltk.Label(BranchFrame,text="Merge this branch into current:",font=("Arial", 12),justify="center")
 MergeBranches.grid(row=2, column=0, sticky="ew", padx=5, pady=2)
-MergeBranchBox = ttk.Combobox(BranchFrame, values=[], textvariable=CurrentMergeBranch, state="readonly")
+MergeBranchBox = nulltk.Combobox(BranchFrame, values=[], textvariable=CurrentMergeBranch, state="readonly")
 MergeBranchBox.grid(row=2, column=1, sticky="ew", padx=5, pady=2)
-MergeButton = tk.Button(BranchFrame,text="Merge", command=lambda:MergeBranch())
+MergeButton = nulltk.Button(BranchFrame,text="Merge", command=lambda:MergeBranch())
 MergeButton.grid(row=2,column=2,sticky="ew",padx=5,pady=2)
 
-CreateGitIgnoreButton = tk.Button(IgnoreFrame,text="Create .gitignore", command=lambda:CreateGitIgnoreFile())
+CreateGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Create .gitignore", command=lambda:CreateGitIgnoreFile())
 CreateGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
-EditGitIgnoreButton = tk.Button(IgnoreFrame,text="Edit .gitignore", command=lambda:EditGitIgnoreFile())
+EditGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Edit .gitignore", command=lambda:EditGitIgnoreFile())
 EditGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
 ToolTip(EditGitIgnoreButton, "Adding a file to the .gitignore also removes it from the repo, to remove something from the .gitignore, add a file/folder already in the .gitignore")
 GitList = ScrollableFrame(IgnoreFrame)
@@ -11337,35 +11361,35 @@ GitListContainer.configure(bg="white")
 CreateGitIgnoreButton.grid_remove()
 EditGitIgnoreButton.grid_remove()
 GitList.grid_remove()
-GitIgnoredLabel = tk.Label(GitListContainer,textvariable=GitIgnoredVar, justify="left",anchor="nw",bg="white",fg="black")
+GitIgnoredLabel = nulltk.Label(GitListContainer,textvariable=GitIgnoredVar, justify="left",anchor="nw",bg="white",fg="black")
 GitIgnoredLabel.pack(fill="both",expand=True,padx=5,pady=5)
-tk.Button(CommitFrame, text="Add File To Commit", command=lambda:AddFileToCommit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-tk.Button(CommitFrame, text="Remove File From Commit", command=lambda:RemoveFileFromCommit()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-tk.Button(CommitFrame, text="Clear Current Commit", command=lambda:ClearCurrentCommit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=2)
+nulltk.Button(CommitFrame, text="Add File To Commit", command=lambda:AddFileToCommit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
+nulltk.Button(CommitFrame, text="Remove File From Commit", command=lambda:RemoveFileFromCommit()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
+nulltk.Button(CommitFrame, text="Clear Current Commit", command=lambda:ClearCurrentCommit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=2)
 OnlyCommitMessage = tk.StringVar()
-tk.Entry(CommitFrame,width=30,textvariable=OnlyCommitMessage).grid(row=2, column=0, sticky="ew", padx=5)
-tk.Button(CommitFrame, text="Push Commit List", command=lambda:PushOnlyCommited()).grid(row=2, column=1, sticky="ew", padx=5, pady=2, columnspan=2)
+nulltk.Entry(CommitFrame,width=30,textvariable=OnlyCommitMessage).grid(row=2, column=0, sticky="ew", padx=5)
+nulltk.Button(CommitFrame, text="Push Commit List", command=lambda:PushOnlyCommited()).grid(row=2, column=1, sticky="ew", padx=5, pady=2, columnspan=2)
 CommitList = ScrollableFrame(CommitFrame)
 CommitList.grid(row=3, column=0, sticky="nsew", padx=5, columnspan=2)
 CommitListContainer = CommitList.Inner
 CommitListContainer.configure(bg="white")
-CommittedLabel = tk.Label(CommitListContainer,textvariable=CommittedVar,justify="left",anchor="nw",bg="white",fg="black")
+CommittedLabel = nulltk.Label(CommitListContainer,textvariable=CommittedVar,justify="left",anchor="nw",bg="white",fg="black")
 CommittedLabel.pack(fill="both",expand=True,padx=5,pady=5) 
-Stash = tk.Button(NuclearFrame,text="Stash & Pull", command=lambda:StashAndPull())
+Stash = nulltk.Button(NuclearFrame,text="Stash & Pull", command=lambda:StashAndPull())
 Stash.grid(row=0,column=0,sticky="ew",padx=5,pady=2,)
-ForcePush = tk.Button(NuclearFrame,text="Force Push", command=lambda:ForcePushCommit())
+ForcePush = nulltk.Button(NuclearFrame,text="Force Push", command=lambda:ForcePushCommit())
 ForcePush.grid(row=0,column=1,sticky="ew",padx=5,pady=2, columnspan=2)
 
 
 # ------------------------------
 # Null Focus UI
 # ------------------------------
-NullFocusNotebook = ttk.Notebook(NullFocus)
-NullFocusManagePage = tk.Frame(NullFocusNotebook)
-NullFocusLogsPage = tk.Frame(NullFocusNotebook)
-NullFocusClockPage = tk.Frame(NullFocusNotebook)
-NullFocusClipBoard = tk.Frame(NullFocusNotebook)
-NullFocusOperator = tk.Frame(NullFocusNotebook)
+NullFocusNotebook = nulltk.Notebook(NullFocus)
+NullFocusManagePage = nulltk.Frame(NullFocusNotebook)
+NullFocusLogsPage = nulltk.Frame(NullFocusNotebook)
+NullFocusClockPage = nulltk.Frame(NullFocusNotebook)
+NullFocusClipBoard = nulltk.Frame(NullFocusNotebook)
+NullFocusOperator = nulltk.Frame(NullFocusNotebook)
 
 
 NullFocusNotebook.pack(fill="both", expand=True)
@@ -11385,7 +11409,7 @@ NullFocusNotebook.add(NullFocusOperator, text="Operator")
 
 
 #--- Manage
-NullFocusManagePageMain = tk.Frame(NullFocusManagePage)
+NullFocusManagePageMain = nulltk.Frame(NullFocusManagePage)
 NullFocusManagePageMain.pack(fill="both", expand=True)
 
 NullFocusManagePageMain.columnconfigure(0, weight=1)
@@ -11393,7 +11417,7 @@ NullFocusManagePageMain.rowconfigure(0, weight=0)
 NullFocusManagePageMain.rowconfigure(1, weight=0)
 NullFocusManagePageMain.rowconfigure(2, weight=0)
 NullFocusManagePageMain.rowconfigure(3, weight=1)
-NullFocusManagePageSlidersNTexts = tk.Frame(NullFocusManagePageMain)
+NullFocusManagePageSlidersNTexts = nulltk.Frame(NullFocusManagePageMain)
 NullFocusManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=5)
 NullFocusManagePageSlidersNTexts.columnconfigure(0, weight=1)
 NullFocusManagePageSlidersNTexts.columnconfigure(1, weight=1)
@@ -11405,42 +11429,42 @@ TrackerWriteInterval = tk.IntVar(value = 1)
 TrackerMinimumWindowTime = tk.IntVar(value = 1)
 TrackerNewDay = tk.IntVar(value = 3)
 IgnoredAppListVar = tk.StringVar(value = "")
-WriteIntervalText = tk.Label(NullFocusManagePageSlidersNTexts, text= f"Save To Disk Every: {TrackerWriteInterval.get()} Minutes")
+WriteIntervalText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"Save To Disk Every: {TrackerWriteInterval.get()} Minutes")
 WriteIntervalText.grid(row=0, column=0, sticky="ew", pady=0)
-RequiredFocusText = tk.Label(NullFocusManagePageSlidersNTexts, text= f"Window Focus Time Req: {TrackerMinimumWindowTime.get()} Seconds")
+RequiredFocusText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"Window Focus Time Req: {TrackerMinimumWindowTime.get()} Seconds")
 RequiredFocusText.grid(row=0, column=1, sticky="ew", pady=0)
-NewDayText = tk.Label(NullFocusManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
+NewDayText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
 NewDayText.grid(row=0, column=2, sticky="ew", pady=0)
-WriteIntervalSlider = tk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
-WriteIntervalSlider.grid(row=1, column=0, sticky="ew")
-RequiredFocusSlider = tk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
-RequiredFocusSlider.grid(row=1, column=1, sticky="ew")
-NewDaySlider = tk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
-NewDaySlider.grid(row=1, column=2, sticky="ew")
-AddNewTrackerClass = tk.Button(NullFocusManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
-AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=5)
-TrackerDiv = tk.Frame(NullFocusManagePageMain, height=3, bg="gray")
+WriteIntervalSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
+WriteIntervalSlider.grid(row=1, column=0, sticky="ew", padx=5)
+RequiredFocusSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
+RequiredFocusSlider.grid(row=1, column=1, sticky="ew", padx=5)
+NewDaySlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
+NewDaySlider.grid(row=1, column=2, sticky="ew", padx=5)
+AddNewTrackerClass = nulltk.Button(NullFocusManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
+AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=5, padx=5)
+TrackerDiv = nulltk.Frame(NullFocusManagePageMain, height=3, bg="gray")
 TrackerDiv.grid(row=2, column=0, sticky="ew", pady=5)
-TrackerBottomLists = tk.Frame(NullFocusManagePageMain)
+TrackerBottomLists = nulltk.Frame(NullFocusManagePageMain)
 TrackerBottomLists.grid(row=3, column=0, sticky="ensw", pady=(0,5))
 TrackerBottomLists.columnconfigure(0,weight=1)
 TrackerBottomLists.columnconfigure(1,weight=6)
 TrackerBottomLists.rowconfigure(0,weight=1)
-IgnoredAppsFrame = tk.Frame(TrackerBottomLists)
+IgnoredAppsFrame = nulltk.Frame(TrackerBottomLists)
 IgnoredAppsFrame.grid(row=0, column=0, sticky="nsew")
 IgnoredAppsFrame.columnconfigure(0,weight=1)
 IgnoredAppsFrame.rowconfigure(0,weight=0)
 IgnoredAppsFrame.rowconfigure(1,weight=1)
 IgnoredAppsFrame.rowconfigure(2,weight=0)
-AddIgnoredAppButton = tk.Button(IgnoredAppsFrame ,text="Add App", command=lambda: AddIgnoredTracker(), width = 30)
-AddIgnoredAppButton.grid(row=0, column=0, sticky="ew", pady=5)
+AddIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Add App", command=lambda: AddIgnoredTracker(), width = 30)
+AddIgnoredAppButton.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
 IgnoredAppsList = ScrollableFrame(IgnoredAppsFrame)
-IgnoredAppsList.grid(row=1, column=0, sticky="ewns",)
+IgnoredAppsList.grid(row=1, column=0, sticky="ewns",padx=5)
 IgnoredAppsContainer = IgnoredAppsList.Inner
-IgnoredAppsListText = tk.Label(IgnoredAppsContainer, textvariable = IgnoredAppListVar, anchor="center", justify="center")
+IgnoredAppsListText = nulltk.Label(IgnoredAppsContainer, textvariable = IgnoredAppListVar, anchor="center", justify="center")
 IgnoredAppsListText.pack(fill="x", expand=True)
-RemoveIgnoredAppButton = tk.Button(IgnoredAppsFrame ,text="Remove App", command=lambda: DeleteIgnoredTracker(), width = 30)
-RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=5)
+RemoveIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Remove App", command=lambda: DeleteIgnoredTracker(), width = 30)
+RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=5, padx=5)
 TrackerClassificationList = ScrollableFrame(TrackerBottomLists)
 TrackerClassificationList.grid(row=0, column=1, sticky="ensw", padx=5, pady=5)
 ClassiciationListContainer = TrackerClassificationList.Inner
@@ -11453,7 +11477,7 @@ WriteIntervalSlider.bind("<Button-5>", lambda e: (TrackerWriteInterval.set(max(1
 NewDaySlider.bind("<Button-4>", lambda e: (TrackerNewDay.set(min(23, TrackerNewDay.get()+1)), UpdateTrackerQuality()))
 NewDaySlider.bind("<Button-5>", lambda e: (TrackerNewDay.set(max(1, TrackerNewDay.get()-1)), UpdateTrackerQuality()))
 #---Logs
-NullFocusLogsPageInner = tk.Frame(NullFocusLogsPage)
+NullFocusLogsPageInner = nulltk.Frame(NullFocusLogsPage)
 NullFocusLogsPageInner.grid(row=0, column=0, sticky="nsew")
 NullFocusLogsPageInner.rowconfigure(0,weight=0)
 NullFocusLogsPageInner.rowconfigure(1,weight=0)
@@ -11462,23 +11486,23 @@ NullFocusLogsPageInner.columnconfigure(0,weight=1)
 NullFocusLogsPageInner.columnconfigure(1,weight=1)
 NullFocusLogsPageInner.columnconfigure(2,weight=1)
 NullFocusLogsPageInner.columnconfigure(3,weight=7)
-InjectorButton = tk.Button(NullFocusLogsPageInner, text="Inject", command= lambda: InjectTracker())
+InjectorButton = nulltk.Button(NullFocusLogsPageInner, text="Inject", command= lambda: InjectTracker())
 InjectorButton.grid(row=0, column=0, sticky="ew")
-InjectorText = tk.Label(NullFocusLogsPageInner, text="What You Are Injecting:")
+InjectorText = nulltk.Label(NullFocusLogsPageInner, text="What You Are Injecting:")
 InjectorText.grid(row=0, column=1, sticky="ew", columnspan=2)
-InjectionEntry = tk.Entry(NullFocusLogsPageInner,)
+InjectionEntry = nulltk.Entry(NullFocusLogsPageInner,)
 InjectionEntry.grid(row=0,column=3,padx=3,pady=3,sticky="ew")
 ToolTip(InjectorText, "E.g. When you took your medication, or did something important. It will show what you type, with the timestamp.")
-YearText = tk.Label(NullFocusLogsPageInner, text= f"Years", width=6)
+YearText = nulltk.Label(NullFocusLogsPageInner, text= f"Years", width=6)
 YearText.grid(row=1, column=0, sticky="ew")
-MonthText = tk.Label(NullFocusLogsPageInner, text= f"Months", width=7)
+MonthText = nulltk.Label(NullFocusLogsPageInner, text= f"Months", width=7)
 MonthText.grid(row=1, column=1, sticky="ew")
-CycleText = tk.Label(NullFocusLogsPageInner, text= f"Cycles", width=8)
+CycleText = nulltk.Label(NullFocusLogsPageInner, text= f"Cycles", width=8)
 CycleText.grid(row=1, column=2, sticky="ew")
-BreakDownText = tk.Label(NullFocusLogsPageInner, text= f"Breakdown")
+BreakDownText = nulltk.Label(NullFocusLogsPageInner, text= f"Breakdown")
 BreakDownText.grid(row=1, column=3, sticky="ew")
 CurrentLogView = tk.StringVar(value = "")
-YearChoicesBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+YearChoicesBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=5, pady=5)
 YearChoicesBox.rowconfigure(0,weight=1)
 YearChoicesBox.columnconfigure(0,weight=1)
@@ -11487,7 +11511,7 @@ YearChoices.pack(fill="both", expand=True, anchor="n")
 YearChoicesButtons = YearChoices.Inner
 YearChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-MonthChoicesBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+MonthChoicesBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=5, pady=5)
 MonthChoicesBox.rowconfigure(0,weight=1)
 MonthChoicesBox.columnconfigure(0,weight=1)
@@ -11496,7 +11520,7 @@ MonthChoices.pack(fill="both", expand=True, anchor="n")
 MonthChoicesButtons = MonthChoices.Inner
 MonthChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-CycleChoicesBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+CycleChoicesBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=5, pady=5)
 CycleChoicesBox.rowconfigure(0,weight=1)
 CycleChoicesBox.columnconfigure(0,weight=1)
@@ -11505,14 +11529,14 @@ CycleChoices.pack(fill="both", expand=True, anchor="n")
 CycleChoicesButtons = CycleChoices.Inner
 CycleChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-LogDataBox = tk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+LogDataBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
 LogDataBox.grid(row=2,column=3, sticky="nsew",padx=5, pady=5)
 LogDataBox.rowconfigure(0,weight=1)
 LogDataBox.columnconfigure(0,weight=1)
 LogData = ScrollableFrame(LogDataBox)
 LogData.pack(fill="both", expand=True, anchor="n")
 LogDataInner = LogData.Inner
-LogDataLabel = tk.Label(LogDataInner, textvariable=CurrentLogView)
+LogDataLabel = nulltk.Label(LogDataInner, textvariable=CurrentLogView)
 LogDataLabel.pack(fill="both", expand=True, anchor="nw")
 YearChoices.BindMouseWheel(NullFocusLogsPageInner)
 MonthChoices.BindMouseWheel(NullFocusLogsPageInner)
@@ -11520,22 +11544,45 @@ CycleChoices.BindMouseWheel(NullFocusLogsPageInner)
 LogData.BindMouseWheel(NullFocusLogsPageInner)
 # -----------Circadian Clock 
 NullFocusClockPage.columnconfigure(0,weight=1)
-HereLine = tk.Label(NullFocusClockPage, text = "↓", font=("Arial, 18"))
+HereLine = nulltk.Label(NullFocusClockPage, text = "↓", font=("Arial, 18"))
 HereLine.grid(row=0, column=0, sticky="nswe", pady=(10,0))
-ClockLabel = tk.Label(NullFocusClockPage, image=ClockImage)
+ClockLabel = nulltk.Label(NullFocusClockPage, image=ClockImage)
 ClockLabel.image = ClockImage
 ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
 # ---------- ClipBoard
-ClipBoardList = ScrollableFrame(NullFocusClipBoard)
-ClipBoardList.pack(fill="both", expand=True, anchor="n", padx=10, pady=10)
+NullFocusClipBoardPage = nulltk.Frame(NullFocusClipBoard)
+NullFocusClipBoardPage.pack(fill="both",expand="true")
+
+NullFocusClipBoardPage.pack(fill="both",expand="true")
+NullFocusClipBoardPage.columnconfigure(0, weight=1)
+NullFocusClipBoardPage.rowconfigure(1, weight=1)
+ClipBoardTopRow = nulltk.Frame(NullFocusClipBoardPage)
+ClipBoardTopRow.grid(column=0,row=0,sticky="ew",pady=(5,0), padx=5)
+ClipBoardTopRow.columnconfigure(0,weight=1)
+ClipBoardTopRow.columnconfigure(1,weight=1)
+ClipBoardTopRow.columnconfigure(2,weight=1)
+
+ClipboardDeletionButton= nulltk.Button(ClipBoardTopRow, text="Delete Checked", command=lambda: DeleteClipboardItems())
+ClipboardDeletionButton.grid(row=0,column=0,sticky="ew")
+ClipboardSelectAll= nulltk.Button(ClipBoardTopRow, text="Select All", command=lambda: SelectAllClipBoard())
+ClipboardSelectAll.grid(row=0,column=1,sticky="ew")
+ClipboardSelectNone= nulltk.Button(ClipBoardTopRow, text="Select None", command=lambda: SelectNoneClipBoard())
+ClipboardSelectNone.grid(row=0,column=2,sticky="ew")
+
+
+ClipBoardList = ScrollableFrame(NullFocusClipBoardPage)
+ClipBoardList.grid(column=0,row=1,sticky="nesw",columnspan=99, pady=5, padx=5)
+ClipBoardList.rowconfigure(0,weight=1)
+ClipBoardList.columnconfigure(0,weight=1)
+
 # ---------- Operator
 NullFocusOperator.columnconfigure(0,weight=1)
 NullFocusOperator.rowconfigure(2,weight=1)
 
-NullFocusAddOperatorButton = tk.Button(NullFocusOperator, text = "Add Operator", command=lambda: AddOperatorWindow())
+NullFocusAddOperatorButton = nulltk.Button(NullFocusOperator, text = "Add Operator", command=lambda: AddOperatorWindow())
 NullFocusAddOperatorButton.grid(row=0,column=0, sticky="ew", padx=5)
 
-tk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=5)
+nulltk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=5)
 
 OperatorList = ScrollableFrame(NullFocusOperator)
 OperatorList.rowconfigure(0,weight=1)
@@ -11545,24 +11592,24 @@ OperatorList.grid(row=2,column=0, sticky="ewns", pady=5, padx=5)
 # ------------------------------
 # Null Moji UI
 # ------------------------------
-NullMojiMainPage = tk.Frame(NullMoji)
+NullMojiMainPage = nulltk.Frame(NullMoji)
 NullMojiMainPage.pack(fill="both", expand=True) 
 NullMojiMainPage.columnconfigure(0, weight=1)
 NullMojiMainPage.columnconfigure(1, weight=1)
 NullMojiMainPage.columnconfigure(2, weight=1)
 NullMojiMainPage.rowconfigure(0, weight=1)
-NullMojiAllEmojisColumn = tk.Frame(NullMojiMainPage, bd=2, relief="solid")
+NullMojiAllEmojisColumn = nulltk.Frame(NullMojiMainPage, bd=2, relief="solid")
 NullMojiAllEmojisColumn.grid(row=0,column=0, sticky="nsew")
 NullMojiAllEmojisColumn.columnconfigure(0, weight=1)
 NullMojiAllEmojisColumn.rowconfigure(0, weight=0)
 NullMojiAllEmojisColumn.rowconfigure(1, weight=1)
-NullMojiAllEmojisText = tk.Label(NullMojiAllEmojisColumn,text="All Emojis")
+NullMojiAllEmojisText = nulltk.Label(NullMojiAllEmojisColumn,text="All Emojis")
 NullMojiAllEmojisText.grid(row=0, column=0, sticky="ew",)
 NullMojiAllEmojisColumnList = ScrollableFrame(NullMojiAllEmojisColumn)
 NullMojiAllEmojisColumnList.grid(row=1, column=0, sticky="ewns",columnspan=2)
 NullMojiAllEmojisInner = NullMojiAllEmojisColumnList.Inner
 NullMojiSearchBarVar = tk.StringVar(value = "")
-NullMojiAllSearchColumn= tk.Frame(NullMojiMainPage, bd=2, relief="solid")
+NullMojiAllSearchColumn= nulltk.Frame(NullMojiMainPage, bd=2, relief="solid")
 NullMojiAllSearchColumn.grid(row=0,column=1, sticky="nsew")
 NullMojiAllSearchColumn.columnconfigure(0, weight=1)
 NullMojiAllSearchColumn.columnconfigure(1, weight=0)
@@ -11571,13 +11618,13 @@ NullMojiAllSearchColumn.rowconfigure(1, weight=0)
 NullMojiAllSearchColumn.rowconfigure(2, weight=1)
 
 
-NullMojiSearchEmojisText = tk.Label(NullMojiAllSearchColumn,text="Recent/Search Emojis")
+NullMojiSearchEmojisText = nulltk.Label(NullMojiAllSearchColumn,text="Recent/Search Emojis")
 NullMojiSearchEmojisText.grid(row=0, column=0, sticky="ew",)
-NullMojiSearchHelp = tk.Label(NullMojiAllSearchColumn,text="(?)",width=4)
+NullMojiSearchHelp = nulltk.Label(NullMojiAllSearchColumn,text="(?)",width=4)
 NullMojiSearchHelp.grid(row=0, column=1, sticky="w",padx=(3,0))
 ToolTip(NullMojiSearchHelp, "When not typing, Your recent selected emojis are shown.\n Right click to remove them.\n Left click to copy to clipboard")
 
-NullMojiSearchBar = tk.Entry(NullMojiAllSearchColumn,textvariable=NullMojiSearchBarVar)
+NullMojiSearchBar = nulltk.Entry(NullMojiAllSearchColumn,textvariable=NullMojiSearchBarVar)
 NullMojiSearchBar.grid(row=1,column=0,padx=3,pady=3,sticky="ew", columnspan=2)
 NullMojiSearchBarVar.trace_add("write", lambda *_: QueueEmojiSearch())
 NullMojiSearchBar.bind("<Return>", SelectFirstEmoji)
@@ -11591,7 +11638,7 @@ NullMojiAllRecentColumnListInner = NullMojiAllRecentColumnList.Inner
 NullMojiCustomEmojiBarEmojiVar = tk.StringVar(value = "")
 NullMojiCustomEmojiBarNameVar = tk.StringVar(value = "")
 
-NullMojiAllCustomsColumn= tk.Frame(NullMojiMainPage, bd=2, relief="solid")
+NullMojiAllCustomsColumn= nulltk.Frame(NullMojiMainPage, bd=2, relief="solid")
 NullMojiAllCustomsColumn.grid(row=0,column=2, sticky="nsew")
 NullMojiAllCustomsColumn.columnconfigure(0, weight=1)
 NullMojiAllCustomsColumn.columnconfigure(1, weight=0)
@@ -11600,9 +11647,9 @@ NullMojiAllCustomsColumn.rowconfigure(0, weight=0)
 NullMojiAllCustomsColumn.rowconfigure(1, weight=0)
 NullMojiAllCustomsColumn.rowconfigure(2, weight=0)
 NullMojiAllCustomsColumn.rowconfigure(3, weight=1)
-NullMojiCustomEmojisText = tk.Label(NullMojiAllCustomsColumn,text="Recent/Search Emojis")
+NullMojiCustomEmojisText = nulltk.Label(NullMojiAllCustomsColumn,text="Recent/Search Emojis")
 NullMojiCustomEmojisText.grid(row=0, column=0, sticky="ew",)
-NullMojiCustomHelp = tk.Label(NullMojiAllCustomsColumn,text="(?)",width=4)
+NullMojiCustomHelp = nulltk.Label(NullMojiAllCustomsColumn,text="(?)",width=4)
 NullMojiCustomHelp.grid(row=0, column=2, sticky="w",padx=(3,0))
 ToolTip(NullMojiCustomHelp, "You can create Custom Emojis by filling in the name, and Emoji section. \nIt does not have to be emoji's. It can be plain text. e.g. \":)\"")
 
@@ -11610,15 +11657,15 @@ ToolTip(NullMojiCustomHelp, "You can create Custom Emojis by filling in the name
 NullMojiAllCustomsColumnList = ScrollableFrame(NullMojiAllCustomsColumn)
 NullMojiAllCustomsColumnList.grid(row=3,column=0, sticky="nsew", columnspan=3)
 NullMojiAllCustomsColumnListInner = NullMojiAllCustomsColumnList.Inner
-NullMojiCustomEmojiBarName = tk.Entry(NullMojiAllCustomsColumn,textvariable=NullMojiCustomEmojiBarNameVar, width = 1)
+NullMojiCustomEmojiBarName = nulltk.Entry(NullMojiAllCustomsColumn,textvariable=NullMojiCustomEmojiBarNameVar, width = 1)
 NullMojiCustomEmojiBarName.grid(row=1,column=0,padx=3,pady=3,sticky="ew")
-NullMojiCustomEmojiNameText = tk.Label(NullMojiAllCustomsColumn,text="<- Name")
+NullMojiCustomEmojiNameText = nulltk.Label(NullMojiAllCustomsColumn,text="<- Name")
 NullMojiCustomEmojiNameText.grid(row=1,column=1,padx=3,pady=3,sticky="ew")
-NullMojiCustomEmojiBarEmoji = tk.Entry(NullMojiAllCustomsColumn,textvariable=NullMojiCustomEmojiBarEmojiVar, width = 1)
+NullMojiCustomEmojiBarEmoji = nulltk.Entry(NullMojiAllCustomsColumn,textvariable=NullMojiCustomEmojiBarEmojiVar, width = 1)
 NullMojiCustomEmojiBarEmoji.grid(row=2,column=0,padx=3,pady=3,sticky="ew")
-NullMojiCustomEmojiEmojiText = tk.Label(NullMojiAllCustomsColumn,text="<- Emoji")
+NullMojiCustomEmojiEmojiText = nulltk.Label(NullMojiAllCustomsColumn,text="<- Emoji")
 NullMojiCustomEmojiEmojiText.grid(row=2,column=1,padx=3,pady=3,sticky="ew")
-NullMojiCustomEmojiAddButton = tk.Button(NullMojiAllCustomsColumn, text="Add Custom", command=lambda: AddCustomEmoji())
+NullMojiCustomEmojiAddButton = nulltk.Button(NullMojiAllCustomsColumn, text="Add Custom", command=lambda: AddCustomEmoji())
 NullMojiCustomEmojiAddButton.grid(row=1,column=2,padx=3,pady=3,sticky="ew", rowspan=2)
 # ==========================================================================================
 # Initializing
@@ -11927,7 +11974,7 @@ def WaitForLoad():
             ColumnCount = 3
             BaseEmoji = data.get("Emojis", [])
             for i, EmojiData in enumerate(emojis):
-                Button = tk.Button(NullMojiAllEmojisInner,text=EmojiData["Emoji"],font=("Noto Color Emoji",15),command=lambda E=EmojiData: CopyEmoji(E), width = 4)
+                Button = nulltk.Button(NullMojiAllEmojisInner,text=EmojiData["Emoji"],font=("Noto Color Emoji",15),command=lambda E=EmojiData: CopyEmoji(E), width = 4)
                 Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2)
                 NullMojiAllEmojiButtons.append(Button)
             NullMojiAllEmojisColumnList.BindMouseWheel(NullMojiMainPage)
@@ -12274,7 +12321,7 @@ def StartUpNullFocus():
             YearButtons.clear()
 
             for Year in sorted(FileYears):
-                Button = tk.Button(YearChoicesButtons,text=Year,command=lambda Y=Year: ClickYearButton(Y), width=15)
+                Button = nulltk.Button(YearChoicesButtons,text=Year,command=lambda Y=Year: ClickYearButton(Y), width=15)
                 Button.pack(fill="x")
                 YearButtons.append(Button)
 
@@ -12426,7 +12473,7 @@ def StartUpChangeLog():
 
         for MajorVersion, MajorData in sorted(Data["ChangeLog"].items(), reverse=True):
 
-            MajorFrame = tk.LabelFrame(NullSuiteListInner,text = f"Version {MajorVersion}",font=("TkDefaultFont", 14, "bold"))
+            MajorFrame = nulltk.LabelFrame(NullSuiteListInner,text = f"Version {MajorVersion}",font=("TkDefaultFont", 14, "bold"))
             MajorFrame.grid(row=CurrentRow,column=0,padx=5,pady=5,sticky="ew")
             MajorFrame.columnconfigure(0, weight=1)
             MajorFrame.rowconfigure(0, weight=1)
@@ -12436,13 +12483,13 @@ def StartUpChangeLog():
 
             for MinorVersion, MinorData in sorted(MajorData.items(), reverse=True):
 
-                MinorFrame = tk.Frame(MajorFrame,bd=2,relief="raised")
+                MinorFrame = nulltk.Frame(MajorFrame,bd=2,relief="raised")
                 MinorFrame.grid(row=MajorRow,column=0,padx=5,pady=5,sticky="ew")
                 MinorFrame.columnconfigure(0, weight=1)
-                tk.Label(MinorFrame,text=f"Version {MajorVersion}.{MinorVersion}",font=("TkDefaultFont", 12, "bold")).grid(row=0,column=0,padx=5,pady=5,sticky="w")
+                nulltk.Label(MinorFrame,text=f"Version {MajorVersion}.{MinorVersion}",font=("TkDefaultFont", 12, "bold")).grid(row=0,column=0,padx=5,pady=5,sticky="w")
 
                 for ChangeRow, Change in enumerate(MinorData, start=1):
-                    tk.Label(MinorFrame,text=f"    {Change}",justify="left",anchor="w", wraplength=1500).grid(row=ChangeRow * 2,column=0,padx=15,pady=1,sticky="w")
+                    nulltk.Label(MinorFrame,text=f"    {Change}",justify="left",anchor="w", wraplength=1500).grid(row=ChangeRow * 2,column=0,padx=15,pady=1,sticky="w")
                 MajorRow += 1
 
             NullSuiteList.BindMouseWheel(NullSuiteChangeLogPage)
