@@ -75,6 +75,9 @@ import pygame
 # ==========================================================================================
 # Startup :)
 # ==========================================================================================
+
+
+
 SystemLoading = True
 ProgramLoading = False
 Root = nulltk.Tk(className="NullSuite")
@@ -332,34 +335,6 @@ DarkTheme = tk.BooleanVar(value=True)
 # Required Startup Methods
 # ————————————————————————————————————————————————————————————
 
-def GetRepoRoot():
-    return os.path.dirname(BaseDir)
-
-def IsGitInstall():
-    return os.path.isdir(os.path.join(GetRepoRoot(), ".git"))
-
-def UpdateAvailable():
-    RepoRoot = GetRepoRoot()
-
-    try:
-        subprocess.run(
-            ["git", "-C", RepoRoot, "fetch"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=5
-        )
-
-        local = subprocess.check_output(
-            ["git", "-C", RepoRoot, "rev-parse", "HEAD"]
-        ).strip()
-
-        remote = subprocess.check_output(
-            ["git", "-C", RepoRoot, "rev-parse", "origin/main"]
-        ).strip()
-
-        return local != remote
-    except:
-        return False
 
 def StartTray():
     import gi
@@ -555,8 +530,10 @@ def LoadConfig():
         nullsuite = data.get("NullSuite", {})
         StartMinimizedActive.set(nullsuite.get("StartMinimized", False))
         DarkTheme.set(nullsuite.get("DarkTheme", True))
-        BlackVar.set(nullsuite.get("DarkVar", 0))
-        WhiteVar.set(nullsuite.get("WhiteVar", 100))
+        BlackVar.set(nullsuite.get("DarkValue"))
+        WhiteVar.set(nullsuite.get("LightValue"))
+        nulltk.DarkThemeValue = BlackVar.get()
+        nulltk.LightThemeValue = WhiteVar.get()
 
         if StartMinimizedActive.get():
             Root.after(0, Root.iconify)
@@ -613,7 +590,7 @@ def SaveConfig(Which, FirstTimeSetup=False):
                 "StartInTray": StartInTrayActive.get(),
                 "DarkTheme": DarkTheme.get(),
                 "DarkValue": BlackVar.get(),
-                "WhiteValue": WhiteVar.get()
+                "LightValue": WhiteVar.get()
             }
         })
 
@@ -683,16 +660,6 @@ def SaveConfig(Which, FirstTimeSetup=False):
         except Exception as e:
             print("SaveConfig failed:", e)
 
-def GetCurrentUpdateBranch():
-    RepoRoot = GetRepoRoot()
-
-    try:
-        return subprocess.check_output(
-            ["git", "-C", RepoRoot, "branch", "--show-current"],
-            text=True
-        ).strip()
-    except:
-        return None
 
 def BringToFront():
     Root.deiconify()
@@ -737,21 +704,12 @@ def BindMouseWheel(self, widget):
         self.BindMouseWheel(child)
 
 def ChangeTheme():
+    nulltk.DarkThemeValue = BlackVar.get()
+    nulltk.LightThemeValue = WhiteVar.get()
     if DarkTheme.get() == True:
         nulltk.ApplyTheme("Dark")
     else:
         nulltk.ApplyTheme("Light")
-    SaveConfig("NullSuite")
-    return
-
-def CheckBlackOrWhitevalue(Color):
-    if Color == "Dark":
-        nulltk.DarkThemeValue = BlackVar.get()
-        pass
-    else:
-        nulltk.LightThemeValue = WhiteVar.get()
-        pass
-    ChangeTheme()
     SaveConfig("NullSuite")
     return
 
@@ -8303,7 +8261,7 @@ def GetReleaseDisplay(Repo):
 
 def AddRepoObject(Repo):
     global RepoBoxes
-    Frame = nulltk.LabelFrame(NullGitcontainer, text=Repo["Name"], bd=2, relief="solid")
+    Frame = nulltk.LabelFrame(NullGitcontainer, text=Repo["Name"])
     Frame.pack(fill="x", padx=5, pady=5)
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=2)
@@ -10859,12 +10817,9 @@ BlackVar = tk.IntVar(value=100)
 
 BlackValueText = nulltk.Label(NullSuiteTogglesOptions, text="Blackness")
 BlackValueText.grid(row=0, column=4, sticky="ew")
-
 BlackLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=BlackVar)
 BlackLevel.grid(row=0, column=5, sticky="ew")
-BlackLevel.bind("<ButtonRelease-1>", lambda e: CheckBlackOrWhitevalue("Dark"))
-BlackLevel.bind("<Button-4>", lambda e: (BlackLevel.set(min(100, BlackLevel.get()+5)), CheckBlackOrWhitevalue("Dark")))
-BlackLevel.bind("<Button-5>", lambda e: (BlackLevel.set(max(0, BlackLevel.get()-5)), CheckBlackOrWhitevalue("Dark")))
+BlackLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
 BlackLevel.set(BlackVar.get())
 BlackLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=BlackVar, width=4)
 BlackLevelValue.grid(row=0, column=6, padx=5, sticky="w")
@@ -10878,9 +10833,8 @@ WhiteValueText.grid(row=0, column=8, sticky="ew")
 
 WhiteLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=WhiteVar)
 WhiteLevel.grid(row=0, column=9, sticky="ew")
-WhiteLevel.bind("<ButtonRelease-1>", lambda e: CheckBlackOrWhitevalue("Light"))
-WhiteLevel.bind("<Button-4>", lambda e: (WhiteLevel.set(min(100, WhiteLevel.get()+5)), CheckBlackOrWhitevalue("Light")))
-WhiteLevel.bind("<Button-5>", lambda e: (WhiteLevel.set(max(0, WhiteLevel.get()-5)), CheckBlackOrWhitevalue("Light")))
+WhiteLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
+
 WhiteLevel.set(WhiteVar.get())
 WhiteLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=WhiteVar, width=4)
 WhiteLevelValue.grid(row=0, column=10, padx=5, sticky="w")
@@ -11961,6 +11915,7 @@ def WaitForLoad():
     threading.Thread(target=NullFocusClipBoardLoop, daemon=True).start()
     
     LoadConfig()
+    ChangeTheme()
 
     emojis = None
     if not os.path.isfile(BaseEmojisPath):
@@ -12010,6 +11965,7 @@ def DoneLoadingCheck():
         pass
     LoadPopup.destroy()
     Root.focus_force()
+    
     
 
 # LoadingMethods
@@ -12498,6 +12454,11 @@ def StartUpChangeLog():
         Root.update_idletasks()
         return False
 
+
+    BlackLevel.bind("<Button-4>", lambda e: (BlackLevel.set(min(100, BlackLevel.get()+5)), ChangeTheme()))
+    BlackLevel.bind("<Button-5>", lambda e: (BlackLevel.set(max(0, BlackLevel.get()-5)), ChangeTheme()))
+    WhiteLevel.bind("<Button-4>", lambda e: (WhiteLevel.set(min(100, WhiteLevel.get()+5)), ChangeTheme()))
+    WhiteLevel.bind("<Button-5>", lambda e: (WhiteLevel.set(max(0, WhiteLevel.get()-5)), ChangeTheme()))
     return True
 
 StartUpChangeLog()

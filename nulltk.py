@@ -32,20 +32,21 @@ def ApplyThemeToWidget(Widget):
     if isinstance(Widget, Button):
 
         if getattr(Widget, "ThemeFG", True):
-            Widget.config(fg=FG(0))
+            Widget.config(fg=FG(20), activeforeground=FG(50))
+
 
         if getattr(Widget, "ThemeBG", True):
-            Widget.config(bg=BG(10),)
+            Widget.config(bg=BG(10),activebackground=BG(25))
             
         Widget.config(    
             highlightbackground=BG(5),
             highlightcolor=BG(5),
-            borderwidth=1
+            borderwidth=1,
             )
         pass
     elif isinstance(Widget, Label):
         if getattr(Widget, "ThemeFG", True):
-            Widget.config(fg=FG(0))
+            Widget.config(fg=FG(25))
 
         if getattr(Widget, "ThemeBG", True):
             Widget.config(bg=BG(0))
@@ -57,28 +58,31 @@ def ApplyThemeToWidget(Widget):
     elif isinstance(Widget, LabelFrame):
 
         if getattr(Widget, "ThemeFG", True):
-            Widget.config(fg=FG(0))
+            Widget.config(fg=FG(10))
 
         if getattr(Widget, "ThemeBG", True):
             Widget.config(bg=BG(0))
 
+        Widget.config(highlightbackground=FG(-25),
+        highlightcolor=FG(25))
+
     elif isinstance(Widget, Checkbutton):
         if getattr(Widget, "ThemeFG", True):
-            Widget.config(fg=FG(0))
+            Widget.config(fg=FG(25))
 
         if getattr(Widget, "ThemeBG", True):
-            Widget.config(bg=BG(10),)
+            Widget.config(bg=BG(0),)
 
         Widget.config(
             activebackground=BG(15),
-            activeforeground=FG(15),
+            activeforeground=FG(25),
             selectcolor=BG(15),
             highlightbackground=BG(0),
             borderwidth=0
         )
     elif isinstance(Widget, Scale):
         if getattr(Widget, "ThemeFG", True):
-            Widget.config(fg=FG(0))
+            Widget.config(fg=FG(25))
 
         if getattr(Widget, "ThemeBG", True):
             Widget.config(bg=BG(10),)
@@ -97,14 +101,17 @@ def ApplyThemeToWidget(Widget):
         
         Widget.config(
             insertbackground=FG(),
-            readonlybackground=BG(-20)
+            readonlybackground=BG(-20),
+            highlightbackground=BG(5),
+            highlightcolor=BG(5),
+            borderwidth=1
         )
     elif isinstance(Widget, Text):
         if getattr(Widget, "ThemeFG", True):
-            Widget.config(fg=FG(0))
+            Widget.config(fg=FG(25))
 
         if getattr(Widget, "ThemeBG", True):
-            Widget.config(bg=BG(25),)
+            Widget.config(bg=BG(10),)
 
         Widget.config(
             insertbackground=FG()
@@ -128,7 +135,7 @@ def ApplyThemeToWidget(Widget):
 
         Style.configure("Null.TNotebook",background=BG())
 
-        Style.configure("Null.TNotebook.Tab",background=BG(15),foreground=FG())
+        Style.configure("Null.TNotebook.Tab",background=BG(15),foreground=FG(25))
 
         Style.map("Null.TNotebook.Tab",
 
@@ -201,7 +208,6 @@ def ApplyThemeToWidget(Widget):
             )
 
         Widget.configure(style="Null.TCombobox")
-
     elif isinstance(Widget, Separator):
         pass
     elif isinstance(Widget, Tk):
@@ -230,7 +236,30 @@ def RegisterThemeWidget(widget):
         ThemeWidgets.append(widget)
         ApplyThemeToWidget(widget)
 
+        if isinstance(widget, Combobox):
+            ThemeComboPopup(widget)
+
     return widget
+
+def ThemeComboPopup(Widget):
+    try:
+        Popdown = Widget.tk.eval(
+            f"ttk::combobox::PopdownWindow {Widget}"
+        )
+
+        Listbox = f"{Popdown}.f.l"
+
+        Widget.tk.call(
+            Listbox,
+            "configure",
+            "-background", BG(),
+            "-foreground", FG(25),
+            "-selectbackground", BG(10),
+            "-selectforeground", FG(25)
+        )
+
+    except Exception as e:
+        print(e)
 
 class Frame(tk.Frame):
     def __init__(self, *args, **kwargs):
