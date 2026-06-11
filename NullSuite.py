@@ -181,16 +181,16 @@ SoundQueue = Queue()
 DrumQueue = Queue()
 CymbalQueue = Queue()
 CymbalChannelStart = 0
-CymbalChannelEnd = 35
-DrumChannelStart = 36
-DrumChannelEnd = 71
-KickChannelStart = 72
-KickChannelEnd = 107
-OverflowChannelStart = 108
-OverflowChannelEnd = 143
+CymbalChannelEnd = 149 
+
+DrumChannelStart = 150
+DrumChannelEnd = 199
+
+KickChannelStart = 200
+KickChannelEnd = 255  
+
 LastPedalValue = 100
 KickChannels = KickChannelStart
-OverflowChannels = OverflowChannelStart
 DrumChannels = DrumChannelStart
 CymbalChannels = CymbalChannelStart
 PreviousPedalValue = 0
@@ -2302,7 +2302,6 @@ def ApplyProfileLayout(Name):
                 Monitor["ID"],
                 "--off"
             ])
-
 
 
 
@@ -4462,7 +4461,6 @@ def GetPlaybackChannel(DrumType):
     global CymbalChannels
     global DrumChannels
     global KickChannels
-    global OverflowChannels
 
     # ==============================
     # Cymbal / HiHat Pool
@@ -4544,16 +4542,6 @@ def GetPlaybackChannel(DrumType):
 
             if DrumChannels == StartChannel:
                 break
-
-    # ==============================
-    # Global Overflow / Steal
-    # ==============================
-    UseChannel = OverflowChannels
-
-    OverflowChannels += 1
-
-    if OverflowChannels > OverflowChannelEnd:
-        OverflowChannels = OverflowChannelStart
 
     return UseChannel
 
@@ -7296,10 +7284,10 @@ def GetRepoStatus(Repo):
         try:
             RepoName = GetGitHubRepo(Path)
             if not RepoName:
-                return "⚪ No GitHub Repo"
+                return "❔ No GitHub Repo"
             Data = GetLatestReleaseData(RepoName)
             if not Data:
-                return "⚪ Release Unknown"
+                return "❔ Release Unknown"
             LatestTag = Data.get(
                 "tag_name",
                 ""
@@ -7309,13 +7297,13 @@ def GetRepoStatus(Repo):
                 ""
             )
             if not InstalledTag:
-                return "⚪ No Release Installed"
+                return "❔ No Release Installed"
             if InstalledTag == LatestTag:
-                return "🟢 Up To Date"
-            return "🔴 Needs Updated"
+                return "💚 Up To Date"
+            return "📛 Needs Updated"
         except Exception as e:
             print("GetRepoStatus Release Error:", e)
-            return "⚪ Release Unknown"
+            return "❔ Release Unknown"
 
     try:
 
@@ -7337,18 +7325,18 @@ def GetRepoStatus(Repo):
         Status = Result.stdout.lower()
 
         if "behind" in Status:
-            return "🔴 Needs Updated"
+            return "📛 Needs Updated"
 
         if "ahead" in Status:
-            return "🟡 Ahead"
+            return "⏩ Ahead"
 
-        return "🟢 Up To Date"
+        return "💚 Up To Date"
 
     except Exception as e:
 
         print("GetRepoStatus Branch Error:", e)
 
-        return "⚪ Unknown"
+        return "❔ Unknown"
 
 def ShowDownloadOverlay():
     DownloadOverlay.place(
@@ -7944,7 +7932,7 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
         Root.after(
             0,
             lambda: StatusVar.set(
-                "🟢 Up To Date"
+                "💚 Up To Date"
             )
         )
         if OpenOnFinish:
@@ -7971,7 +7959,7 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
         Root.after(
             0,
             lambda: StatusVar.set(
-                "🔴 Failed"
+                "❌ Failed"
             )
         )
 
@@ -12052,8 +12040,8 @@ def StartUpNullMidi():
             return False
 
         if MixerInitialized == False:
-            pygame.mixer.init(buffer=256)
-            pygame.mixer.set_num_channels(144)
+            pygame.mixer.init(buffer=512)
+            pygame.mixer.set_num_channels(256)
             MixerInitialized = True
         
         BuildGlobalUInputDevice()
