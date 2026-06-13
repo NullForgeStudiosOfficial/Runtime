@@ -14,4 +14,15 @@ TARGET="$DIR/$NAME"
 
 mkdir -p "$TARGET"
 
-7z x "$FILE" -o"$TARGET"
+case "${FILE,,}" in
+    *.zip|*.7z)
+        7z x "$FILE" -o"$TARGET"
+        ;;
+    *.rar)
+        unrar x "$FILE" "$TARGET/"
+        ;;
+    *)
+        echo "Unsupported archive type: $FILE"
+        exit 1
+        ;;
+esac

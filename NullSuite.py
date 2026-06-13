@@ -136,6 +136,7 @@ BaseEmojisPath = os.path.join(BaseDir, "BaseEmoji.json")
 Python = os.path.join(BaseDir, "venv", "bin", "python3")
 NWPath = os.path.join(BaseDir, "NW.sh") 
 ChangeLogPath = os.path.join(BaseDir, "ChangeLog.json") 
+SpotifySongPath = os.path.join(BaseDir, "SpotifySong.txt")
 IconImage = tk.PhotoImage(file=IconPath)
 
 CircadianPath = os.path.join(BaseDir, "CircadianClock.png")
@@ -891,7 +892,7 @@ def SelectWindow(Window, Dict, var, ClassName,DisplayName, Popup, Program, Page=
     global TrackerPopup, NullFocusOperator
 
     normalizeddisplayname = NormalizeDisplayName(Window["UIName"],Window["ClassName"])
-    NormalizedClass = Window["ClassName"].split(".")[0].lower()
+    NormalizedClass = Window["ClassName"].split(".")[-1].lower()
 
 
     if Program == "NullMidi":
@@ -6872,15 +6873,12 @@ def RemoveMidiRow(Frame, Row, Button, Timeout=4):
 # ————————————————————————————————————————————————————————————
 def InstallGitLoginThings():
     if not messagebox.askyesno(
-        "Install GitHub Login Support",
-        "This will install additional software required for browser-based Git authentication.\n\n"
+        "Install GitHub Support",
+        "This will install software required for GitHub integration.\n\n"
         "This includes:\n"
         "• Git\n"
-        "• Git Credential Manager\n"
-        "• GNOME Keyring\n"
-        "• Seahorse\n"
-        "• Supporting utilities\n\n"
-        "Approximate Disk Usage: ~50 MB\n\n"
+        "• GitHub CLI (gh)\n\n"
+        "Approximate Disk Usage: ~20 MB\n\n"
         "Continue?"
     ):
         return
@@ -6893,81 +6891,54 @@ def InstallGitLoginThings():
                 "install",
                 "-y",
                 "git",
-                "gnome-keyring",
-                "seahorse",
-                "wget",
-                "tar"
-            ],
-            check=True
-        )
-
-        subprocess.run(
-            [
-                "wget",
-                "-O",
-                "/tmp/gcm.tar.gz",
-                "https://github.com/GitCredentialManager/git-credential-manager/releases/download/v2.4.1/gcm-linux_amd64.2.4.1.tar.gz"
-            ],
-            check=True
-        )
-
-        os.makedirs(os.path.expanduser("~/.gcmcore"), exist_ok=True)
-
-        subprocess.run(
-            [
-                "tar",
-                "-xvf",
-                "/tmp/gcm.tar.gz",
-                "-C",
-                os.path.expanduser("~/.gcmcore")
-            ],
-            check=True
-        )
-
-        os.remove("/tmp/gcm.tar.gz")
-
-        GCMPath = os.path.expanduser("~/.gcmcore/git-credential-manager")
-
-        if not os.path.exists(GCMPath):
-            raise Exception(f"Git Credential Manager was not found at:\n{GCMPath}")
-
-        subprocess.run(
-            [
-                "git",
-                "config",
-                "--global",
-                "credential.helper",
-                os.path.expanduser("~/.gcmcore/git-credential-manager")
-            ],
-            check=True
-        )
-
-        
-
-        subprocess.run(
-            [
-                "git",
-                "config",
-                "--global",
-                "credential.credentialStore",
-                "secretservice"
+                "gh"
             ],
             check=True
         )
 
         messagebox.showinfo(
-            "GitHub Login Installed",
-            "GitHub browser authentication has been installed successfully.\n\n"
-            "The next time you push to GitHub, a browser window may open for authentication."
+            "GitHub Support Installed",
+            "Git and GitHub CLI have been installed.\n\n"
+            "Use 'Login To GitHub' to authenticate."
         )
+
         InstallGithubButton.grid_forget()
-        NullGitCheckUpdates.grid(row=0, column=0, sticky="ew", padx=5, pady=(3,5), columnspan=99)
+        NullGitCheckUpdates.grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            padx=5,
+            pady=(3,5),
+            columnspan=99
+        )
 
     except Exception as e:
         messagebox.showerror(
             "Install Failed",
-            f"Failed to install GitHub Login Support.\n\n{e}"
+            f"Failed to install GitHub Support.\n\n{e}"
         )
+
+def LoginToGitHub():
+    try:
+        subprocess.run(
+            ["gh", "auth", "login"],
+            check=True
+        )
+
+        messagebox.showinfo(
+            "GitHub Login",
+            "Successfully logged into GitHub."
+        )
+
+        RefreshRepoList()
+
+    except Exception as e:
+        messagebox.showerror(
+            "GitHub Login Failed",
+            str(e)
+        )
+
+
 
 def BrowseForRepo():
     Path = filedialog.askdirectory()
@@ -10197,10 +10168,14 @@ def CreateOperatorRow(Window):
 
     def ChangedPage():
         which = GetCurrentPage()
-        NormalizedClass = Window[which]["OnlyThisWindow"].split(".")[0].lower()
+        if Window[which]["OnlyThisWindow"] != None:
+            NormalizedClass = Window[which]["OnlyThisWindow"].split(".")[0].lower()
+            OnlyThisWindow.set(NormalizedClass)
+        else:
+            OnlyThisWindow.set(None)
         KeyOrAction.set(Window[which]["KeyOrAction"])
         WindowSpecific.set(Window[which]["WindowSpecific"])
-        OnlyThisWindow.set(NormalizedClass)
+        
         FilePath.set(Window[which]["FilePath"])     
         Command.set(Window[which]["Command"])
         FileOrCommand.set(Window[which]["FileOrCommand"])
@@ -10354,12 +10329,15 @@ def SpotifyTracker():
         Artist, Song = WindowTitle.split(" - ", 1)
         NewSong = f"Song Name:\n{Song}\n\nArtist:\n{Artist}"
     else:
-        NewSong = WindowTitle
+        if "Spotify" in WindowTitle:
+            return
+        else:
+            NewSong = WindowTitle
 
     if NewSong != CurrentSpotifySong:
         CurrentSpotifySong = NewSong
 
-        with open("SpotifySong.txt", "w", encoding="utf-8") as f:
+        with open(SpotifySongPath, "w", encoding="utf-8") as f:
             f.write(CurrentSpotifySong)
     
 def AttemptToGetSpotifyID():
@@ -11864,6 +11842,7 @@ def NullFocusClipBoardLoop():
 
 def NullFocusRunOperators():
     for Operator in NullFocusOperators:
+
         if Operator['WindowClass'] == CurrentFocus:
             ExecuteWindowChange(Operator, "Focused")
 
