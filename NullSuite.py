@@ -65,6 +65,7 @@ from datetime import datetime, timedelta
 import urllib.request
 import nulltk # type: ignore
 
+
 setproctitle.setproctitle("NullSuite")
 
 os.environ["PULSE_PROP_application.name"] = "NullMidiSounds"
@@ -769,8 +770,8 @@ class ScrollableFrame(tk.Frame):
 class HoriScrollableFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        self.Canvas = tk.Canvas(self,highlightthickness=0)
-        self.Scrollbar = tk.Scrollbar(self,orient="horizontal",command=self.Canvas.xview)
+        self.Canvas = nulltk.Canvas(self,highlightthickness=0)
+        self.Scrollbar = nulltk.Scrollbar(self,orient="horizontal",command=self.Canvas.xview)
         self.Inner = nulltk.Frame(self.Canvas)
         self.Window = self.Canvas.create_window((0, 0),window=self.Inner,anchor="nw")
         self.Inner.bind("<Configure>",lambda e: self.Canvas.configure(scrollregion=self.Canvas.bbox("all")))
@@ -798,6 +799,69 @@ class HoriScrollableFrame(tk.Frame):
         elif event.num == 5:
             self.Canvas.xview_scroll(1, "units")
 
+class NullMessageBox(tk.Toplevel):
+    def __init__(self, parent, title="", message="", buttons=("OK",)):
+        super().__init__(parent)
+
+        self.Result = None
+
+        self.title(title)
+        self.resizable(False, False)
+
+        self.transient(parent)
+        self.grab_set()
+
+        MainFrame = nulltk.Frame(self)
+        MainFrame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        MessageLabel = nulltk.Label(
+            MainFrame,
+            text=message,
+            justify="left",
+            wraplength=400
+        )
+        MessageLabel.pack(fill="x", pady=(0,10))
+
+        ButtonFrame = nulltk.Frame(MainFrame)
+        ButtonFrame.pack(fill="x")
+
+        DefaultButton = None
+
+        for ButtonName in buttons:
+            TheButton = nulltk.Button(
+                ButtonFrame,
+                text=ButtonName,
+                command=lambda value=ButtonName: self.ButtonPressed(value)
+            )
+            TheButton.pack(side="right", padx=5)
+            if DefaultButton is None:
+                DefaultButton = TheButton
+
+        self.protocol("WM_DELETE_WINDOW", self.Close)
+
+        self.wait_visibility()
+        self.focus_force()
+        self.update_idletasks()
+        x = parent.winfo_rootx() + (parent.winfo_width() // 2) - (self.winfo_width() // 2)
+        y = parent.winfo_rooty() + (parent.winfo_height() // 2) - (self.winfo_height() // 2)
+        self.geometry(f"+{x}+{y}")
+
+        DefaultButton.focus_set()
+
+        self.bind("<Return>",lambda e: DefaultButton.invoke())
+        self.bind("<Escape>", lambda e: self.Close())
+
+    def ButtonPressed(self, value):
+        self.Result = value
+        self.destroy()
+
+    def Close(self):
+        self.Result = None
+        self.destroy()
+
+    def Show(self):
+        self.wait_window()
+        return self.Result
 
 # ==========================================================================================
 # System Methods
@@ -870,7 +934,7 @@ def SearchForWindow(Dict, var, ClassName,DisplayName,Program, Page=None):
     BuildWindowSelectionList(Program)
     global TrackerPopup
 
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     TrackerPopup = Popup
     Popup.title("Select Window")
     Popup.geometry("800x600")
@@ -956,7 +1020,7 @@ def NormalizeDisplayName(WindowTitle, WindowClass):
     return WindowClass.split(".")[0].capitalize()
 
 def OpenImagePopUp(Path, ThumbnailSize=256):
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Select Image")
     Popup.geometry("1400x900")
 
@@ -1241,7 +1305,7 @@ def AddRoutingObject():
     NullWireRoutingEntry.delete(0, tk.END)
 
 def AddRoutingBlock(NameOfSink, Sink):
-    Frame = nulltk.Frame(NullWireRoutingObjects, bd=2, relief="solid")
+    Frame = nulltk.Frame(NullWireRoutingObjects)
     Frame.pack(fill="x", padx=5, pady=5)
     Frame.columnconfigure(0, weight=1)
     Frame.rowconfigure(0, weight=1)
@@ -1303,7 +1367,7 @@ def AddRoutingBlock(NameOfSink, Sink):
     
     MonoVar = tk.BooleanVar(value=Sink.get("Mono", False))
     MuteVar = tk.BooleanVar(value=Sink.get("Mute", False))
-    InnerFrame = nulltk.Frame(Column0, bd=2, relief="solid")
+    InnerFrame = nulltk.Frame(Column0)
     InnerFrame.grid(row=0, column=3, sticky="ew", padx=2)
     InnerFrame.columnconfigure(0, weight=1)
     display_name = NameOfSink.replace("_NullWire", "")
@@ -1474,7 +1538,7 @@ def OpenAddSourcePopup(name, Sink):
     if len(sources) == 0:
         return
 
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Attach Source")
     Popup.geometry("300x400")
     Popup.grab_set()
@@ -1510,7 +1574,7 @@ def OpenRemoveSourcePopup(Sink):
     if len(Sink["Sources"]) == 0:
         return
 
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Remove Source")
     Popup.geometry("300x400")
     Popup.grab_set()
@@ -1876,7 +1940,7 @@ def ClearInput(key,Button, Timeout=4):
 
 def OpenOutputPopup(targetKey):
     BuildOutputSelectionList()
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Select Output Device")
     Popup.geometry("400x500")
     Popup.grab_set()
@@ -1896,7 +1960,7 @@ def SelectOutputDevice(device, key, Popup):
 def OpenInputPopup(targetKey):
 
     BuildInputSelectionList()
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Select Input Device")
     Popup.geometry("400x500")
     Popup.grab_set()
@@ -2052,7 +2116,7 @@ class ToolTip:
         x = self.widget.winfo_rootx() + 20
         y = self.widget.winfo_rooty() + 20
 
-        self.tip = tk.Toplevel(self.widget)
+        self.tip = nulltk.Toplevel(self.widget)
         self.tip.overrideredirect(True)
         self.tip.geometry(f"+{x}+{y}")
 
@@ -2189,7 +2253,7 @@ def ShowDetectionOverlay(which):
     return OverlayWindows
 
 def CreateOverlay(x, y, w, h):
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.overrideredirect(True)
     Popup.attributes("-topmost", True)
     Popup.attributes("-alpha", 0.25)
@@ -2377,7 +2441,7 @@ def DeleteProfile(Name,Button, Frame, Timeout=4):
     SaveConfig("NullMonitor")
 
 def OpenRemoveWarp(Name):
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Remove Warp")
     CenterOnRoot(Popup, 500, 300)
 
@@ -2452,7 +2516,7 @@ def SpawnMonitorPopups(OnSelect):
     Bounds = GetMonitorBounds()
 
     for ID, B in Bounds.items():
-        Popup = tk.Toplevel(Root)
+        Popup = nulltk.Toplevel(Root)
         Popup.overrideredirect(True)
         Popup.attributes("-topmost", True)
 
@@ -2483,7 +2547,7 @@ def SpawnMonitorPopups(OnSelect):
     return Popups
 
 def CreateCenterPopup():
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     CenterOnRoot(Popup, 400, 100)
     Popup.attributes("-topmost", True)
     
@@ -2499,7 +2563,7 @@ def CreateCenterPopup():
     return Popup, Label
 
 def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     CenterOnRoot(Popup, 300, 200)
     Popup.title("Configure Warp")
     Popup.attributes("-topmost", True)
@@ -3135,7 +3199,7 @@ def ManageWallPapers(Name):
 
 def NullMonitorNoteBookChange(event):
     CurrentTab = NullMonitorNotebook.select()
-    if str(CurrentTab) == str(NullMonitorPage) or str(CurrentTab) == str(NullMonitorHowToPage) :
+    if str(CurrentTab) == str(NullMonitorPage):
         NullMonitorNotebook.tab(
             NullMonitorWallPapersPage,
             state="disabled"
@@ -4666,7 +4730,7 @@ def SearchForAnyFile(Controller, var, Field, Page=None):
 
 def AddMidiRow(Row=None, Loading=False):
     global MidiRows, DeleteDeviceConfirmation, DeleteDeviceRowConfirmation, MidiRowObjects
-    Frame = nulltk.Frame(MidiContainer, bd=2, relief="solid")
+    Frame = nulltk.Frame(MidiContainer)
     Frame.pack(fill="x", expand=False, padx=5, pady=5)
     Frame.columnconfigure(0, weight=1)
     Frame.rowconfigure(0, weight=1)
@@ -4784,7 +4848,7 @@ def AddMidiRow(Row=None, Loading=False):
     DrumRow.rowconfigure(2,weight=0,)
     DrumRow.pack_forget()
 
-    KeyboardRow = nulltk.Frame(Frame, bd=2, relief="solid")
+    KeyboardRow = nulltk.Frame(Frame)
     KeyboardRow.pack(fill="x", padx=5, pady=5)
     nulltk.Label(KeyboardRow, text="Keyboard has been redacted, Just go here lol: ").pack(fill="x", padx=5, pady=5)
     pianist = nulltk.Label(KeyboardRow,text="https://www.onlinepianist.com/virtual-piano",fg="blue",cursor="hand2")
@@ -5019,7 +5083,7 @@ def AddMidiRow(Row=None, Loading=False):
     
 
     def AddControllerToList(Controller=None, Loading=False):
-        ControllerFrame = nulltk.Frame(Controllerlist, bd=2, relief="solid")
+        ControllerFrame = nulltk.Frame(Controllerlist)
         ControllerFrame.pack(fill="x", padx=5, pady=5)
         ControllerFrame.columnconfigure(0, weight=0)
         ControllerFrame.columnconfigure(1, weight=0)
@@ -5215,7 +5279,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
     def AddDrumToList(Drum=None, Loading=False):
-        MainDrumFrame = nulltk.Frame(DrumList, bd=2, relief="solid")
+        MainDrumFrame = nulltk.Frame(DrumList)
         MainDrumFrame.pack(fill="x", padx=5, pady=5)
 
         MainDrumFrame.columnconfigure(0, weight=1)
@@ -5487,7 +5551,7 @@ def AddMidiRow(Row=None, Loading=False):
                 RemoveDrumObjectFromList= nulltk.Button(DrumRowTopRow, text="Delete Drum?", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
                 RemoveDrumObjectFromList.grid(row=0, column=5, sticky="ew", padx=2)
 
-                PadsContainer = nulltk.Frame(DrumRowDrumRow, bd=2, relief="solid")
+                PadsContainer = nulltk.Frame(DrumRowDrumRow)
                 PadsContainer.grid(row=1, column=0, sticky="ew", padx=2)
                 PadsContainer.columnconfigure(0,weight=4)
                 PadsContainer.columnconfigure(1,weight=2)
@@ -5752,7 +5816,7 @@ def AddMidiRow(Row=None, Loading=False):
                 RemoveCymbalObjectFromList= nulltk.Button(CymbalRowTopRow, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveCymbalObjectFromList))
                 RemoveCymbalObjectFromList.grid(row=0, column=5, sticky="ew", padx=2)
 
-                CymbalsContainer = nulltk.Frame(DrumRowCymbalRow, bd=2, relief="solid")
+                CymbalsContainer = nulltk.Frame(DrumRowCymbalRow)
                 CymbalsContainer.grid(row=1, column=0, sticky="ew", padx=2)
                 CymbalsContainer.rowconfigure(0,weight=1)
                 CymbalsContainer.columnconfigure(0,weight=3)
@@ -6103,7 +6167,7 @@ def AddMidiRow(Row=None, Loading=False):
                 RemoveDrumObjectFromList= nulltk.Button(KickRowTopRow, text="Remove Drum", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
                 RemoveDrumObjectFromList.grid(row=0, column=3, sticky="ew", padx=2)
 
-                KickContainer = nulltk.Frame(DrumRowKickRow, bd=2, relief="solid")
+                KickContainer = nulltk.Frame(DrumRowKickRow)
                 KickContainer.grid(row=1, column=0, sticky="ew", padx=2)
                 KickContainer.columnconfigure(0,weight=1)
 
@@ -6207,7 +6271,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowTopRow.columnconfigure(3, weight=0)
                 HihatRowTopRow.rowconfigure(0, weight=0)
 
-                HihatContainer = nulltk.Frame(DrumRowHihatRow, bd=2, relief="solid")
+                HihatContainer = nulltk.Frame(DrumRowHihatRow)
                 HihatContainer.grid(row=1, column=0, sticky="ew", padx=2)
 
                 HihatContainer.columnconfigure(0, weight=1)
@@ -6872,15 +6936,18 @@ def RemoveMidiRow(Frame, Row, Button, Timeout=4):
 # NullGit
 # ————————————————————————————————————————————————————————————
 def InstallGitLoginThings():
-    if not messagebox.askyesno(
-        "Install GitHub Support",
-        "This will install software required for GitHub integration.\n\n"
-        "This includes:\n"
-        "• Git\n"
-        "• GitHub CLI (gh)\n\n"
-        "Approximate Disk Usage: ~20 MB\n\n"
-        "Continue?"
-    ):
+    Result = NullMessageBox(Root,
+    "Install GitHub Support?",
+    "This will install software required for GitHub integration.\n\n"
+    "This includes:\n"
+    "• Git\n"
+    "• GitHub CLI (gh)\n\n"
+    "Approximate Disk Usage: ~20 MB\n\n"
+    "Continue?",
+    ("SureWhyNot", "No Thanks")
+    ).Show()
+
+    if Result != "Yes":
         return
 
     try:
@@ -6896,11 +6963,11 @@ def InstallGitLoginThings():
             check=True
         )
 
-        messagebox.showinfo(
-            "GitHub Support Installed",
-            "Git and GitHub CLI have been installed.\n\n"
-            "Use 'Login To GitHub' to authenticate."
-        )
+        #After V
+        NullMessageBox(Root,"It's Installed~","Git and GitHub CLI have been installed.\n\n"
+            "Use 'Login To GitHub' to authenticate.", ("Coolbeans 👍",)).Show()
+        
+
 
         InstallGithubButton.grid_forget()
         NullGitCheckUpdates.grid(
@@ -6913,6 +6980,8 @@ def InstallGitLoginThings():
         )
 
     except Exception as e:
+        NullMessageBox(Root,"It Broke",f"Failed to install for... Some reason. Probably This:\n\n{e}"
+            ,("Well damn. OH WELL",)).Show()
         messagebox.showerror(
             "Install Failed",
             f"Failed to install GitHub Support.\n\n{e}"
@@ -6925,18 +6994,13 @@ def LoginToGitHub():
             check=True
         )
 
-        messagebox.showinfo(
-            "GitHub Login",
-            "Successfully logged into GitHub."
-        )
+        NullMessageBox(Root,"You're Logged in!","Successfully logged in~", ("Yay 🎊",)).Show()
 
-        RefreshRepoList()
+
+        BuildRepoList()
 
     except Exception as e:
-        messagebox.showerror(
-            "GitHub Login Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Well that failed.",f"Somethin messedup. This:\n\n{str(e)}", ("Ok...",)).Show()
 
 
 
@@ -6948,10 +7012,8 @@ def BrowseForRepo():
     if os.path.isdir(GitPath):
         NullGitInputPath.set(Path)
     else:
-        messagebox.showerror(
-            "Invalid Repo",
-            "Selected folder is not a Git repository."
-        )
+        NullMessageBox(Root,"Invalid Repo","There is no .git there...", ("Ok...",)).Show()
+
 
 def CreateRepo():
 
@@ -7076,27 +7138,17 @@ def CreateRepo():
         # ------------------------------
         # Add To NullGit
         # ------------------------------
-        messagebox.showinfo(
-            "Repo Created",
-            "Repository initialized successfully."
-        )
 
         AddRepo(Path)
 
 
     except subprocess.CalledProcessError as e:
+        NullMessageBox(Root,"Create Repo failed!?",f"Ya Broke It:\n{e}\n\n{e.stderr}", ("Ok...",)).Show()
 
-        messagebox.showerror(
-        "Create Repo Failed",
-        f"{e}\n\n{e.stderr}"
-    )
 
     except Exception as e:
+        NullMessageBox(Root,"Create Repo failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
-        messagebox.showerror(
-            "Create Repo Failed",
-            str(e)
-        )
 
 def SetCloneLocation():
     Path = filedialog.askdirectory()
@@ -7129,21 +7181,10 @@ def CloneRepo():
             RepoName
         )
         AddRepo(RepoPath)
-        messagebox.showinfo(
-            "Clone Complete",
-            f"Repository cloned successfully.\n\n{RepoPath}"
-        )
     except subprocess.CalledProcessError as e:
-
-        messagebox.showerror(
-            "Clone Repo Failed",
-            e.stderr
-        )
+        NullMessageBox(Root,"Clone Repo failed!?",f"Ya Broke It:\n{e.stderr}", ("Ok...",)).Show()
     except Exception as e:
-        messagebox.showerror(
-            "Clone Repo Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Clone Repo failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def SetRepoCreationLocation():
     Path = filedialog.askdirectory()
@@ -7207,10 +7248,7 @@ def ChangeBranch(Repo, Branch, StatusVar):
 
         StatusVar.set(GetRepoStatus(Repo))
     except Exception as e:
-        messagebox.showerror(
-            "Branch Change Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Branch Change Failed",f"{str(e)}", ("Ok...",)).Show()
 
 def GetLatestReleaseData(RepoName):
     try:
@@ -7387,16 +7425,14 @@ def PushGit(Repo, CommitMessage, Status, updatethisvar):
 
 
     except subprocess.CalledProcessError as e:
+        NullMessageBox(Root,"Push Failed",f"{e.stderr}", ("Ok...",)).Show()
         messagebox.showerror(
             "Push Failed",
             e.stderr
         )
 
     except Exception as e:
-        messagebox.showerror(
-            "Push Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Push Failed",f"{str(e)}", ("Ok...",)).Show()
 
 def PullRepo(Repo, StatusVar):
     Selected = Repo.get(
@@ -7431,18 +7467,12 @@ def PullRepo(Repo, StatusVar):
             StatusVar.set(
                 "🔴 Pull Failed"
             )
-            messagebox.showerror(
-                "Pull Failed",
-                e.stderr
-            )
+            NullMessageBox(Root,"Pull Failed",f"{e.stderr}", ("Ok...",)).Show()
         except Exception as e:
             StatusVar.set(
                 "🔴 Pull Failed"
             )
-            messagebox.showerror(
-                "Pull Failed",
-                str(e)
-            )
+            NullMessageBox(Root,"Pull Failed",f"{str(e)}", ("Ok...",)).Show()
         return
 
     if "[Release]" in Selected:
@@ -7522,31 +7552,18 @@ def PushOnlyCommited():
         )
 
         OnlyCommitMessage.set("")
-
-        messagebox.showinfo(
-            "Push Complete",
-            "Staged files committed and pushed."
-        )
     except subprocess.CalledProcessError as e:
-        messagebox.showerror(
-            "Push Failed",
-            f"{e}\n\n{e.stderr}"
-        )
+        NullMessageBox(Root,"Push Failed",f"{e.stderr}", ("Ok...",)).Show()
     except Exception as e:
-        messagebox.showerror(
-            "Push Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Push Failed",f"{str(e)}", ("Ok...",)).Show()
 
 def ForcePushCommit():
     if not CurrentManagedRepo:
         return
     Path = CurrentManagedRepo["Path"]
     Message = OnlyCommitMessage.get().strip()
-    Confirm = messagebox.askyesno(
-        "Force Push",
-        "Force push to remote?\n\nThis can overwrite remote history."
-    )
+    Confirm = NullMessageBox(Root,"Force It???",f"Are you Sure you want to FORCE it? Might mess things up", ("Sure Do"," Nope, Accident",)).Show()
+
     if not Confirm:
         return
 
@@ -7632,30 +7649,15 @@ def ForcePushCommit():
         )
         OnlyCommitMessage.set("")
 
-        messagebox.showinfo(
-            "Force Push Complete",
-            "Repo force pushed successfully."
-        )
-
     except subprocess.CalledProcessError as e:
-        messagebox.showerror(
-            "Force Push Failed",
-            f"{e}\n\n{e.stderr}"
-        )
+        NullMessageBox(Root,"That Somehow Failed",f"{e.stderr}", ("Ok...",)).Show()
     except Exception as e:
-
-        messagebox.showerror(
-            "Force Push Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"That Somehow Failed",f"{str(e)}", ("Ok...",)).Show()
 
 def OnNotebookChanged(event):
     CurrentTab = NullGitNotebook.select()
     if str(CurrentTab) == str(NullGitMainPage):
-        NullGitNotebook.tab(
-            NullGitManagePage,
-            state="disabled"
-        )
+        NullGitNotebook.forget(NullGitManagePage)
         global CurrentManagedRepo
         CurrentManagedRepo = None
 
@@ -7758,7 +7760,7 @@ def ManageRepo(Repo):
     except Exception as e:
         print(e)
 
-    NullGitNotebook.tab(NullGitManagePage,state="normal")
+    NullGitNotebook.add(NullGitManagePage, text="Manage")
     NullGitNotebook.select(NullGitManagePage)
     return
 
@@ -7865,10 +7867,7 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
 
                 Root.after(
                     0,
-                    lambda: messagebox.showerror(
-                        "Download Failed",
-                        f"Failed downloading:\n{FileName}"
-                    )
+                    lambda: NullMessageBox(Root,"Download... Failed?",f"{FileName} failed to download o.O", ("Ok...",)).Show()
                 )
 
                 return
@@ -7912,13 +7911,6 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
                 ["xdg-open", ReleasePath]
             )
 
-        Root.after(
-            0,
-            lambda: messagebox.showinfo(
-                "Download Complete",
-                f"Release Installed:\n{Tag}"
-            )
-        )
 
     except Exception as e:
 
@@ -7936,11 +7928,8 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
 
         Root.after(
             0,
-            lambda: messagebox.showerror(
-                "Release Pull Failed",
-                str(e)
+            lambda: NullMessageBox(Root,"Download... Failed?",f"For this reason:\n{str(e)}", ("Ok...",)).Show()
             )
-        )
     finally:
         CurrentDownloadProcess = None
 
@@ -7964,10 +7953,7 @@ def PullRelease(Repo, StatusVar):
 
             StatusVar.set("🔴 No Release")
 
-            messagebox.showerror(
-                "No Release Found",
-                "Could not find a valid downloadable release."
-            )
+            NullMessageBox(Root,"No Release Found?",f"Can't pull something that don't exist.", ("Ok...",)).Show()
 
             return
 
@@ -7977,10 +7963,7 @@ def PullRelease(Repo, StatusVar):
 
             StatusVar.set("🔴 No Assets")
 
-            messagebox.showerror(
-                "No Assets Found",
-                "Latest release contains no downloadable assets."
-            )
+            NullMessageBox(Root,"Nothing to download?",f"release has no downloadable files?", ("Ok...",)).Show()
 
             return
 
@@ -7988,7 +7971,7 @@ def PullRelease(Repo, StatusVar):
         # Asset Selection Popup
         # ==================================================
 
-        Popup = tk.Toplevel(Root)
+        Popup = nulltk.Toplevel(Root)
 
         Popup.title("Select Release Assets")
 
@@ -8114,10 +8097,7 @@ def PullRelease(Repo, StatusVar):
 
         StatusVar.set("🔴 Failed")
 
-        messagebox.showerror(
-            "Release Pull Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Pull Failed",f"{str(e)}", ("Ok...",)).Show()
 
 def GetGitHubRepo(Path):
     try:
@@ -8307,6 +8287,9 @@ def AddRepoObject(Repo):
     Root.after(1, OnRepoOptionChanged)
     RepoBoxes.append(Frame)
     NullGitReposList.BindMouseWheel(NullGitMainPage)
+
+    RepoNullGitSep = nulltk.Frame(NullGitcontainer,height=6,Reversed = True)
+    RepoNullGitSep.pack(fill="x", padx=1, pady=(10,5))
     
 
 
@@ -8415,10 +8398,7 @@ def OpenRepo(Repo, LocalOrNet=True):
                 ["xdg-open", URL]
             )
     except Exception as e:
-        messagebox.showerror(
-            "Open Repo Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Idk how... But Open failed?",f"{str(e)}", ("Ok...",)).Show()
 
 def DeleteRepoInNull(Repo, Button, Timeout=4):
     EndTime = time.time() + (Timeout)
@@ -8444,16 +8424,7 @@ def DeleteRepoInNull(Repo, Button, Timeout=4):
         Repo['DeleteConfirmation'] = True
         Tick(Repo)
         return
-
-
     Path = Repo["Path"]
-
-    Confirm = messagebox.askyesno(
-        "Remove Repo",
-        "Remove this repo from NullGit?"
-    )
-    if not Confirm:
-        return
     Repos.pop(Path, None)
     SaveConfig("NullGit")
     BuildRepoList()
@@ -8474,11 +8445,7 @@ def CreateBranchOnGit():
             capture_output=True,
             text=True
         )
-        messagebox.showinfo(
-            "Branch Created",
-            f"Created branch:\n{Branch}"
-        )
-
+        
         subprocess.run(
         ["git", "push", "--set-upstream", "origin", Branch],
         cwd=Path,
@@ -8489,10 +8456,7 @@ def CreateBranchOnGit():
         SaveConfig("NullGit")
         BuildRepoList()
     except Exception as e:
-        messagebox.showerror(
-            "Create Branch Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Branch Creation Failed?",f"{str(e)}", ("Ok...",)).Show()
 
 def RenameBranchOnGit():
     if not CurrentManagedRepo:
@@ -8519,15 +8483,8 @@ def RenameBranchOnGit():
         CurrentManagedRepo["CurrentBranch"] = f"{NewBranch} [Branch]"
         SaveConfig("NullGit")
         BuildRepoList()
-        messagebox.showinfo(
-            "Branch Renamed",
-            f"{OldBranch} → {NewBranch}"
-        )
     except Exception as e:
-        messagebox.showerror(
-            "Rename Branch Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Renaming Branch Failed",f"{str(e)}", ("Ok...",)).Show()
 
 def DeleteBranchOnGit():
 
@@ -8542,17 +8499,14 @@ def DeleteBranchOnGit():
 
     if len(Branches) <= 1:
 
-        messagebox.showerror(
-            "Delete Branch Failed",
-            "You cannot delete the only branch."
-        )
+        NullMessageBox(Root,"Can't let you do that starfox",f"Gotta have at least one branch.", ("Ok...",)).Show()
 
         return
 
-    Confirm = messagebox.askyesno(
-        "Delete Branch",
-        f"Delete branch:\n{Branch}?"
-    )
+    Confirm = NullMessageBox(Root,
+    "Delete The Branch?",
+    ("He's Dead Jim(Yes)", "Nuh Uh")
+    ).Show()
 
     if not Confirm:
         return
@@ -8612,15 +8566,10 @@ def DeleteBranchOnGit():
             f"Deleted branch:\n{Branch}"
         )
     except subprocess.CalledProcessError as e:
-        messagebox.showerror(
-            "Delete Branch Failed",
-            f"{e}\n\n{e.stderr}"
-        )
+        NullMessageBox(Root,"Deleting The Branch Failed!?",f"Ya Broke It:\n{e}\n\n{e.stderr}", ("Ok...",)).Show()
+
     except Exception as e:
-        messagebox.showerror(
-            "Delete Branch Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Deleting The Branch Failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def CreateGitIgnoreFile():
     if not CurrentManagedRepo:
@@ -8639,14 +8588,11 @@ def CreateGitIgnoreFile():
         GitIgnoredVar.set("")
 
     except Exception as e:
-        messagebox.showerror(
-            "Create .gitignore Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"creating the .ignore failed o_O",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def EditGitIgnoreFile():
 
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Edit .gitignore")
     Popup.resizable(False, False)
 
@@ -8788,11 +8734,7 @@ def SelectGitIgnore(Type, Popup):
             GitList.grid_remove()
 
     except Exception as e:
-
-        messagebox.showerror(
-            "Edit .gitignore Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Editing Failed?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def AddFileToCommit():
     if not CurrentManagedRepo:
@@ -8841,10 +8783,7 @@ def AddFileToCommit():
         )
 
     except Exception as e:
-        messagebox.showerror(
-            "Add File Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Adding File Failed?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def RemoveFileFromCommit():
     if not CurrentManagedRepo:
@@ -8894,19 +8833,19 @@ def RemoveFileFromCommit():
             Result.stdout.strip()
         )
     except Exception as e:
-        messagebox.showerror(
-            "Remove File Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Remove Failed?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def ClearCurrentCommit():
     if not CurrentManagedRepo:
         return
     RepoPath = CurrentManagedRepo["Path"]
-    Confirm = messagebox.askyesno(
-        "Clear Commit",
-        "Remove all files from the current staged commit?"
-    )
+
+    Confirm = NullMessageBox(Root,
+    "Clear The Commit?",
+    "You sure you want to remove everything from the current commit?",
+    ("SureWhyNot", "No Thanks")
+    ).Show()
+
     if not Confirm:
         return
     try:
@@ -8927,18 +8866,19 @@ def ClearCurrentCommit():
             "All staged files removed."
         )
     except Exception as e:
-        messagebox.showerror(
-            "Clear Commit Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Well That failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def StashAndPull():
     if not CurrentManagedRepo:
         return
     RepoPath = CurrentManagedRepo["Path"]
-    Confirm = messagebox.askyesno(
-        "Stash all local changes and pull latest from remote?\n\nThis will overwrite your current workflow state."
-    )
+    
+    Confirm = NullMessageBox(Root,
+    "Stash That Shit?",
+    "Yup abandon all and pull the current. \n Sure you want to do this?",
+    ("SureWhyNot", "No Thanks")
+    ).Show()
+
     if not Confirm:
         return
 
@@ -8972,10 +8912,7 @@ def StashAndPull():
         SaveConfig("NullGit")
 
     except Exception as e:
-        messagebox.showerror(
-            "Stash And Pull Failed",
-            str(e)
-        )
+        NullMessageBox(Root,"Well That Failed",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 # ————————————————————————————————————————————————————————————
 # NullFocus
@@ -9115,7 +9052,7 @@ def AddNewTracker(Name=None, Loading=False):
     global AppClassification
     Frame = nulltk.Frame(ClassiciationListContainer, pady=5)
     Frame.pack(fill="x", expand=True)
-    TrackerFrame = nulltk.Frame(Frame, bd=2, relief="solid", pady=2)
+    TrackerFrame = nulltk.Frame(Frame, pady=2)
 
     TrackerFrame.pack(fill="x", expand=True)
     TrackerFrame.columnconfigure(0, weight=0)
@@ -9263,7 +9200,7 @@ def FormatWindowName(WindowName):
 def DeleteCategoryWindow(Category):
     global TrackerPopup
 
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     TrackerPopup = Popup
     Popup.title(f"Remove {Category} Window")
     Popup.geometry("300x400")
@@ -9355,7 +9292,7 @@ def AddIgnoredTracker():
     return
 
 def DeleteIgnoredTracker():
-    Popup = tk.Toplevel(Root)
+    Popup = nulltk.Toplevel(Root)
     Popup.title("Remove Ignored Tracker")
     Popup.geometry("300x400")
     Popup.grab_set()
@@ -10447,7 +10384,7 @@ def CreateCustomEmojiBar(Key, DictEntry):
     EmojiFrame.columnconfigure(0,weight=1)
     CustomEmojiRows.append(EmojiFrame)
 
-    InnerEmojiFrame = nulltk.Frame(EmojiFrame, bd=2, relief="solid",)
+    InnerEmojiFrame = nulltk.Frame(EmojiFrame,)
     InnerEmojiFrame.grid(row=0,column=0, sticky="ew")
     InnerEmojiFrame.rowconfigure(0,weight=1)
     InnerEmojiFrame.columnconfigure(0,weight=1)
@@ -10497,7 +10434,7 @@ def NullMojiFocus():
 
     global PreviousWindowID, CalledWithShortcut, NullMojiSearchButtons, NullMojiPopupWindow
 
-    NullMojiPopup = tk.Toplevel(Root)
+    NullMojiPopup = nulltk.Toplevel(Root)
     NullMojiPopupWindow = NullMojiPopup
     NullMojiPopup.title("NullMoji")
     NullMojiPopup.configure(bg="#1e1e1e")
@@ -10825,11 +10762,12 @@ AboutNullWire.grid(row=3, column=0, sticky="ew", padx=5, pady=(5,0))
 link = nulltk.Label(
     NullSuiteChangeLogPage,
     text="Our Ko-fi",
-    fg="purple",
-    cursor="hand2"
+    fg="Blue",
+    cursor="hand2",
+    ThemeFG = False
 )
 link.grid(row=4, column=0, sticky="ew", padx=5, pady=(0,10))
-link.ThemeFG = False
+
 
 link.bind("<Button-1>", lambda e: webbrowser.open_new("https://ko-fi.com/nullforgestudios"))
 
@@ -10903,7 +10841,7 @@ nulltk.Frame(ProtonTop,height=3,bg="gray").grid(row=5,column=0,columnspan=3,stic
 
 ProtonVars["Close"].trace_add("write",lambda *args: SaveConfig("NullProton"))
 ProtonVars["Min"].trace_add("write",lambda *args: SaveConfig("NullProton"))
-ProtonOverlay = nulltk.Frame(ProtonScroll, bg="#000000")
+ProtonOverlay = nulltk.Frame(ProtonScroll, bg="#000000", ThemeBG = False)
 ProtonOverlay.place(relx=0, rely=0, relwidth=1, relheight=1)
 ProtonOverlay.lower()
 OverlayLabel = nulltk.Label(
@@ -10932,10 +10870,8 @@ ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=5)
 NullMonitorNotebook = nulltk.Notebook(NullMonitor)
 NullMonitorNotebook.pack(fill="both", expand=True)
 NullMonitorPage = nulltk.Frame(NullMonitorNotebook)
-NullMonitorHowToPage = nulltk.Frame(NullMonitorNotebook)
 NullMonitorWallPapersPage = nulltk.Frame(NullMonitorNotebook)
 NullMonitorNotebook.add(NullMonitorPage, text="Main")
-NullMonitorNotebook.add(NullMonitorHowToPage, text="HowTo")
 NullMonitorNotebook.add(NullMonitorWallPapersPage, text="WallPapers",state="disabled")
 NullMonitorNotebook.bind("<<NotebookTabChanged>>",NullMonitorNoteBookChange)
 # --------------- NullMonitor Main Page
@@ -11015,41 +10951,12 @@ NullMonitorScroll.pack(fill="both", expand=True, padx=5, pady=5)
 NullMonitorProfileContainer = NullMonitorScroll.Inner
 NullMonitorProfileContainer.pack(padx=(0,10),fill="x")
 NullMonitorEnabledVar = tk.BooleanVar(value=ScanForMouse)
-NullMonitorDisabledOverlay = nulltk.Frame(NullMonitorTopBar,bg="#000000")
+NullMonitorDisabledOverlay = nulltk.Frame(NullMonitorTopBar,bg="#000000", ThemeBG = False)
 NullMonitorDisabledOverlay.place(relx=0,rely=0,relwidth=1,relheight=1)
-NullMonitorOverlayText = nulltk.Label(NullMonitorDisabledOverlay,text="NullMonitor is currently disabled. When disabled, no cursor scanning occurs, and no background resources are used. Enable 'Scan For Mouse' to activate NullMonitor.",bg="#000000",fg="white")
+NullMonitorOverlayText = nulltk.Label(NullMonitorDisabledOverlay,text="NullMonitor is currently disabled. When disabled, no cursor scanning occurs, and no background resources are used. Enable 'Scan For Mouse' to activate NullMonitor.",bg="#000000",fg="white", ThemeBG = False)
 NullMonitorOverlayText.pack(anchor="center")
 NullMonitorToggle = nulltk.Checkbutton(NullMonitorCheck,text="Scan For Mouse",variable=NullMonitorEnabledVar,command=ToggleNullMonitor)
 NullMonitorToggle.grid(row=0,column=1,columnspan=2,pady=(5,0))
-# --------------- NullMonitor HowTo Page
-NullMonitorMainRowHT = nulltk.Frame(NullMonitorHowToPage)
-NullMonitorMainRowHT.pack(fill="both",pady=20)
-NullMonitorHowToUse = nulltk.Label(NullMonitorMainRowHT, 
-text = 
-"Step 1. When you first launch NullMonitor, a default profile is created for you automatically. This profile uses your current monitor layout.\n\n"
-
-"Step 2. If you want multiple setups, type a name into the box at the top and click \"Create Profile\". Otherwise, you can just use the default profile.\n\n"
-
-"Step 3. Make sure a profile is active. Only one profile should be active at a time. When active, your warps will function.\n\n"
-
-"Step 4. Click \"Create Warp\". You will be prompted to click a monitor to warp FROM, then a monitor to warp TO.\n\n"
-
-"Step 5. After selecting both monitors, choose the edge or corner where your cursor leaves, and where it should appear.\n\n"
-
-"Step 6. Once created, moving your mouse to that edge will teleport it to the target monitor.\n\n"
-
-"Step 7. If you want to remove a warp, click \"Delete Warp\" and select the one you no longer want.\n\n"
-
-"Step 8. Use the settings at the top to adjust behavior:\n"
-"Detection: How early the program detects you're near an edge.\n"
-"EdgeBuffer: How many pixels past the edge are required before warping.\n"
-"ScanTime: How often your cursor position is checked.\n\n"
-
-"Step 9. Hover over the Detection and Edge settings to preview their effect visually on your monitors.\n\n"
-
-"Bonus: Lower ScanTime makes warps feel faster, but uses more CPU. Higher values are lighter, but may feel slightly delayed."
-)
-NullMonitorHowToUse.pack(fill="both")
 # --------------- NullMonitor Wallpaper Page
 
 NullMonitorWallPapersPage.columnconfigure(0,weight=1)
@@ -11084,10 +10991,8 @@ NullWireNotebook = nulltk.Notebook(NullWire)
 NullWireNotebook.pack(fill="both", expand=True)
 NullWireRoutingPage = nulltk.Frame(NullWireNotebook)
 NullWireDevicesPage = nulltk.Frame(NullWireNotebook)
-NullWireHowTo = nulltk.Frame(NullWireNotebook)
 NullWireNotebook.add(NullWireRoutingPage, text="Wires")
 NullWireNotebook.add(NullWireDevicesPage, text="Devices")
-NullWireNotebook.add(NullWireHowTo, text = "How To")
 # --------------- Routing Page
 NullWireRoutingTop = nulltk.Frame(NullWireRoutingPage)
 NullWireRoutingTop.pack(fill="x")
@@ -11111,19 +11016,6 @@ NullWireDivider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
 NullWireDivider.grid(row=0, column=1, sticky="ns")
 NullWireRightColumn = nulltk.Frame(NullWireMainRow)
 NullWireRightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
-# --------------- How To Page
-NullWireMainRowHT = nulltk.Frame(NullWireHowTo)
-NullWireMainRowHT.pack(fill="both",pady=20)
-NullWireHowToUse = nulltk.Label(NullWireMainRowHT, 
-text = "Step 1. In the Devices Page. Go to A1. Click \"Set\", and Select your Audio Output Device. It does not have to be your default device.\n\n" \
-"Step 2. Now in Wires Page. In the white long box. Type a name, and then click \"Add\".\n\n"\
-"Step 3. You now have a routing wire. Click on the A1 toggle inside the box. This allows audio to go from the Wire, into your Audio Device.\n\n"\
-"Step 4. Within your wire, there is \"Attach\" and \"Remove\" boxes. Have audio be playing (e.g. spotify, or a youtube video or something). Click attach, and then select that Audio Source.\n\n"\
-"Step 5. Now that your Audio source is connected. It will go into your wire, and then pass through to your Audio Device.\n\n"\
-"Step 6? If you're using NullWire for streaming. Wires will show up as an Audio Output. So you may now attach your wire into OBS, and if you don't wish to also hear it? Uncheck the A1 box.\n\n"\
-"Bonus: Feel free to mess around with settings and such. However, for equalization, and other special effects. I recommend EasyEffects"
-    )
-NullWireHowToUse.pack(fill="both")
 # ------------------------------
 # Null Git UI
 # ------------------------------
@@ -11133,29 +11025,29 @@ NullGitMainPage = nulltk.Frame(NullGitNotebook)
 NullGitManagePage = nulltk.Frame(NullGitNotebook)
 NullGitNotebook.add(NullGitMainPage, text="Repos")
 NullGitNotebook.add(NullGitManagePage, text="Manage")
-NullGitNotebook.tab(NullGitManagePage,state="disabled")
 NullGitNotebook.bind("<<NotebookTabChanged>>",OnNotebookChanged)
 # -------------- Main Page
-NullGitMainPage.rowconfigure(0, weight=0)
-NullGitMainPage.rowconfigure(1, weight=0)
-NullGitMainPage.rowconfigure(2, weight=0)
-NullGitMainPage.rowconfigure(3, weight=0)
-NullGitMainPage.rowconfigure(4, weight=0)
-NullGitMainPage.rowconfigure(5, weight=0)
-NullGitMainPage.rowconfigure(6, weight=0)
-NullGitMainPage.rowconfigure(7, weight=0)
-NullGitMainPage.rowconfigure(8, weight=1)
-NullGitMainPage.columnconfigure(0, weight=0)
-NullGitMainPage.columnconfigure(1, weight=2)
-NullGitMainPage.columnconfigure(2, weight=0)
+NullGitMainPage.rowconfigure(0, weight=1)
+NullGitMainPage.columnconfigure(0, weight=1)
 NullGitInputPath = tk.StringVar()
 NullGitCreateRepoPath = tk.StringVar()
 NullGitCreateRepoLink = tk.StringVar()
 NullGitClonePath = tk.StringVar()
 NullGitCloneLink =tk.StringVar()
 
-NullGitOptionsArea = nulltk.LabelFrame(NullGitMainPage, text= "NullGit Options", bd=2, relief="solid")
-NullGitOptionsArea.grid(row=0, column=0, sticky="ew", columnspan=99, padx=5)
+NullGitReposList = ScrollableFrame(NullGitMainPage)
+NullGitReposList.grid(row=0, column=0, sticky="nsew", padx=5, columnspan=3)
+
+NullGitcontainer = NullGitReposList.Inner
+DownloadOverlay = nulltk.Frame(NullGit,bg="#000000", ThemeBG = False)
+DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
+DownloadOverlayLabel.pack(expand=True)
+nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
+
+
+NullGitOptionsArea = nulltk.LabelFrame(NullGitcontainer, text= "NullGit Options")
+#NullGitOptionsArea.grid(row=0, column=0, sticky="ew", columnspan=99, padx=5)
+NullGitOptionsArea.pack(fill="x", padx=5, pady=5)
 NullGitOptionsArea.columnconfigure(0, weight=1)
 NullGitOptionsArea.columnconfigure(1, weight=1)
 NullGitCheckUpdates = nulltk.Button(NullGitOptionsArea, text="Check For Updates",command=lambda:BuildRepoList())
@@ -11166,16 +11058,18 @@ InstallGithubButton.grid_forget()
 
 
 
-NullGitAddRepo = nulltk.LabelFrame(NullGitMainPage, text= "Add A Repo", bd=2, relief="solid")
-NullGitAddRepo.grid(row=1, column=0, sticky="ew", columnspan=99, padx=5)
+NullGitAddRepo = nulltk.LabelFrame(NullGitcontainer, text= "Add A Repo")
+#NullGitAddRepo.grid(row=1, column=0, sticky="ew", columnspan=99, padx=5)
+NullGitAddRepo.pack(fill="x", padx=5, pady=5)
 NullGitAddRepo.columnconfigure(1, weight=1)
 nulltk.Button(NullGitAddRepo, text="Browse For Repo", width =16,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="e", padx=5, pady=5)
 nulltk.Entry(NullGitAddRepo,width=30,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
 nulltk.Button(NullGitAddRepo, text="Add Repo", width =16,command=lambda: AddRepo(NullGitInputPath.get())).grid(row=0, column=2, sticky="e", padx=5)
 
 
-NullGitCreateRepo = nulltk.LabelFrame(NullGitMainPage, text= "Create Repo", bd=2, relief="solid")
-NullGitCreateRepo.grid(row=2, column=0, sticky="ew", columnspan=99, padx=5)
+NullGitCreateRepo = nulltk.LabelFrame(NullGitcontainer, text= "Create Repo")
+#NullGitCreateRepo.grid(row=2, column=0, sticky="ew", columnspan=99, padx=5)
+NullGitCreateRepo.pack(fill="x", padx=5, pady=5)
 NullGitCreateRepo.columnconfigure(1, weight=1)
 NullGitCreateRepo.columnconfigure(2, weight=1)
 nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
@@ -11183,25 +11077,27 @@ nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state
 nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=0, column=2, sticky="ew")
 nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=0, column=3, sticky="ew", padx=5)
 
-NullGitCloneRepo = nulltk.LabelFrame(NullGitMainPage, text= "Clone Repo", bd=2, relief="solid")
-NullGitCloneRepo.grid(row=3, column=0, sticky="ew", columnspan=99, pady=(0, 10), padx=5)
+NullGitCloneRepo = nulltk.LabelFrame(NullGitcontainer, text= "Clone Repo")
+#NullGitCloneRepo.grid(row=3, column=0, sticky="ew", columnspan=99, pady=(0, 10), padx=5)
+NullGitCloneRepo.pack(fill="x", padx=5, pady=5)
 NullGitCloneRepo.columnconfigure(1, weight=1)
 NullGitCloneRepo.columnconfigure(2, weight=1)
 nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
 nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7").grid(row=0, column=2, sticky="ew")
+GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
+GitCloneRepoEntry.grid(row=0, column=2, sticky="ew")
+ToolTip(GitCloneRepoEntry, "Paste the github link here. you do not need to add \"git\", just the link to the webpage will suffice.")
+
 nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=0, column=3, sticky="w", padx=5)
 
 
 
+NullGitSep = nulltk.Frame(NullGitcontainer,height=12, Reversed = True)
+NullGitSep.pack(fill="x", padx=1, pady=(10,5))
 
-NullGitReposList = ScrollableFrame(NullGitMainPage)
-NullGitReposList.grid(row=8, column=0, sticky="nsew", padx=5, columnspan=3)
-NullGitcontainer = NullGitReposList.Inner
-DownloadOverlay = nulltk.Frame(NullGit,bg="#000000")
-DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
-DownloadOverlayLabel.pack(expand=True)
-nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
+
+
+
 
 # --------------- manage
 ManageRemoteURL = tk.StringVar()
@@ -11422,7 +11318,7 @@ CycleText.grid(row=1, column=2, sticky="ew")
 BreakDownText = nulltk.Label(NullFocusLogsPageInner, text= f"Breakdown")
 BreakDownText.grid(row=1, column=3, sticky="ew")
 CurrentLogView = tk.StringVar(value = "")
-YearChoicesBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+YearChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
 YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=5, pady=5)
 YearChoicesBox.rowconfigure(0,weight=1)
 YearChoicesBox.columnconfigure(0,weight=1)
@@ -11431,7 +11327,7 @@ YearChoices.pack(fill="both", expand=True, anchor="n")
 YearChoicesButtons = YearChoices.Inner
 YearChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-MonthChoicesBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+MonthChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
 MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=5, pady=5)
 MonthChoicesBox.rowconfigure(0,weight=1)
 MonthChoicesBox.columnconfigure(0,weight=1)
@@ -11440,7 +11336,7 @@ MonthChoices.pack(fill="both", expand=True, anchor="n")
 MonthChoicesButtons = MonthChoices.Inner
 MonthChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-CycleChoicesBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+CycleChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
 CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=5, pady=5)
 CycleChoicesBox.rowconfigure(0,weight=1)
 CycleChoicesBox.columnconfigure(0,weight=1)
@@ -11449,7 +11345,7 @@ CycleChoices.pack(fill="both", expand=True, anchor="n")
 CycleChoicesButtons = CycleChoices.Inner
 CycleChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 
-LogDataBox = nulltk.Frame(NullFocusLogsPageInner, bd=2, relief="solid")
+LogDataBox = nulltk.Frame(NullFocusLogsPageInner)
 LogDataBox.grid(row=2,column=3, sticky="nsew",padx=5, pady=5)
 LogDataBox.rowconfigure(0,weight=1)
 LogDataBox.columnconfigure(0,weight=1)
@@ -11518,7 +11414,7 @@ NullMojiMainPage.columnconfigure(0, weight=1)
 NullMojiMainPage.columnconfigure(1, weight=1)
 NullMojiMainPage.columnconfigure(2, weight=1)
 NullMojiMainPage.rowconfigure(0, weight=1)
-NullMojiAllEmojisColumn = nulltk.Frame(NullMojiMainPage, bd=2, relief="solid")
+NullMojiAllEmojisColumn = nulltk.Frame(NullMojiMainPage)
 NullMojiAllEmojisColumn.grid(row=0,column=0, sticky="nsew")
 NullMojiAllEmojisColumn.columnconfigure(0, weight=1)
 NullMojiAllEmojisColumn.rowconfigure(0, weight=0)
@@ -11529,7 +11425,7 @@ NullMojiAllEmojisColumnList = ScrollableFrame(NullMojiAllEmojisColumn)
 NullMojiAllEmojisColumnList.grid(row=1, column=0, sticky="ewns",columnspan=2)
 NullMojiAllEmojisInner = NullMojiAllEmojisColumnList.Inner
 NullMojiSearchBarVar = tk.StringVar(value = "")
-NullMojiAllSearchColumn= nulltk.Frame(NullMojiMainPage, bd=2, relief="solid")
+NullMojiAllSearchColumn= nulltk.Frame(NullMojiMainPage)
 NullMojiAllSearchColumn.grid(row=0,column=1, sticky="nsew")
 NullMojiAllSearchColumn.columnconfigure(0, weight=1)
 NullMojiAllSearchColumn.columnconfigure(1, weight=0)
@@ -11558,7 +11454,7 @@ NullMojiAllRecentColumnListInner = NullMojiAllRecentColumnList.Inner
 NullMojiCustomEmojiBarEmojiVar = tk.StringVar(value = "")
 NullMojiCustomEmojiBarNameVar = tk.StringVar(value = "")
 
-NullMojiAllCustomsColumn= nulltk.Frame(NullMojiMainPage, bd=2, relief="solid")
+NullMojiAllCustomsColumn= nulltk.Frame(NullMojiMainPage)
 NullMojiAllCustomsColumn.grid(row=0,column=2, sticky="nsew")
 NullMojiAllCustomsColumn.columnconfigure(0, weight=1)
 NullMojiAllCustomsColumn.columnconfigure(1, weight=0)

@@ -50,11 +50,6 @@ def ApplyThemeToWidget(Widget):
 
         if getattr(Widget, "ThemeBG", True):
             Widget.config(bg=BG(0))
-
-    elif isinstance(Widget, Frame):
-        Widget.config(
-            bg=BG()
-        )
     elif isinstance(Widget, LabelFrame):
 
         if getattr(Widget, "ThemeFG", True):
@@ -66,6 +61,16 @@ def ApplyThemeToWidget(Widget):
         Widget.config(highlightbackground=FG(-25),
         highlightcolor=FG(25))
 
+    elif isinstance(Widget, Frame):
+
+        if getattr(Widget, "ThemeBG", True):
+            Widget.config(bg=BG())
+
+        if getattr(Widget, "Reversed", True):
+            Widget.config(bg=FG())
+
+        
+    
     elif isinstance(Widget, Checkbutton):
         if getattr(Widget, "ThemeFG", True):
             Widget.config(fg=FG(25))
@@ -130,6 +135,8 @@ def ApplyThemeToWidget(Widget):
         Widget.config(
             bg=BG()
         )
+
+
     elif isinstance(Widget, Notebook):
         Style = ttk.Style()
 
@@ -208,6 +215,7 @@ def ApplyThemeToWidget(Widget):
             )
 
         Widget.configure(style="Null.TCombobox")
+        ThemeComboPopup(Widget)
     elif isinstance(Widget, Separator):
         pass
     elif isinstance(Widget, Tk):
@@ -228,8 +236,8 @@ def ApplyTheme(WhichTheme):
                 
             else:
                 ThemeWidgets.remove(Widget)
-        except:
-            pass
+        except Exception as e:
+            print(type(e).__name__, e)
 
 def RegisterThemeWidget(widget):
     if widget not in ThemeWidgets:
@@ -261,80 +269,100 @@ def ThemeComboPopup(Widget):
     except Exception as e:
         print(e)
 
+def InitThemeWidget(self, kwargs):
+    self.ThemeFG = kwargs.pop("ThemeFG", True)
+    self.ThemeBG = kwargs.pop("ThemeBG", True)
+    self.Reversed = kwargs.pop("Reversed", False)
+
 class Frame(tk.Frame):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class LabelFrame(tk.LabelFrame):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Label(tk.Label):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Button(tk.Button):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Checkbutton(tk.Checkbutton):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Scale(tk.Scale):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Entry(tk.Entry):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Text(tk.Text):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Canvas(tk.Canvas):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Scrollbar(tk.Scrollbar):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Toplevel(tk.Toplevel):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Notebook(ttk.Notebook):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
 
         RegisterThemeWidget(self)
 
 class Combobox(ttk.Combobox):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Separator(ttk.Separator):
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
         RegisterThemeWidget(self)
 
 class Tk(tk.Tk):
 
     def __init__(self, *args, **kwargs):
+        InitThemeWidget(self, kwargs)
         super().__init__(*args, **kwargs)
 
         RegisterThemeWidget(self)
