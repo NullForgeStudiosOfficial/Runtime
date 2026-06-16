@@ -254,7 +254,7 @@ Repos = {}
 RepoBoxes = []
 CurrentManagedRepo = None
 CurrentDownloadProcess = None
-
+NullGitDividers = []
 # ------------------------------
 # NullFocus
 # ------------------------------
@@ -8199,7 +8199,7 @@ def GetReleaseDisplay(Repo):
     return Data.get("tag_name", "Unknown Release")
 
 def AddRepoObject(Repo):
-    global RepoBoxes
+    global RepoBoxes,NullGitDividers
     Frame = nulltk.LabelFrame(NullGitcontainer, text=Repo["Name"])
     Frame.pack(fill="x", padx=5, pady=5)
     Frame.columnconfigure(0, weight=0)
@@ -8290,11 +8290,18 @@ def AddRepoObject(Repo):
 
     RepoNullGitSep = nulltk.Frame(NullGitcontainer,height=6,Reversed = True)
     RepoNullGitSep.pack(fill="x", padx=1, pady=(10,5))
+
+    NullGitDividers.append(RepoNullGitSep)
     
 
 
 def BuildRepoList():
-    global RepoBoxes
+    global RepoBoxes, NullGitDividers
+
+    for div in NullGitDividers:
+        NullGitDividers.destroy()
+
+    NullGitDividers.clear()
 
     for Box in RepoBoxes:
         Box.destroy()
