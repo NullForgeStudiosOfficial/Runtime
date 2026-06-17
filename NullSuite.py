@@ -624,7 +624,7 @@ class NullMessageBox(nulltk.Toplevel):
         MessageLabel = nulltk.Label(
             MainFrame,
             text=message,
-            justify="left",
+            justify="center",
             wraplength=800
         )
         MessageLabel.pack(fill="x", pady=(0,10))
@@ -640,7 +640,7 @@ class NullMessageBox(nulltk.Toplevel):
                 text=ButtonName,
                 command=lambda value=ButtonName: self.ButtonPressed(value)
             )
-            TheButton.pack(side="right", padx=5)
+            TheButton.pack(side="right", padx=5, anchor="we")
             if DefaultButton is None:
                 DefaultButton = TheButton
 
@@ -6974,10 +6974,10 @@ def PushGit(Repo, CommitMessage, Status, updatethisvar):
 
 
     except subprocess.CalledProcessError as e:
-        NullMessageBox(Root,"Push Failed",f"Sorry about that \n {e.stderr}", ("Ok...",)).Show()
+        NullMessageBox(Root,"Push Failed",f"Sorry about that \n {e}", ("Ok...",)).Show()
 
     except Exception as e:
-        NullMessageBox(Root,"Push Failed",f"{str(e)}", ("Ok...",)).Show()
+        NullMessageBox(Root,"Push Failed",f"Sorry about that \n {str(e)}", ("Ok...",)).Show()
 
 def PullRepo(Repo, StatusVar):
     Selected = Repo.get(
