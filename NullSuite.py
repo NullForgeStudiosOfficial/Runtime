@@ -276,12 +276,12 @@ def LoadConfig():
         nullsuite = data.get("NullSuite", {})
 
         Modules = {
-        "NullWire": {
-            "Config": "NullWireActive",
-            "Toggle": NullWireActive,
-            "Start": StartUpNullWire,
-            "Tab": NullWire,
-        },
+        #"NullWire": {
+        #    "Config": "NullWireActive",
+        #    "Toggle": NullWireActive,
+        #    "Start": StartUpNullWire,
+        #    "Tab": NullWire,
+        #},
 
         "NullMonitor": {
             "Config": "NullMonitorActive",
@@ -416,9 +416,10 @@ def SaveConfig(Which, FirstTimeSetup=False):
         elif Which == "NullWire":
             data.update({
             "NullWire": {
-            "Sinks": Sinks,
-            "DevicesA": Devices["A"],
-            "DevicesM": Devices["M"]
+                "OutputWires": OutputWires,
+                "InputWires":  InputWires,
+                "AudioSources": AudioSources
+
             }
         })
 
@@ -523,27 +524,16 @@ def ChangeTheme():
 class ScrollableFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-
         self.Canvas = nulltk.Canvas(self, highlightthickness=0)
-
         scrollbar = nulltk.Scrollbar(self, orient="vertical", command=self.Canvas.yview)
-
         self.Inner = nulltk.Frame(self.Canvas)
-
         self.Window = self.Canvas.create_window((0, 0), window=self.Inner, anchor="nw")
-
         self.Inner.bind("<Configure>", lambda e: self.Canvas.configure(scrollregion=self.Canvas.bbox("all")))
-
         self.Canvas.bind("<Configure>", lambda e: self.Canvas.itemconfig(self.Window, width=e.width))
-
         self.Canvas.configure(width=0)
-
         self.Canvas.configure(yscrollcommand=scrollbar.set)
-
         self.Canvas.pack(side="left", fill="both", expand=True)
-
         scrollbar.pack(side="right", fill="y")
-
         self.BindMouseWheel(self.Inner)
 
     def BindMouseWheel(self, widget):
@@ -580,6 +570,7 @@ class HoriScrollableFrame(tk.Frame):
         self.Window = self.Canvas.create_window((0, 0),window=self.Inner,anchor="nw")
         self.Inner.bind("<Configure>",lambda e: self.Canvas.configure(scrollregion=self.Canvas.bbox("all")))
         self.Canvas.bind("<Configure>",lambda e: self.Canvas.itemconfig(self.Window,height=e.height))
+        self.Canvas.configure(height=0)
         self.Canvas.configure(xscrollcommand=self.Scrollbar.set)
         self.Canvas.pack(side="top",fill="both",expand=True)
         self.Scrollbar.pack(side="bottom",fill="x")
@@ -611,15 +602,13 @@ class NullMessageBox(nulltk.Toplevel):
 
         self.title(title)
         self.resizable(False, False)
-        self.geometry("1000x100")
+        self.geometry("1000x500")
 
         self.transient(parent)
         self.grab_set()
 
         MainFrame = nulltk.Frame(self)
         MainFrame.pack(fill="both", expand=True, padx=10, pady=10)
-
-        print(repr(message))
 
         MessageLabel = nulltk.Label(
             MainFrame,
@@ -1006,8 +995,8 @@ NullSuiteTogglesOptions.rowconfigure(0,weight=0)
 NullSuiteTogglesOptions.columnconfigure(0,weight=0)
 NullSuiteTogglesOptions.columnconfigure(1,weight=0)
 NullSuiteTogglesOptions.columnconfigure(2,weight=0)
-NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
-NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
+#NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
+#NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
 NullMonitorActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMonitor?", variable=NullMonitorActive,command=lambda: UpdateStartUpToggles("Cursor"))
 NullMonitorActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
 NullMidiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMidi?", variable=NullMidiActive,command=lambda: UpdateStartUpToggles("Midi"))
@@ -1582,6 +1571,7 @@ LastHiHatState = "Open"
 NewHiHatState = "Open"
 HiHatHitHafClosedTime = time.time()
 WindowSelection = []
+LoadedSounds = {}
 
 def CancelActiveCapture():
     ActiveCapture["Cancel"] = True
@@ -11000,120 +10990,36 @@ def StartUpNullMoji():
 #endregion
 
 #region NullWire
+OutputWires = {}
+InputWires = {}
+AudioSources = {}
 
-LoadedSounds = {}
-Sinks = {}
-Devices = {
-    "A": {f"A{i}": None for i in range(1, 21)},
-    "M": {f"M{i}": None for i in range(1, 21)}
-}
-OutputDevices = []
-OutputDeviceSelection = []
-InputDevices = []
-InputDeviceSelection = []
-AudioSources = []
+OutputRows = {}
+InputRows = {}
+SourceRows = {}
+
+LastOutputs = set()
+LastInputs = set()
+LastSources = set()
+
+CurrentOutputs = []
+CurrentInputs = []
+CurrentSources = []
+
 IgnoreSources = [
     "speech-dispatcher",
     "speech-dispatcher-dummy",
 ]
 
-def RefreshOutputDevices():
-    global OutputDevices
+def GetAllAudioSources():
+    global CurrentSources
 
-    try:
-        out = subprocess.check_output(["pactl", "list", "sinks"]).decode()
-    except:
-        OutputDevices = []
-        return
-
-    devices = []
-    current = {}
-
-    for line in out.splitlines():
-        line = line.strip()
-
-        if line.startswith("Name:"):
-            current["SystemID"] = line.split(":", 1)[1].strip()
-
-        elif line.startswith("Description:"):
-            current["UIName"] = line.split(":", 1)[1].strip()
-
-            if "SystemID" in current:
-                devices.append(current)
-                current = {}
-
-    OutputDevices = devices
-
-def BuildOutputSelectionList():
-    global OutputDeviceSelection
-    RefreshOutputDevices()
-    used_ids = set()
-
-    for slot in Devices["A"].values():
-        if slot and "ID" in slot:
-            used_ids.add(slot["ID"])
-
-    OutputDeviceSelection = []
-
-    for device in OutputDevices:
-        if device["SystemID"] not in used_ids:
-            OutputDeviceSelection.append(device)
-
-    return OutputDeviceSelection
-
-def RefreshInputDevices():
-    global InputDevices
-
-    try:
-        out = subprocess.check_output(["pactl", "list", "sources"]).decode()
-    except:
-        InputDevices = []
-        return
-
-    devices = []
-    current = {}
-
-    for line in out.splitlines():
-        line = line.strip()
-
-        if line.startswith("Name:"):
-            current["SystemID"] = line.split(":", 1)[1].strip()
-
-        elif line.startswith("Description:"):
-            current["UIName"] = line.split(":", 1)[1].strip()
-
-            if "SystemID" in current:
-                if ".monitor" not in current["SystemID"]:
-                    devices.append(current)
-                current = {}
-
-    InputDevices = devices
-
-def BuildInputSelectionList():
-    global InputDeviceSelection
-    RefreshInputDevices()
-    used_ids = set()
-
-    for slot in Devices["M"].values():
-        if slot and "ID" in slot:
-            used_ids.add(slot["ID"])
-
-    InputDeviceSelection = []
-
-    for device in InputDevices:
-        if device["SystemID"] not in used_ids:
-            InputDeviceSelection.append(device)
-
-    return InputDeviceSelection
-
-def GetAudioSources():
-    global AudioSources
     try:
         out = subprocess.check_output(["pactl", "list", "sink-inputs"]).decode()
     except:
         return []
-
-    sources = []
+    
+    CurrentSources = []
 
     for line in out.splitlines():
         line = line.strip()
@@ -11121,945 +11027,339 @@ def GetAudioSources():
         if "application.name" in line:
             name = line.split("=", 1)[1].strip().strip('"')
 
-            if any(ignore in name for ignore in IgnoreSources):
-                continue
+            if name not in CurrentSources:
+                CurrentSources.append(name)
+    return
 
-            if name not in sources:
-                sources.append(name)
 
-    AudioSources = sources
-    return sources
+def AddOutputWire():
 
-def GetAudioDeviceSystemVolume(DeviceID):
-    try:
-        out = subprocess.check_output(
-            ["pactl", "get-sink-volume", DeviceID]
-        ).decode()
+    return
 
-        for part in out.split():
-            if "%" in part:
-                return int(part.replace("%", ""))
-    except:
-        pass
+def AddInputWire():
 
-    return 0
+    return
 
-def GetMicrophoneSystemVolume(source):
-    try:
-        out = subprocess.check_output(
-            ["pactl", "get-source-volume", source]
-        ).decode()
 
-        for part in out.split():
-            if "%" in part:
-                return int(part.replace("%", ""))
-    except:
-        pass
+def SpawnOutputToSourcePopUp(source, Adding=True):
 
-    return 0
+    AvailableWires = []
 
-def ResolveSinkID(name):
-    for d in OutputDevices:
-        if d["UIName"] == name:
-            return d["SystemID"]
-    return None
-
-def ResolveSourceID(target_name):
-    out = subprocess.check_output(["pactl", "list", "short", "sources"]).decode()
-    for line in out.splitlines():
-        parts = line.split()
-        idx = parts[0]
-        name = parts[1]
-        if target_name in name:
-            return idx
-
-    return None
-
-def IsOutputEnabled(Sink, key):
-    return Sink["Outputs"].get(key, False)
-
-def IsInputEnabled(Sink, key):
-    return Sink["Inputs"].get(key, False)
-
-def AddRoutingObject():
-    global Sinks
-    name = NullWireRoutingEntry.get()
-    name = name.replace(" ", "")
-    if not name:
-        Log("WHATDOESTHISMEAN")
-        name = f"Sink {len(Sinks)}"
-
-    name = name + "_NullWire"
-    new = {"Mono": False, "Mute":False, "Outputs": {f"A{i}": False for i in range(1, 21)},"Inputs":  {f"M{i}": False for i in range(1, 21)},"Sources": [],"Volume": 100,"DeleteConfirmation": False}
-    Sinks[name] = new
-    subprocess.run([NWPath,"CreateSink",name])
-    SaveConfig("NullWire")
-    RefreshRoutingUI()
-    NullWireRoutingEntry.delete(0, tk.END)
-
-def AddRoutingBlock(NameOfSink, Sink):
-    Frame = nulltk.Frame(NullWireRoutingObjects)
-    Frame.pack(fill="x", padx=5, pady=5)
-    Frame.columnconfigure(0, weight=1)
-    Frame.rowconfigure(0, weight=1)
-    Frame.rowconfigure(1, weight=1)
-    Frame.rowconfigure(2, weight=1)
-    Frame.rowconfigure(3, weight=1) 
-    Frame.rowconfigure(4, weight=1)
-    Frame.rowconfigure(5, weight=1)
-    nulltk.Frame(Frame, height=5)\
-    .grid(row=5, column=0, columnspan=3)
-
-    
-    # ==============================
-    # TOP ROW (DELETE + NAME)
-    # ==============================
-    def Delete(NameOfSink, Sink, Button,Timeout=4):
-        global Sinks
-
-        EndTime = time.time() + (Timeout)
-
-        def Tick(Sink):
-            if Sink == None:
-                return
-            else:
-                Remaining = int(EndTime - time.time())
-                if Remaining <= 0:
-                    if not Button.winfo_exists():
-                        return
-                    Button.config(text="Delete Wire")
-                    Sink['DeleteConfirmation'] = False
-                    return
-                if not Button.winfo_exists():
-                    return
-                else:
-                    Button.config(text=f"R U Sure? {Remaining}")
-                    Root.after(1000, Tick, Sink)
-
-        if Sink['DeleteConfirmation'] == False:
-            Sink['DeleteConfirmation'] = True
-            Tick(Sink)
-            return
-        
-
-        Sinks.pop(NameOfSink)
-        subprocess.run([NWPath,"DeleteSink",NameOfSink,])
-        SaveConfig("NullWire")
-        RefreshRoutingUI()
-
-    Column0 = nulltk.Frame(Frame)
-    Column0.grid(row=0, column=0, sticky="ew", padx=5)
-    Column0.columnconfigure(0, weight=0)  
-    Column0.columnconfigure(1, weight=0)  
-    Column0.columnconfigure(2, weight=0)  
-    Column0.columnconfigure(3, weight=2) 
-    Column0.columnconfigure(3, weight=1) 
-
-    DeleteSinkButton = nulltk.Button(Column0, text="Delete Wire", command=lambda: Delete(NameOfSink, Sink,DeleteSinkButton), width = 12)
-    DeleteSinkButton.grid(row=0, column=0, padx=5, pady=5, sticky="w")
-    
-    MonoVar = tk.BooleanVar(value=Sink.get("Mono", False))
-    MuteVar = tk.BooleanVar(value=Sink.get("Mute", False))
-    InnerFrame = nulltk.Frame(Column0)
-    InnerFrame.grid(row=0, column=3, sticky="ew", padx=2)
-    InnerFrame.columnconfigure(0, weight=1)
-    display_name = NameOfSink.replace("_NullWire", "")
-    nulltk.Label(InnerFrame, text=display_name, anchor="w")\
-    .grid(row=0, column=0, sticky="ew")
-    volume_frame = nulltk.Frame(Column0)
-    volume_frame.grid(row=0, column=4, sticky="ew", padx=5)
-    volume_frame.columnconfigure(0, weight=1)
-    start_vol = Sink.get("Volume", 100)
-    vol_var = tk.StringVar(value=str(start_vol))
-    after_id = None
-
-    def ApplyVolume():
-        volumenumber = scale.get()
-        Sink["Volume"] = volumenumber
-        SaveConfig("NullWire")
-        subprocess.run([NWPath,"SetSinkVolume",NameOfSink,str(volumenumber)])
-
-    def ScheduleApply():
-        nonlocal after_id
-        if after_id:
-            Root.after_cancel(after_id)
-        after_id = Root.after(150, ApplyVolume)
-
-    def OnVolumeChange(val):
-        vol_var.set(str(int(float(val))))
-
-    # ==============================
-    # THICK DIVIDER
-    # ==============================
-    nulltk.Frame(Frame, height=3, bg="#555")\
-        .grid(row=1, column=0, columnspan=3, sticky="ew", pady=3)
-    
-    # ==============================
-    # AUDIO DEVICES ROW
-    # ==============================
-    RowA = nulltk.Frame(Frame)
-    RowA.grid(row=2, column=0, columnspan=3, sticky="ew", padx=5, pady=0)
-    RowA.columnconfigure(0, weight=1)
-    AllDevices = [f"A{i}" for i in range(1, 21)]
-    for i, device in enumerate(AllDevices):
-        RowA.columnconfigure(i, weight=1)
-        enabled = IsOutputEnabled(Sink, device)
-        var = tk.BooleanVar(value=enabled)
-        is_active = IsOutputEnabled(Sink, device)
-        exists = Devices["A"].get(device) is not None
-        def Toggle(d=device, v=var):
-            DeviceData = Devices["A"].get(d)
-            DeviceID = DeviceData["ID"]
-            if v.get():
-                logger = subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
-                Sink["Outputs"][d] = True
-            else:
-                logger = subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
-                Sink["Outputs"][d] = False
-            SaveConfig("NullWire")
-        cb = nulltk.Checkbutton(RowA,text=device,variable=var,width=3,command=Toggle,anchor="w")
-        cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
-
-        if not exists:
-            cb.config(state="disabled")
-
-    # ==============================
-    # MIC DEVICES ROW
-    # ==============================
-    RowM = nulltk.Frame(Frame)
-    RowM.grid(row=3, column=0, columnspan=3, sticky="ew", padx=5)
-    RowM.columnconfigure(0, weight=1)
-
-    # ------------------------------
-    # BUILD TOGGLES
-    # ------------------------------
-    AllMics = [f"M{i}" for i in range(1, 21)]
-
-    for i, device in enumerate(AllMics):
-        RowM.columnconfigure(i, weight=1)
-        is_active = IsInputEnabled(Sink, device)
-        var = tk.BooleanVar(value=is_active)
-        DeviceData = Devices["M"].get(device)
-        exists = DeviceData is not None
-
-        def Toggle(d=device, v=var):
-            DeviceID = Devices["M"][d]["ID"]
-            if v.get():
-                logger = subprocess.run([NWPath,"ConnectMicToSink",DeviceID,NameOfSink])
-                Log(f"NullWire ConnectMicToSink: {logger.stdout}")
-                Sink["Inputs"][d] = True
-            else:
-                logger = subprocess.run([NWPath,"RemoveMicFromSink",DeviceID,NameOfSink])
-                Log(f"NullWire RemoveMicFromSink: {logger.stdout}")
-                Sink["Inputs"][d] = False
-            SaveConfig("NullWire")
-
-        cb = nulltk.Checkbutton(RowM,text=device,variable=var,width=3,command=Toggle,anchor="w")
-        cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
-
-        if not exists:
-            cb.config(state="disabled")
-
-    # ==============================
-    # SOURCES ROW
-    # ==============================
-    SRow = nulltk.Frame(Frame)
-    SRow.grid(row=4, column=0, columnspan=3, sticky="ew", padx=5)
-    SRow.columnconfigure(2, weight=1)
-    nulltk.Button(SRow, text="Attach", width=6, command=lambda: OpenAddSourcePopup(NameOfSink, Sink))\
-    .grid(row=0, column=0, sticky="ew")
-    nulltk.Button(SRow, text="Remove", width=6, command=lambda: OpenRemoveSourcePopup(Sink))\
-    .grid(row=0, column=1, padx=(5,0), sticky="ew")
-    InnerFrameS = nulltk.Frame(SRow, bd=1, relief="solid")
-    InnerFrameS.grid(row=0, column=2, sticky="nsew", padx=5)
-    InnerFrameS.columnconfigure(0, weight=1)
-    InnerFrameS.rowconfigure(0, weight=1)
-    nulltk.Label(InnerFrameS,text = ", ".join(Sink["Sources"]) if Sink["Sources"] else "",anchor="nw",justify="left").grid(row=0, column=0, sticky="nsew")
-
-    # ==============================
-    # Mono cause why not
-    # ==============================
-
-    def ToggleMono():
-        Sink["Mono"] = MonoVar.get()
-        for d, enabled in Sink["Outputs"].items():
-            if not enabled:
-                continue
-
-            DeviceData = Devices["A"].get(d)
-            if not DeviceData:
-                continue
-
-            DeviceID = DeviceData["ID"]
-            logger = subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
-            logger = subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
-        SaveConfig("NullWire")
-
-    nulltk.Checkbutton(Column0,text="Mono?",variable=MonoVar,command=ToggleMono)\
-        .grid(row=0, column=1, padx=5, pady=5, sticky="w")
-    
-    # ==============================
-    # Mute is cool ig
-    # ==============================
-    
-    def ToggleMute():
-        Sink["Mute"] = MuteVar.get()
-        if Sink['Mute']:
-            subprocess.run([NWPath,"SetSinkVolume",NameOfSink,str(0)])
-        else:
-            ApplyVolume()
-        SaveConfig("NullWire")
-
-    nulltk.Checkbutton(Column0,text="Mute",variable=MuteVar,command=ToggleMute)\
-        .grid(row=0, column=2, padx=5, pady=5, sticky="w")
-
-    NullWireScrollArea.BindMouseWheel(Frame)
-
-    # - putting scale at the end so the feckin mouse scroll still works on it. the FUCK tkinter??? Still love you windows 1995 lookin ass bitch.
-
-    scale = nulltk.Scale(volume_frame,from_=0,to=150,orient="horizontal",showvalue=0,command=OnVolumeChange)
-    scale.grid(row=0, column=0, sticky="ew")
-    scale.bind("<ButtonRelease-1>", lambda e: ApplyVolume())
-    scale.bind("<Button-4>", lambda e: (scale.set(min(150, scale.get()+5)), ScheduleApply()))
-    scale.bind("<Button-5>", lambda e: (scale.set(max(0, scale.get()-5)), ScheduleApply()))
-    scale.set(start_vol)
-    nulltk.Label(volume_frame, textvariable=vol_var, width=3)\
-    .grid(row=0, column=1, padx=5)
-
-def OpenAddSourcePopup(name, Sink):
-    sources = GetAudioSources()
-
-    if len(sources) == 0:
-        return
+    for WireName in OutputWires.keys():
+        Attached = (WireName in AudioSources[source]["OutputWiresAttached"])
+        if Adding and not Attached:
+            AvailableWires.append(WireName)
+        elif not Adding and Attached:
+            AvailableWires.append(WireName)
 
     Popup = nulltk.Toplevel(Root)
-    Popup.title("Attach Source")
-    Popup.geometry("300x400")
+    if Adding:
+        Popup.title("Select Wire to Attach to the Audio Source")
+    else:
+        Popup.title("Select Wire to Remove From the Audio Source")
+
+    Popup.geometry("400x500")
     Popup.grab_set()
 
-    for src in sources:
-        found = False
-        owner = None
-        for n, s in Sinks.items():
-            if src in s["Sources"]:
-                owner = n
-                break
-        
-        bg = "#555555" if owner else None
-        fg = "#aaaaaa" if owner else None
-        label = src if not owner else f"{src} [FROM: {owner}]"
+    for available in AvailableWires:
+        if Adding:
+            nulltk.Button(Popup,text=available,command=lambda a=available:AttachOutputToSource(source,a,Popup)).pack(fill="x")
+        else:
+            nulltk.Button(Popup,text=available,command=lambda a=available:RemoveOutputFromSource(source,a,Popup)).pack(fill="x")
 
-        nulltk.Button(Popup,text=label,command=lambda s=src: SelectSource(name, Sink, s, Popup)).pack(fill="x")
+    return
 
-def SelectSource(name, Sink, source, Popup):
-    for s in Sinks.values():
-        if source in s["Sources"]:
-            s["Sources"].remove(source)
 
-    Sink["Sources"].append(source)
 
-    logger = subprocess.run([NWPath,"ConnectSourceToSink",source,name])
+def AttachOutputToSource(source, wire, popup=None):
+    if popup != None:
+        popup.destroy()
 
-    SaveConfig("NullWire")
-    RefreshRoutingUI()
-    Popup.destroy()
+    return
 
-def OpenRemoveSourcePopup(Sink):
-    if len(Sink["Sources"]) == 0:
+def RemoveOutputFromSource(source,wire, popup=None):
+    if popup != None:
+        popup.destroy()
+
+    return
+
+def CreateSourceRow(source):
+    global SourceRows
+    NameVariable = tk.StringVar()
+    TimeVariable = tk.StringVar()
+    IgnoreVar = tk.BooleanVar(value=False)
+    SetToIgnore = tk.BooleanVar()
+    CollapsedBool = tk.BooleanVar(value=True)
+    SetToIgnore.set(AudioSources[source]["Ignored"] or False)
+    NameVariable.set(AudioSources[source]["DisplayName"] or source)
+    CurrentTime = time.time()
+    TimeAgo = int(CurrentTime -AudioSources[source]["LastPlayed"])
+    if TimeAgo < 60:
+        DisplayText = f"{TimeAgo}s ago"
+    elif TimeAgo < 3600:
+        DisplayText = f"{TimeAgo // 60}m ago"
+    else:
+        DisplayText = f"{TimeAgo // 3600}h ago"
+
+    TimeVariable.set(DisplayText)
+
+    def CollapseSource():
+
+        if CollapsedBool.get() == True:
+            CollapsedBool.set(False)
+            InnerFrame.grid(row=1,column=1,sticky="nesw", columnspan=99)
+            CollapseButton.config(text="▼")
+        else:
+            CollapsedBool.set(True)
+            InnerFrame.grid_forget()
+            CollapseButton.config(text="▶")
+
         return
 
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Remove Source")
-    Popup.geometry("300x400")
-    Popup.grab_set()
+    def IgnoreSource(Button, Timeout=4):
+        EndTime = time.time() + Timeout
 
-    for src in Sink["Sources"]:
-        nulltk.Button(Popup,text=src,command=lambda s=src: RemoveSource(Sink, s, Popup)).pack(fill="x")
-
-def RemoveSource(Sink, source, Popup):
-    if source in Sink["Sources"]:
-        Sink["Sources"].remove(source)
-    logger = subprocess.run([NWPath,"RemoveSourceFromSink",source])
-    Log(f"NullWire RemoveSourceFromSink: {logger.stdout}")
-    SaveConfig("NullWire")
-    RefreshRoutingUI()
-    Popup.destroy()
-
-def SourceConnection(name,  source):
-    logger = subprocess.run([NWPath,"ConnectSourceToSink",source,name])
-
-def RefreshRoutingUI():
-    for w in NullWireRoutingObjects.winfo_children():
-        w.destroy()
-
-    for name, sink in Sinks.items():
-        AddRoutingBlock(name, sink)
-
-def CreateABlock(i):
-    frame = nulltk.Frame(LeftColumn, bd=1, relief="solid")
-    frame.pack(fill="x", pady=2)
-    frame.columnconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=0)
-    frame.columnconfigure(2, weight=0)
-    AKey = f"A{i}"
-    data = Devices["A"][AKey]
-    name = data["Name"] if data else "-"
-    container = nulltk.Frame(frame)
-    container.grid(row=0, column=0, sticky="nsew", padx=5)
-    container.columnconfigure(0, weight=1)
-    container.grid_propagate(False)
-
-    nulltk.Label(container, text=f"{AKey}: {name}", anchor="w")\
-        .grid(row=0, column=0, sticky="w")
-    volume = nulltk.Frame(frame)
-    volume.grid(row=0, column=1, sticky="e", padx=5)
-    volume_controls = nulltk.Frame(volume)
-    volume_controls.grid(row=0, column=0)
-    device_id = data["ID"] if data else None
-    start_vol = data.get("Volume") if data else None
-
-    if start_vol is None:
-        start_vol = GetAudioDeviceSystemVolume(device_id) if device_id else 100
-
-    vol_var = tk.StringVar(value=str(start_vol))
-    after_id = None
-
-    def ApplyVolume():
-        if not data:
-            return
-
-        volumenumber = data.get("Volume", 100)
-        device_id = data.get("ID")
-
-        if not device_id:
-            device_id = ResolveSinkID(data["Name"])
-
-        if not device_id:
-            return
-
-        data["ID"] = device_id
-
-        try:
-            subprocess.run(["pactl","set-sink-volume",device_id,f"{volumenumber}%"
-            ], check=True)
-
-        except subprocess.CalledProcessError:
-            new_id = ResolveSinkID(data["Name"])
-
-            if not new_id:
-                return
-
-            data["ID"] = new_id
-            SaveConfig("NullWire")
-
-            subprocess.run(["pactl","set-sink-volume",new_id,f"{volumenumber}%"], check=True)
-
-    def ScheduleApply():
-        nonlocal after_id
-
-        if after_id:
-            Root.after_cancel(after_id)
-
-        OnVolumeChange(scale.get())
-
-        after_id = Root.after(100, ApplyVolume)
-
-    def OnVolumeChange(val):
-        volumenumber = int(float(val))
-        vol_var.set(str(volumenumber))
-        data['Volume'] = volumenumber
-
-    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
-    scale.grid(row=0, column=0, sticky="e", padx=5)
-
-    def OnScrollUp(event):
-        scale.set(min(150, scale.get() + 5))
-        ScheduleApply()
-
-    def OnScrollDown(event):
-        scale.set(max(0, scale.get() - 5))
-        ScheduleApply()
-
-    scale.bind("<ButtonRelease-1>", lambda e: ScheduleApply())
-    scale.bind("<Button-4>", OnScrollUp)
-    scale.bind("<Button-5>", OnScrollDown)
-    scale.set(start_vol)
-    override_var = tk.BooleanVar(value=data.get("Dominant", False) if data else False)
-
-    def ToggleOverride():
-        state = override_var.get()
-
-        data["Dominant"] = state
-        SaveConfig("NullWire")
-        if state:
-            volume_controls.grid()
-        else:
-            volume_controls.grid_remove()
-
-    nulltk.Label(volume_controls, textvariable=vol_var, anchor="w", width= 3)\
-        .grid(row=0, column=1, sticky="w")
-
-    nulltk.Checkbutton(volume,text="Override System",width = 15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
-    
-    if override_var.get():
-        volume_controls.grid()
-    else:
-        volume_controls.grid_remove()
-
-    if data:
-        if data["IsSink"]:
-            volume.grid_remove()
-            volume_controls.grid_remove()
-
-    btns = nulltk.Frame(frame)
-    btns.grid(row=0, column=2)
-
-    nulltk.Button(btns, text="SET",
-        command=lambda k=AKey: OpenOutputPopup(k)).pack(side="left")
-
-    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=AKey: ClearOutput(k,ClearButton),width=11)
-    ClearButton.pack(side="left")
-    
-def CreateMBlock(i):
-    frame = nulltk.Frame(RightColumn, bd=1, relief="solid")
-    frame.pack(fill="x", pady=2)
-    frame.columnconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=0)
-    frame.columnconfigure(2, weight=0)
-    MKey = f"M{i}"
-    data = Devices["M"][MKey]
-    name = data["Name"] if data else "-"
-    container = nulltk.Frame(frame)
-    container.grid(row=0, column=0, sticky="nsew", padx=5)
-    container.columnconfigure(0, weight=1)
-    container.grid_propagate(False)
-    nulltk.Label(container, text=f"{MKey}: {name}", anchor="w")\
-        .grid(row=0, column=0, sticky="w")
-    volume = nulltk.Frame(frame)
-    volume.grid(row=0, column=1, sticky="e", padx=5)
-    volume_controls = nulltk.Frame(volume)
-    volume_controls.grid(row=0, column=0)
-    device_id = data["ID"] if data else None
-    start_vol = data.get("Volume") if data else None
-
-    if start_vol is None:
-        start_vol = GetMicrophoneSystemVolume(device_id) if device_id else 100
-
-    vol_var = tk.StringVar(value=str(start_vol))
-    after_id = None
-
-    def ApplyVolume():
-        if not data:
-            return
-
-        volumenumber = scale.get()
-        data["Volume"] = volumenumber
-        SaveConfig("NullWire")
-        device_id = data.get("ID")
-
-        if not device_id:
-            device_id = ResolveSourceID(data["Name"])
-        
-        if not device_id:
-            return
-        
-        data["ID"] = device_id
-
-        try:
-            subprocess.run(["pactl","set-source-volume",device_id,f"{volumenumber}%"], check=True)
-
-        except subprocess.CalledProcessError:
-            new_id = ResolveSourceID(data["Name"])
-
-            if not new_id:
-                return
-
-            data["ID"] = new_id
-            SaveConfig("NullWire")
-
-            subprocess.run(["pactl","set-source-volume",new_id,f"{volumenumber}%"], check=True)
-
-    def ScheduleApply():
-        nonlocal after_id
-        if after_id:
-            Root.after_cancel(after_id)
-        
-        OnVolumeChange(scale.get())
-        after_id = Root.after(150, ApplyVolume)
-
-    def OnVolumeChange(val):
-        volumenumber = int(float(val))
-        data['Volume'] = volumenumber
-        vol_var.set(str(volumenumber))
-
-    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
-    scale.grid(row=0, column=0, sticky="e", padx=5)
-
-    def OnScrollUp(event):
-        scale.set(min(150, scale.get() + 5))
-        
-        ScheduleApply()
-
-    def OnScrollDown(event):
-        scale.set(max(0, scale.get() - 5))
-        ScheduleApply()
-
-    scale.bind("<ButtonRelease-1>", lambda e: ScheduleApply())
-    scale.bind("<Button-4>", OnScrollUp)
-    scale.bind("<Button-5>", OnScrollDown)
-    scale.set(start_vol)
-    override_var = tk.BooleanVar(value=data.get("Dominant", False) if data else False)
-
-    def ToggleOverride():
-        if not data:
-            return
-
-        state = override_var.get()
-        data["Dominant"] = state
-        SaveConfig("NullWire")
-
-        if state:
-            volume_controls.grid()
-        else:
-            volume_controls.grid_remove()
-
-    nulltk.Label(volume_controls, textvariable=vol_var, width=3)\
-        .grid(row=0, column=1, sticky="w")
-
-    nulltk.Checkbutton(volume,text="Override System",width=15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
-
-    if override_var.get():
-        volume_controls.grid()
-    else:
-        volume_controls.grid_remove()
-
-    btns = nulltk.Frame(frame)
-    btns.grid(row=0, column=2)
-
-    nulltk.Button(btns, text="SET",
-        command=lambda k=MKey: OpenInputPopup(k)).pack(side="left")
-
-    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=MKey: ClearInput(k,ClearButton),width=11)
-    ClearButton.pack(side="left")
-    
-def BuildUI():
-    for i in range(1, 21):
-        CreateABlock(i)
-        CreateMBlock(i)
-
-def NullWireRebuildUI():
-    global LeftColumn, RightColumn, Divider
-    for widget in NullWireMainRow.winfo_children():
-        widget.destroy()
-    LeftColumn = nulltk.Frame(NullWireMainRow)
-    LeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
-    Divider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
-    Divider.grid(row=0, column=1, sticky="ns")
-    RightColumn = nulltk.Frame(NullWireMainRow)
-    RightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
-    BuildUI()
-
-def ClearOutput(key, Button, Timeout=4):
-
-    if Devices["A"][key] == None:
-        return
-    else:
-        EndTime = time.time() + (Timeout)
-
-    def Tick(key):
-        if Devices["A"][key]== None:
-            return
-        else:
+        def Tick():
             Remaining = int(EndTime - time.time())
-
             if Remaining <= 0:
                 if not Button.winfo_exists():
                     return
-                Button.config(text="CLEAR")
-                Devices["A"][key]['DeleteConfirmation'] = False
+                Button.config(text="Ignore?")
+                IgnoreVar.set(False)
                 return
             if not Button.winfo_exists():
                 return
-            else:
-                Button.config(text=f"R U Sure? {Remaining}")
-                Root.after(1000, Tick, key)
-        
-    if Devices["A"][key]['DeleteConfirmation'] == False:
-        Devices["A"][key]['DeleteConfirmation'] = True
-        Tick(key)
-        return 
-    
+            Button.config(text=f"R U Sure? {Remaining}")
+            Root.after(1000, Tick)
 
-    Devices["A"][key] = None
-    SaveConfig("NullWire")
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-
-def ClearInput(key,Button, Timeout=4):
-    
-    if Devices["M"][key] == None:
-        return
-    else:
-        EndTime = time.time() + (Timeout)
-
-    def Tick(key):
-        if Devices["M"][key]== None:
-            return
-        else:
+        if IgnoreVar.get() == False:
+            IgnoreVar.set(True)
             Remaining = int(EndTime - time.time())
-
-            if Remaining <= 0:
-                if not Button.winfo_exists():
-                    return
-                Button.config(text="CLEAR")
-                Devices["M"][key]['DeleteConfirmation'] = False
-                return
-            if not Button.winfo_exists():
-                return
-            else:
-                Button.config(text=f"R U Sure? {Remaining}")
-                Root.after(1000, Tick, key)
+            Button.config(text=f"R U Sure? {Remaining}")
+            Tick()
+            return
         
-    if Devices["M"][key]['DeleteConfirmation'] == False:
-        Devices["M"][key]['DeleteConfirmation'] = True
-        Tick(key)
-        return 
+        IgnoreVar.set(False)
+        SetToIgnore.set(True)
+        MainFrame.pack_forget()
+        AudioSources[source]['Ignored'] = True
+        SaveConfig("NullWire")
+        return
+    
+    def UnignoreSource():
+        MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
+        SetToIgnore.set(False)
+        AudioSources[source]['Ignored'] = False
+        SaveConfig("NullWire")
+        return
+
+    def UpdateName():
+        AudioSources[source]["DisplayName"] = NameVariable.get()
+        MainFrame.config(text=NameVariable.get())
+        SaveConfig("NullWire")
+        return
+
+    MainFrame = nulltk.LabelFrame(NullWireAudiosSourcesListInner, text=NameVariable.get())
+    MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
+
+    TopRow = nulltk.Frame(MainFrame)
+    TopRow.grid(row=0,column=0,sticky="nesw")
+
+    CollapseButton = nulltk.Button(TopRow, text="▶", command=lambda: CollapseSource())
+    CollapseButton.grid(row=0,column=0,sticky="ew")
+
+    RenameEntry = nulltk.Entry(TopRow, textvariable=NameVariable)
+    RenameEntry.grid(row=0,column=1,sticky="ew")
+    NameVariable.trace_add("write",lambda *args: UpdateName())
+
+
+    if SetToIgnore.get() == True:
+        Unignorebutton = nulltk.Button(TopRow, text="Un-Ignore", command=lambda:UnignoreSource())
+        Unignorebutton.grid(row=0,column=2,sticky="ew")
+    else:
+        Ignorebutton = nulltk.Button(TopRow, text="Ignore", command=lambda:IgnoreSource(Ignorebutton))
+        Ignorebutton.grid(row=0,column=2,sticky="ew")
+
+    InnerFrame = nulltk.Frame(MainFrame)
+    InnerFrame.grid(row=1,column=1,sticky="nesw", columnspan=99)
+    InnerFrame.columnconfigure(0,weight=1)
+    InnerFrame.columnconfigure(1,weight=1)
+    InnerFrame.grid_forget()
+
+    LastPlayedShow= nulltk.Label(InnerFrame, text="Last Played: ", width= 14)
+    LastPlayedShow.grid(row=0, column=0, sticky="e")
+
+    TimeLabel = nulltk.Label(InnerFrame,textvariable=TimeVariable)
+    TimeLabel.grid(row=0, column=1, sticky="w")
+
+    RemoveOutputWireButton = nulltk.Button(InnerFrame,text="Remove Wire", command=lambda: SpawnOutputToSourcePopUp(source, False))
+    RemoveOutputWireButton.grid(row=1, column=0, pady=(0,5))
+
+    AddOutputWireButton = nulltk.Button(InnerFrame, text="Add Wire", command=lambda: SpawnOutputToSourcePopUp(source))
+    AddOutputWireButton.grid(row=1, column=1, pady=(0,5))
+
+    DeviceContainmentBox = nulltk.LabelFrame(InnerFrame, text="Play Audio On These Wires")
+    DeviceContainmentBox.grid(row=2, column=0, columnspan=99)
+
+    HoriOutputList = HoriScrollableFrame(DeviceContainmentBox)
+    HoriOutputList.pack(fill="x", expand=True)
+
+
+
     
 
 
-    Devices["M"][key] = None
-    SaveConfig("NullWire")
-    NullWireRebuildUI()
-    RefreshRoutingUI()
 
-def OpenOutputPopup(targetKey):
-    BuildOutputSelectionList()
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Select Output Device")
-    Popup.geometry("400x500")
-    Popup.grab_set()
-    
-    for device in OutputDeviceSelection:
-        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectOutputDevice(d, targetKey, Popup)).pack(fill="x")
+    if SetToIgnore.get():
+        MainFrame.pack_forget()
 
-def SelectOutputDevice(device, key, Popup):
-    Devices["A"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"IsSink": False, "DeleteConfirmation": False}
-    if "_NullWire" in device["SystemID"]:
-        Devices["A"][key]["IsSink"] = True
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-    SaveConfig("NullWire")
-    Popup.destroy()
+    SourceRows[source] = {
+        "Frame": MainFrame,
+        "NameVariable": NameVariable,
+        "TimeVariable": TimeVariable,
+        "TimeLabel": TimeLabel
+    }
 
-def OpenInputPopup(targetKey):
+    return
 
-    BuildInputSelectionList()
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Select Input Device")
-    Popup.geometry("400x500")
-    Popup.grab_set()
-    for device in InputDeviceSelection:
-        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectInputDevice(d, targetKey, Popup)).pack(fill="x")
-
-def SelectInputDevice(device, key, Popup):
-    Devices["M"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"DeleteConfirmation": False}
-    SaveConfig("NullWire")
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-    Popup.destroy()
-
-def ApplySources():
-    active = GetAudioSources()
-    assigned = set()
-
-    for name, sink in Sinks.items():
-        for src in sink["Sources"]:
-            if src in active:
-                assigned.add(src)
-                SourceConnection(name, src)
-
-    for src in active:
-        if src not in assigned:
-            SourceConnection("@DEFAULT_SINK@", src)
-
-def ApplyOutputs():
-    for name, sink in Sinks.items():
-        for d, enabled in sink["Outputs"].items():
-            if not enabled:
-                continue
-
-            device = Devices["A"].get(d)
-            if not device:
-                Log(f"Audio Device not found for {d}")
-                continue
-
-            device_id = ResolveSinkID(device["Name"])
-            if not device_id:
-                Log(f"Audio Device ID not found for {device['Name']}")
-                continue
-
-            if device["ID"] != device_id:
-                device["ID"] = device_id
-
-            subprocess.run([NWPath,"ConnectSinkToAux",name,device_id,str(int(sink["Mono"]))],capture_output=True,text=True)
-            Log(f"NullWire: Connecting ({name} output ) → ({device['Name']} input)")
-
-def ApplyInputs():
-    for name, sink in Sinks.items():
-        for d, enabled in sink["Inputs"].items():
-            if not enabled:
-                continue
-
-            device = Devices["M"].get(d)
-            if not device:
-                Log(f"NullMidi: Wire {name}, has {d}, but {d} is not set in Devices", "Warning")
-                continue
-
-            device_id = ResolveSourceID(device["Name"])
-            if device["ID"] != device_id:
-                device["ID"] = device_id
-
-            logger = subprocess.run([NWPath,"ConnectMicToSink",name,device_id,])
-            Log(f"NullWire ConnectMicToSink: {logger.stdout}")
-
-def GetSinkSystemVolume(name):
-    device_id = ResolveSinkID(name)
-    if not device_id:
-        return None
-
-    try:
-        out = subprocess.check_output(["pactl", "get-sink-volume", device_id],stderr=subprocess.DEVNULL).decode()
-
-        for part in out.split():
-            if "%" in part:
-                return int(part.replace("%", ""))
-    except:
-        return None
-
-    return None
-
-def ForceSinkVolume():
-    for name, dickt in Sinks.items():
-        if not dickt.get("Dominant"):
-            continue
-        targetvol = int(dickt.get("Volume", 1.0))
-
-        current = GetSinkSystemVolume(name)
-        if current is None:
+def UpdateSourceTimes():
+    CurrentTime = time.time()
+    for SourceName, RowData in SourceRows.items():
+        if SourceName not in AudioSources:
             continue
 
-        if abs(current - targetvol) > 2:
-            subprocess.run([NWPath,"SetSinkVolume",name,str(targetvol)])
+        TimeAgo = int(CurrentTime -AudioSources[SourceName]["LastPlayed"])
 
-def ForceAudioDeviceVolume():
-    for devicenumber in Devices["A"].values():
-        if devicenumber == None:
-            continue
-        
-        if not devicenumber.get("Dominant"):
-            continue
-        
-        target = int(devicenumber.get("Volume", 100))
+        if TimeAgo < 60:
+            DisplayText = f"{TimeAgo}s ago"
+        elif TimeAgo < 3600:
+            DisplayText = f"{TimeAgo // 60}m ago"
+        else:
+            DisplayText = f"{TimeAgo // 3600}h ago"
+        RowData["TimeVariable"].set(DisplayText)
 
-        device_id = ResolveSinkID(devicenumber["Name"])
-        if not device_id:
-            continue
+    return
 
-        current = GetAudioDeviceSystemVolume(device_id)
-        if current is None:
-            continue
-
-        if abs(current - target) > 2:
-            subprocess.run(["pactl","set-sink-volume",device_id,f"{target}%"])
-
-def ForceMicDeviceVolume():
-    for devicenumber in Devices["M"].values():
-        if devicenumber == None:
-            continue
-
-        if not devicenumber.get("Dominant"):
-            continue
-
-        target = int(devicenumber.get("Volume", 100))
-
-        device_id = ResolveSourceID(devicenumber["Name"])
-        if not device_id:
-            continue
-
-        current = GetMicrophoneSystemVolume(device_id)
-        if current is None:
-            continue
-
-        if abs(current - target) > 2:
-            subprocess.run(["pactl","set-source-volume",device_id,f"{target}%"])
 
 NullWireNotebook = nulltk.Notebook(NullWire)
+#REMOVEWHENDONE
+Notebook.forget(NullWire)
+
 NullWireNotebook.pack(fill="both", expand=True)
-NullWireRoutingPage = nulltk.Frame(NullWireNotebook)
-NullWireDevicesPage = nulltk.Frame(NullWireNotebook)
-NullWireNotebook.add(NullWireRoutingPage, text="Wires")
-NullWireNotebook.add(NullWireDevicesPage, text="Devices")
-    #region Routing Page
-NullWireRoutingTop = nulltk.Frame(NullWireRoutingPage)
-NullWireRoutingTop.pack(fill="x")
-NullWireRoutingEntry = nulltk.Entry(NullWireRoutingTop)
-NullWireRoutingEntry.pack(side="left", fill="x", expand=True)
-NullWireAddButton = nulltk.Button(NullWireRoutingTop, text="Add")
-NullWireAddButton.pack(side="left", fill="x", expand=True)
-NullWireScrollArea = ScrollableFrame(NullWireRoutingPage)
-NullWireScrollArea.pack(fill="both", expand=True)
-NullWireRoutingObjects = NullWireScrollArea.Inner
-NullWireAddButton.config(command=AddRoutingObject)
-    #endregion
-    #region Devices Page
-NullWireMainRow = nulltk.Frame(NullWireDevicesPage)
-NullWireMainRow.pack(fill="both", expand=True)
-NullWireMainRow.columnconfigure(0, weight=49, uniform="group")
-NullWireMainRow.columnconfigure(1, weight=2,  uniform="group")
-NullWireMainRow.columnconfigure(2, weight=49, uniform="group")
-NullWireLeftColumn = nulltk.Frame(NullWireMainRow)
-NullWireLeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
-NullWireDivider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
-NullWireDivider.grid(row=0, column=1, sticky="ns")
-NullWireRightColumn = nulltk.Frame(NullWireMainRow)
-NullWireRightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
+NullWireOutputWires = nulltk.Frame(NullWireNotebook)
+NullWireInputWires = nulltk.Frame(NullWireNotebook)
+NullWireAudios = nulltk.Frame(NullWireNotebook)
+NullWireNotebook.add(NullWireOutputWires, text="Output Wires")
+NullWireNotebook.add(NullWireInputWires, text="Input Wires")
+NullWireNotebook.add(NullWireAudios, text="Audio")
+    #region OutputWires
+NullWireOutputPage = nulltk.Frame(NullWireOutputWires)
+NullWireOutputPage.pack(fill="both", expand=True)
+
+NullWireOutputEntry = nulltk.Entry(NullWireOutputPage)
+NullWireOutputEntry.pack(side="left", fill="x", expand=True)
+
+NullWireAddOutputWireButton = nulltk.Button(NullWireOutputPage, text="Add Output Wire", command=lambda: AddOutputWire)
+NullWireAddOutputWireButton.pack(side="right", fill="x", expand=True)
+
+NullWireOutputList = ScrollableFrame(NullWireOutputPage)
+NullWireOutputList.pack(fill="both", expand=True)
+
+NullWireOutputListInner = NullWireOutputList.Inner
+NullWireOutputListInner.pack(fill="both", expand=True)
+
     #endregion
 
+    #region InputWires
+NullWireInputPage = nulltk.Frame(NullWireInputWires)
+NullWireInputPage.pack(fill="both", expand=True)
+
+NullWireInputEntry = nulltk.Entry(NullWireInputPage)
+NullWireInputEntry.pack(side="left", fill="x", expand=True)
+
+NullWireAddInputWireButton = nulltk.Button(NullWireInputPage, text="Add Input Wire", command=lambda: AddInputWire)
+NullWireAddInputWireButton.pack(side="right", fill="x", expand=True)
+
+NullWireInputList = ScrollableFrame(NullWireInputPage)
+NullWireInputList.pack(fill="both", expand=True)
+
+NullWireInputListInner = NullWireInputList.Inner
+NullWireInputListInner.pack(fill="both", expand=True)
+
+    #endregion
+
+    #region Audio
+NullWireAudioPage = nulltk.Frame(NullWireAudios)
+NullWireAudioPage.pack(fill="both", expand=True)
+
+NullWireAudiosTopFrame = nulltk.LabelFrame(NullWireAudioPage, text="Options")
+NullWireAudiosTopFrame.pack(fill="x", expand=True)
+NullWireAudiosTopFrame.grid_columnconfigure(0, weight=1)
+
+NullWireAudiosSearchEntry = nulltk.Entry(NullWireAudiosTopFrame)
+NullWireAudiosSearchEntry.grid(row=0,column=0,sticky="ew")
+
+NullWireAudiosPlaying = nulltk.Checkbutton(NullWireAudiosTopFrame, text="Only Playing")
+NullWireAudiosPlaying.grid(row=1,column=0,sticky="ew")
+
+NullWireAudiosRecentlyPlayed= nulltk.Checkbutton(NullWireAudiosTopFrame, text="Recently Played")
+NullWireAudiosRecentlyPlayed.grid(row=1,column=1,sticky="ew")
+
+NullWireAudiosIgnored = nulltk.Checkbutton(NullWireAudiosTopFrame, text="Ignored")
+NullWireAudiosIgnored.grid(row=1,column=2,sticky="ew")
+
+NullWireAudiosSourcesList = ScrollableFrame(NullWireAudioPage)
+NullWireAudiosSourcesList.pack(fill="both", expand=True)
+
+NullWireAudiosSourcesListInner = NullWireAudiosSourcesList.Inner
+
+    #endregion
+
+
 def NullWireLoop():
-    global LastOutputs, LastInputs, LastSources, SystemLoading, LoadTimes
-    LastOutputs = set()
-    LastInputs = set()
-    LastSources = set()
+    global LastOutputs, LastInputs, LastSources
+    
     tick = 0
     while True:
         if NullWireActive.get() == True:
+            CurrentTime = time.time()
             if tick == 0:
-                RefreshOutputDevices()
-                if OutputDevices != LastOutputs:
-                    ApplyOutputs() 
-                    LastOutputs = OutputDevices.copy()
-                ForceAudioDeviceVolume()
+                GetAllAudioSources()
+                if CurrentSources != LastSources:
+                    LastSources = CurrentSources
+                    
+                    for source in CurrentSources:
+                        if source not in AudioSources.keys():
+                            AudioSources[source] = {
+                                "DisplayName": "",
+                                "Ignored": False,
+                                "OutputWiresAttached": {},
+                                "LastPlayed": CurrentTime
+                            }
+
+                            Root.after(1, lambda s=source: CreateSourceRow(s))
+
+                            pass
+                        
+                        AudioSources[source]["LastPlayed"] = CurrentTime
+                    Root.after(1000, UpdateSourceTimes)
+                pass
 
             elif tick == 1:
-                RefreshInputDevices()
-                if InputDevices != LastInputs:
-                    ApplyInputs()
-                    LastInputs = InputDevices.copy()
-                ForceMicDeviceVolume()
+                pass
             elif tick == 2:
-                GetAudioSources()
-                if AudioSources != LastSources:
-                    ApplySources()
-                    LastSources = AudioSources.copy()
-                ForceSinkVolume()
+                pass
             tick = (tick + 1) % 3
         time.sleep(1)
+
 
 def StartUpNullWire():
     global Sinks, Devices, LoadCompleted, ActualProgramLoadedCount
     
 
     if NullWireActive.get() == True:
+        LoadCompleted += 1
+        return
 
         if not os.path.isfile(ConfigPath):
             Butts.set("Save File not found???")
@@ -12070,40 +11370,17 @@ def StartUpNullWire():
                 data = json.load(f)
                 wire = data.get("NullWire", {})
 
-            Sinks.clear()
-            Sinks.update(wire.get("Sinks", {}))
-
-            Devices["A"].update(wire.get("DevicesA", {}))
-            Devices["M"].update(wire.get("DevicesM", {}))
-
-            #subprocess.run([NWPath, "ClearSinks"])
-
-            for name, sink in Sinks.items():
-                subprocess.run([NWPath, "CreateSink", name])
-                for d, enabled in sink["Outputs"].items():
-                    device = Devices["A"].get(d)
-                    if not device or not enabled:
-                        continue
-                    logger = subprocess.run([NWPath,"ConnectSinkToAux",name,device["ID"],str(int(sink["Mono"]))])
-                for d, enabled in sink["Inputs"].items():
-                    device = Devices["M"].get(d)
-                    if not device or not enabled:
-                        continue
-                    logger = subprocess.run([NWPath,"ConnectMicToSink",device["ID"],name])
-                for src in sink["Sources"]:
-                    logger = subprocess.run([NWPath,"ConnectSourceToSink",src,name])
-
-            NullWireRebuildUI()
-            RefreshRoutingUI()
             
             Notebook.add(NullWire, text="NullWire")
         except Exception as e:
             Butts.set(f"ERROR LOADING NULL WIRE SAVE\n\n{e}")
             Root.update_idletasks()
             return False
+        
         ActualProgramLoadedCount+=1
     else:
-        Notebook.forget(NullWire)
+        print("lol dontdothat")
+        #Notebook.forget(NullWire)
     
     LoadCompleted += 1
     return
