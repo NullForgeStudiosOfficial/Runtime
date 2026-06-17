@@ -6974,7 +6974,7 @@ def PushGit(Repo, CommitMessage, Status, updatethisvar):
 
 
     except subprocess.CalledProcessError as e:
-        NullMessageBox(Root,"Push Failed",f"{e.stderr}", ("Ok...",)).Show()
+        NullMessageBox(Root,"Push Failed",f"Sorry about that \n {e.stderr}", ("Ok...",)).Show()
 
     except Exception as e:
         NullMessageBox(Root,"Push Failed",f"{str(e)}", ("Ok...",)).Show()
