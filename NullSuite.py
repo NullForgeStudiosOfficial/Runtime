@@ -611,6 +611,7 @@ class NullMessageBox(tk.Toplevel):
 
         self.title(title)
         self.resizable(False, False)
+        self.size(1000,100)
 
         self.transient(parent)
         self.grab_set()
@@ -6972,10 +6973,6 @@ def PushGit(Repo, CommitMessage, Status, updatethisvar):
 
     except subprocess.CalledProcessError as e:
         NullMessageBox(Root,"Push Failed",f"{e.stderr}", ("Ok...",)).Show()
-        messagebox.showerror(
-            "Push Failed",
-            e.stderr
-        )
 
     except Exception as e:
         NullMessageBox(Root,"Push Failed",f"{str(e)}", ("Ok...",)).Show()
@@ -8087,7 +8084,13 @@ def DeleteBranchOnGit():
             text=True
         )
 
-        DeleteRemote = messagebox.askyesno("Delete On Github Too?",f"Also delete '{Branch}' from GitHub?")
+        DeleteRemote = NullMessageBox(Root,
+        "Delete On Github Too?",
+        "It's Been deleted...Wanna delete it on Github too?",
+        ("SureWhyNot", "No Thanks")
+        ).Show()
+
+        
         if DeleteRemote:
             subprocess.run(
             [
@@ -8107,10 +8110,12 @@ def DeleteBranchOnGit():
         NullGitNotebook.select(
             NullGitMainPage
         )
-        messagebox.showinfo(
-            "Branch Deleted",
-            f"Deleted branch:\n{Branch}"
-        )
+        NullMessageBox(Root,
+        "Branch Killed",
+        f"The branch was deleted → {Branch}",
+        ("OK!",)
+        ).Show()
+
     except subprocess.CalledProcessError as e:
         NullMessageBox(Root,"Deleting The Branch Failed!?",f"Ya Broke It:\n{e}\n\n{e.stderr}", ("Ok...",)).Show()
 
@@ -8407,10 +8412,12 @@ def ClearCurrentCommit():
             check=True
         )
         CommittedVar.set("")
-        messagebox.showinfo(
-            "Commit Cleared",
-            "All staged files removed."
-        )
+
+        NullMessageBox(Root,
+        "Commit Cleared",
+        "All staged files removed~",
+        ("OK!",)
+        ).Show()
     except Exception as e:
         NullMessageBox(Root,"Well That failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
@@ -8449,10 +8456,13 @@ def StashAndPull():
             text=True,
             check=True
         )
-        messagebox.showinfo(
-            "Repo Updated",
-            "Local changes stashed.\nLatest repo pulled."
-        )
+        
+        NullMessageBox(Root,
+        "Repo Updated~",
+        "Local changes stashed.\nLatest repo pulled.",
+        ("OK!",)
+        ).Show()
+
 
         BuildRepoList()
         SaveConfig("NullGit")
