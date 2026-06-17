@@ -1,3 +1,5 @@
+#region Imports and Safty Check
+
 import json
 import importlib.util
 import shutil
@@ -65,20 +67,13 @@ from datetime import datetime, timedelta
 import urllib.request
 import nulltk # type: ignore
 
-
 setproctitle.setproctitle("NullSuite")
-
 os.environ["PULSE_PROP_application.name"] = "NullMidiSounds"
-
 import pygame
 
+#endregion
 
-# ==========================================================================================
-# Startup :)
-# ==========================================================================================
-
-
-
+#region NullSuite 
 SystemLoading = True
 ProgramLoading = False
 Root = nulltk.Tk(className="NullSuite")
@@ -120,14 +115,6 @@ LoadFrame.pack(fill="both", expand=True)
 Butts = tk.StringVar(value = "Loading")
 nulltk.Label(LoadFrame,textvariable=Butts,font=("Arial", 12)).pack(expand=True)
 LoadPopup.update()
-
-def BlockClose():
-    pass
-
-LoadPopup.protocol("WM_DELETE_WINDOW", BlockClose)
-# ————————————————————————————————————————————————————————————
-# Directories, Dicts, Lists, Other
-# ————————————————————————————————————————————————————————————
 BaseDir = os.path.dirname(os.path.abspath(__file__))
 IconPath = os.path.join(BaseDir,"NullSuite.png")
 ConfigPath = os.path.join(BaseDir,"NullSuite.json")
@@ -136,207 +123,21 @@ ClipboardPath = os.path.join(TrackerPath, "Clipboard")
 BaseEmojisPath = os.path.join(BaseDir, "BaseEmoji.json")
 Python = os.path.join(BaseDir, "venv", "bin", "python3")
 NWPath = os.path.join(BaseDir, "NW.sh") 
-ChangeLogPath = os.path.join(BaseDir, "ChangeLog.json") 
 SpotifySongPath = os.path.join(BaseDir, "SpotifySong.txt")
 IconImage = tk.PhotoImage(file=IconPath)
-
 CircadianPath = os.path.join(BaseDir, "CircadianClock.png")
 ClockOriginal = Image.open(CircadianPath)
 ClockImage = ImageTk.PhotoImage(ClockOriginal)
 Root.iconphoto(True, IconImage)
 LoadTimes = {}
 LoadCompleted = 0
+LastLoadCompletedNumber = 0
 ProgramCount = 0
+ActualProgramLoadedCount =0 
+ActualProgramOnCount = 0
 HiddenToTray = False
-# ------------------------------
-# NullProton
-# ------------------------------
-ProtonDrive = os.path.join(BaseDir, "ProtonDrive")
-ProtonVars = {
-    "Default": tk.StringVar(value="[ not set ]"),
-    "A": tk.StringVar(value="[ not set ]"),
-    "B": tk.StringVar(value="[ not set ]"),
-    "Min": tk.BooleanVar(value=False),
-    "Close": tk.BooleanVar(value=False)
-}
-ProtonGames = []
-ProtonGameRows = []
-LogQueue = queue.Queue()
-# ------------------------------
-# NullMidi
-# ------------------------------
-EscapeHeld = False
-HeldKeys = set()
-KeyBeingInput = False
-KeySaving = False
-MidiBeingInput = False
-MidiRows = []
-SaveRows = []
-MidiRowObjects = []
-MidiDeviceListeners = {}
-UInputDevice = None
-ActiveCapture = {
-    "Type": None,
-    "Cancel": False
-}
-SoundQueue = Queue()
-DrumQueue = Queue()
-CymbalQueue = Queue()
-CymbalChannelStart = 0
-CymbalChannelEnd = 149 
-
-DrumChannelStart = 150
-DrumChannelEnd = 199
-
-KickChannelStart = 200
-KickChannelEnd = 255  
-
-LastPedalValue = 100
-KickChannels = KickChannelStart
-DrumChannels = DrumChannelStart
-CymbalChannels = CymbalChannelStart
-PreviousPedalValue = 0
-HiHatPedalChoked = False
-LastHiHatState = "Open"
-NewHiHatState = "Open"
-HiHatHitHafClosedTime = time.time()
-WindowSelection = []
-# ------------------------------
-# NullWire
-# ------------------------------
-LoadedSounds = {}
-Sinks = {}
-Devices = {
-    "A": {f"A{i}": None for i in range(1, 21)},
-    "M": {f"M{i}": None for i in range(1, 21)}
-}
-OutputDevices = []
-OutputDeviceSelection = []
-InputDevices = []
-InputDeviceSelection = []
-AudioSources = []
-IgnoreSources = [
-    "speech-dispatcher",
-    "speech-dispatcher-dummy",
-]
-# ------------------------------
-# NullMonitor
-# ------------------------------
-Overlays = None
-OverlayWindows = []
-NullMonitorSetActiveCheckBoxes = []
-HideJob = None
-ScanForMouse = False
-XdotoolPath = shutil.which("xdotool") or "xdotool"
-XrandrPath = shutil.which("xrandr") or "xrandr"
-StartDetection = 0.01
-EdgeBuffer = 3
-ScanTime = 0.10
-BaseDir = os.path.dirname(os.path.abspath(__file__))
-RootDir = os.path.dirname(BaseDir)
-Profiles = {}
-ProfileWidgets = {}
-ActiveProfile = None
-LastMousePos = None
-LastMoveTime = 0
-LastWarpTime = 0
-WarpCooldown = 0.01
-Offset = 10
-if not XdotoolPath or not XrandrPath:
-    raise RuntimeError("xdotool or xrandr not found")
-MonitorLayoutObjects = []
-MonitorWallPaperRows = []
-MonitorBoxes = []
-# ------------------------------
-# NullGit
-# ------------------------------
-Repos = {}
-RepoBoxes = []
-CurrentManagedRepo = None
-CurrentDownloadProcess = None
-NullGitDividers = []
-# ------------------------------
-# NullFocus
-# ------------------------------
-WriteToDiskSeconds = 60
-MinimumWindowTime = 1
-NewDayThreshold = 3
-CompletedCycles = []
-CurrentFocus = None
-OldFocus = None
-FocusStartTime = time.time()
-PreviousFocusStartTime = 0
-PreviousInputTime = 0
-CurrentInputTIme = time.time()
-LastWriteToDisk = time.time()
-CurrentCycle = {
-    "StartTime": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
-    "TimeSpent": {}}
-AppClassification = {}
-MouseListener = None
-KeyboardListener = None
-TrackerSaveTimer = None
-YearButtons = []
-MonthButtons = []
-CycleButtons = []
-ClassificationRows = []
-IgnoreAppDeleteConfirmation = {}
-TrackerReminders = {}
-OnCurrentCycle = False
-CurrentViewedYear = None
-CurrentViewedMonth = None
-CurrentViewedCycle = None
-TrackerPopup = None
-WindowDeleteConfirmation = {}
-ResetClock = True
-LastClockUpdate = None
-ClockRotation = 0
-ClockUpdatedViaCycle = True
-WaitForNullFocusLoad = False
-ClipBoardHistory = []
-ClipBoardRows = []
-LastClipBoard = None
-DontCopyToClipBoardData = False
-NullFocusOperators= []
-NullFocusOperatorRows = []
-LastProcessedFocus = None
-CurrentSpotifySong = ""
-SpotifyID = None
-DeletionCheckBoxes = []
-# ------------------------------
-# NullMoji
-# ------------------------------
-CustomEmojis = {}
-CustomEmojiRows = []
-RecentEmojis = []
-BaseEmoji = {}
-SearchAfterID = None
-PreviousWindowID = None
-CalledWithShortcut = False
-CopiedEmoji = None
-NullMojiSearchButtons = []
-NullMojiRecentButtons = []
-NullMojiAllEmojiButtons = []
-RootState = ""
-NullMojiPopupWindow = None
-
-
-
-
-
-
-
-# ------------------------------
-# Theme Setup
-# ------------------------------
-
+SaveLock = threading.Lock()
 DarkTheme = tk.BooleanVar(value=True)
-
-
-# ————————————————————————————————————————————————————————————
-# Required Startup Methods
-# ————————————————————————————————————————————————————————————
-
 
 def StartTray():
     import gi
@@ -409,7 +210,6 @@ def StartTray():
 
     Gtk.main()
     
-
 def GetSavableMidiRows():
 
     SaveRows = []
@@ -458,7 +258,7 @@ def GetSavableMidiRows():
     return SaveRows
 
 def LoadConfig():
-    global ProgramCount
+    global ProgramCount, ActualProgramOnCount
     if not os.path.isfile(ConfigPath):
         SaveConfig("NullSuite", True)
         SaveConfig("NullProton", True)
@@ -545,32 +345,38 @@ def LoadConfig():
         if StartInTrayActive.get():
             Root.after(0, Root.withdraw)
 
+        Log("NullSuite: Loading programs! (Some programs load so fast it wont show in the counter. You're Welcome 😎)")
+
         for Name, Module in Modules.items():
             Module["Toggle"].set(nullsuite.get(Module["Config"], False))
 
             if Module["Toggle"].get():
                 LoadStagger += 250
+                ActualProgramOnCount+=1
+
 
             Root.after(LoadStagger, Module["Start"])
+
 
         return True
 
     except Exception as e:
-        print("LoadConfig failed:", e)
+        Log(f"NullSuite: LoadConfig failed: {e}")
         return False
 
-SaveLock = threading.Lock()
 def SaveConfig(Which, FirstTimeSetup=False):
+    global LastLoadCompletedNumber
     if FirstTimeSetup == False:
         if LoadCompleted < ProgramCount:
-            print("Not Done Loading", {LoadCompleted},"/",{ProgramCount})
+            if LastLoadCompletedNumber != LoadCompleted:
+                LastLoadCompletedNumber = LoadCompleted
+                Log(f"NullSuite: Not Done Loading {ActualProgramLoadedCount}/{ActualProgramOnCount}")
             return
 
         if SystemLoading:
             return
         
     with SaveLock:
-        print("Saved")
     
         try:
             with open(ConfigPath, "r") as f:
@@ -660,8 +466,7 @@ def SaveConfig(Which, FirstTimeSetup=False):
                 json.dump(data, f, indent=2)
 
         except Exception as e:
-            print("SaveConfig failed:", e)
-
+            Log(f"NullSuite: SaveConfig failed:{e}")
 
 def BringToFront():
     Root.deiconify()
@@ -714,7 +519,6 @@ def ChangeTheme():
         nulltk.ApplyTheme("Light")
     SaveConfig("NullSuite")
     return
-
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, parent):
@@ -863,13 +667,6 @@ class NullMessageBox(tk.Toplevel):
         self.wait_window()
         return self.Result
 
-# ==========================================================================================
-# System Methods
-# ==========================================================================================
-# ————————————————————————————————————————————————————————————
-# NullSuite
-# ————————————————————————————————————————————————————————————
-
 def SetupSlider(slider, variable, minimum, maximum, callback):
     def ScrollUp(event):
         slider.set(min(maximum, slider.get() + 5))
@@ -928,7 +725,7 @@ def BuildWindowSelectionList(Program):
                 "ClassName": WindowClass
             })
     except Exception as e:
-        print(f"BuildWindowSelectionList Error: {e}")
+        Log(f"NullSuite: BuildWindowSelectionList Error: {e}" "Error")
 
 def SearchForWindow(Dict, var, ClassName,DisplayName,Program, Page=None):
     BuildWindowSelectionList(Program)
@@ -1113,2207 +910,262 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
 
     return SelectedImage[0]
 
-
-
-
-
-
-
-
-
-# ————————————————————————————————————————————————————————————
-# NullWire
-# ————————————————————————————————————————————————————————————
-def RefreshOutputDevices():
-    global OutputDevices
-
-    try:
-        out = subprocess.check_output(["pactl", "list", "sinks"]).decode()
-    except:
-        OutputDevices = []
-        return
-
-    devices = []
-    current = {}
-
-    for line in out.splitlines():
-        line = line.strip()
-
-        if line.startswith("Name:"):
-            current["SystemID"] = line.split(":", 1)[1].strip()
-
-        elif line.startswith("Description:"):
-            current["UIName"] = line.split(":", 1)[1].strip()
-
-            if "SystemID" in current:
-                devices.append(current)
-                current = {}
-
-    OutputDevices = devices
-
-def BuildOutputSelectionList():
-    global OutputDeviceSelection
-    RefreshOutputDevices()
-    used_ids = set()
-
-    for slot in Devices["A"].values():
-        if slot and "ID" in slot:
-            used_ids.add(slot["ID"])
-
-    OutputDeviceSelection = []
-
-    for device in OutputDevices:
-        if device["SystemID"] not in used_ids:
-            OutputDeviceSelection.append(device)
-
-    return OutputDeviceSelection
-
-def RefreshInputDevices():
-    global InputDevices
-
-    try:
-        out = subprocess.check_output(["pactl", "list", "sources"]).decode()
-    except:
-        InputDevices = []
-        return
-
-    devices = []
-    current = {}
-
-    for line in out.splitlines():
-        line = line.strip()
-
-        if line.startswith("Name:"):
-            current["SystemID"] = line.split(":", 1)[1].strip()
-
-        elif line.startswith("Description:"):
-            current["UIName"] = line.split(":", 1)[1].strip()
-
-            if "SystemID" in current:
-                if ".monitor" not in current["SystemID"]:
-                    devices.append(current)
-                current = {}
-
-    InputDevices = devices
-
-def BuildInputSelectionList():
-    global InputDeviceSelection
-    RefreshInputDevices()
-    used_ids = set()
-
-    for slot in Devices["M"].values():
-        if slot and "ID" in slot:
-            used_ids.add(slot["ID"])
-
-    InputDeviceSelection = []
-
-    for device in InputDevices:
-        if device["SystemID"] not in used_ids:
-            InputDeviceSelection.append(device)
-
-    return InputDeviceSelection
-
-def GetAudioSources():
-    global AudioSources
-    try:
-        out = subprocess.check_output(["pactl", "list", "sink-inputs"]).decode()
-    except:
-        return []
-
-    sources = []
-
-    for line in out.splitlines():
-        line = line.strip()
-
-        if "application.name" in line:
-            name = line.split("=", 1)[1].strip().strip('"')
-
-            if any(ignore in name for ignore in IgnoreSources):
-                continue
-
-            if name not in sources:
-                sources.append(name)
-
-    AudioSources = sources
-    return sources
-
-def GetAudioDeviceSystemVolume(DeviceID):
-    try:
-        out = subprocess.check_output(
-            ["pactl", "get-sink-volume", DeviceID]
-        ).decode()
-
-        for part in out.split():
-            if "%" in part:
-                return int(part.replace("%", ""))
-    except:
-        pass
-
-    return 0
-
-def GetMicrophoneSystemVolume(source):
-    try:
-        out = subprocess.check_output(
-            ["pactl", "get-source-volume", source]
-        ).decode()
-
-        for part in out.split():
-            if "%" in part:
-                return int(part.replace("%", ""))
-    except:
-        pass
-
-    return 0
-
-def ResolveSinkID(name):
-    for d in OutputDevices:
-        if d["UIName"] == name:
-            return d["SystemID"]
-    return None
-
-def ResolveSourceID(target_name):
-    out = subprocess.check_output(["pactl", "list", "short", "sources"]).decode()
-    for line in out.splitlines():
-        parts = line.split()
-        idx = parts[0]
-        name = parts[1]
-        if target_name in name:
-            return idx
-
-    return None
-
-def IsOutputEnabled(Sink, key):
-    return Sink["Outputs"].get(key, False)
-
-def IsInputEnabled(Sink, key):
-    return Sink["Inputs"].get(key, False)
-
-def AddRoutingObject():
-    global Sinks
-    name = NullWireRoutingEntry.get()
-    name = name.replace(" ", "")
-    if not name:
-        print("WHATDOESTHISMEAN")
-        name = f"Sink {len(Sinks)}"
-
-    name = name + "_NullWire"
-    new = {"Mono": False, "Mute":False, "Outputs": {f"A{i}": False for i in range(1, 21)},"Inputs":  {f"M{i}": False for i in range(1, 21)},"Sources": [],"Volume": 100,"DeleteConfirmation": False}
-    Sinks[name] = new
-    subprocess.run([NWPath,"CreateSink",name])
-    SaveConfig("NullWire")
-    RefreshRoutingUI()
-    NullWireRoutingEntry.delete(0, tk.END)
-
-def AddRoutingBlock(NameOfSink, Sink):
-    Frame = nulltk.Frame(NullWireRoutingObjects)
-    Frame.pack(fill="x", padx=5, pady=5)
-    Frame.columnconfigure(0, weight=1)
-    Frame.rowconfigure(0, weight=1)
-    Frame.rowconfigure(1, weight=1)
-    Frame.rowconfigure(2, weight=1)
-    Frame.rowconfigure(3, weight=1) 
-    Frame.rowconfigure(4, weight=1)
-    Frame.rowconfigure(5, weight=1)
-    nulltk.Frame(Frame, height=5)\
-    .grid(row=5, column=0, columnspan=3)
-
+def UpdateStartUpToggles(Which):
     
-    # ==============================
-    # TOP ROW (DELETE + NAME)
-    # ==============================
-    def Delete(NameOfSink, Sink, Button,Timeout=4):
-        global Sinks
+    if Which == "Wire":
+        StartUpNullWire()
 
-        EndTime = time.time() + (Timeout)
+    elif Which == "Cursor":
+        StartUpNullMonitor()
 
-        def Tick(Sink):
-            if Sink == None:
-                return
-            else:
-                Remaining = int(EndTime - time.time())
-                if Remaining <= 0:
-                    if not Button.winfo_exists():
-                        return
-                    Button.config(text="Delete Wire")
-                    Sink['DeleteConfirmation'] = False
-                    return
-                if not Button.winfo_exists():
-                    return
-                else:
-                    Button.config(text=f"R U Sure? {Remaining}")
-                    Root.after(1000, Tick, Sink)
+    elif Which == "Midi":
+        StartUpNullMidi()
 
-        if Sink['DeleteConfirmation'] == False:
-            Sink['DeleteConfirmation'] = True
-            Tick(Sink)
-            return
-        
+    elif Which == "Proton":
+        StartUpNullProton()
 
-        Sinks.pop(NameOfSink)
-        subprocess.run([NWPath,"DeleteSink",NameOfSink,])
-        SaveConfig("NullWire")
-        RefreshRoutingUI()
+    elif Which == "Git":
+        StartUpNullGit()
 
-    Column0 = nulltk.Frame(Frame)
-    Column0.grid(row=0, column=0, sticky="ew", padx=5)
-    Column0.columnconfigure(0, weight=0)  
-    Column0.columnconfigure(1, weight=0)  
-    Column0.columnconfigure(2, weight=0)  
-    Column0.columnconfigure(3, weight=2) 
-    Column0.columnconfigure(3, weight=1) 
+    elif Which == "Tracker":
+        StartUpNullFocus()
 
-    DeleteSinkButton = nulltk.Button(Column0, text="Delete Wire", command=lambda: Delete(NameOfSink, Sink,DeleteSinkButton), width = 12)
-    DeleteSinkButton.grid(row=0, column=0, padx=5, pady=5, sticky="w")
-    
-    MonoVar = tk.BooleanVar(value=Sink.get("Mono", False))
-    MuteVar = tk.BooleanVar(value=Sink.get("Mute", False))
-    InnerFrame = nulltk.Frame(Column0)
-    InnerFrame.grid(row=0, column=3, sticky="ew", padx=2)
-    InnerFrame.columnconfigure(0, weight=1)
-    display_name = NameOfSink.replace("_NullWire", "")
-    nulltk.Label(InnerFrame, text=display_name, anchor="w")\
-    .grid(row=0, column=0, sticky="ew")
-    volume_frame = nulltk.Frame(Column0)
-    volume_frame.grid(row=0, column=4, sticky="ew", padx=5)
-    volume_frame.columnconfigure(0, weight=1)
-    start_vol = Sink.get("Volume", 100)
-    vol_var = tk.StringVar(value=str(start_vol))
-    after_id = None
+    elif Which == "Moji":
+        StartUpNullMoji()
 
-    def ApplyVolume():
-        volumenumber = scale.get()
-        Sink["Volume"] = volumenumber
-        SaveConfig("NullWire")
-        subprocess.run([NWPath,"SetSinkVolume",NameOfSink,str(volumenumber)])
-
-    def ScheduleApply():
-        nonlocal after_id
-        if after_id:
-            Root.after_cancel(after_id)
-        after_id = Root.after(150, ApplyVolume)
-
-    def OnVolumeChange(val):
-        vol_var.set(str(int(float(val))))
-
-    # ==============================
-    # THICK DIVIDER
-    # ==============================
-    nulltk.Frame(Frame, height=3, bg="#555")\
-        .grid(row=1, column=0, columnspan=3, sticky="ew", pady=3)
-    
-    # ==============================
-    # AUDIO DEVICES ROW
-    # ==============================
-    RowA = nulltk.Frame(Frame)
-    RowA.grid(row=2, column=0, columnspan=3, sticky="ew", padx=5, pady=0)
-    RowA.columnconfigure(0, weight=1)
-    AllDevices = [f"A{i}" for i in range(1, 21)]
-    for i, device in enumerate(AllDevices):
-        RowA.columnconfigure(i, weight=1)
-        enabled = IsOutputEnabled(Sink, device)
-        var = tk.BooleanVar(value=enabled)
-        is_active = IsOutputEnabled(Sink, device)
-        exists = Devices["A"].get(device) is not None
-        def Toggle(d=device, v=var):
-            DeviceData = Devices["A"].get(d)
-            DeviceID = DeviceData["ID"]
-            if v.get():
-                subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
-                Sink["Outputs"][d] = True
-            else:
-                subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
-                Sink["Outputs"][d] = False
-            SaveConfig("NullWire")
-        cb = nulltk.Checkbutton(RowA,text=device,variable=var,width=3,command=Toggle,anchor="w")
-        cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
-
-        if not exists:
-            cb.config(state="disabled")
-
-    # ==============================
-    # MIC DEVICES ROW
-    # ==============================
-    RowM = nulltk.Frame(Frame)
-    RowM.grid(row=3, column=0, columnspan=3, sticky="ew", padx=5)
-    RowM.columnconfigure(0, weight=1)
-
-    # ------------------------------
-    # BUILD TOGGLES
-    # ------------------------------
-    AllMics = [f"M{i}" for i in range(1, 21)]
-
-    for i, device in enumerate(AllMics):
-        RowM.columnconfigure(i, weight=1)
-        is_active = IsInputEnabled(Sink, device)
-        var = tk.BooleanVar(value=is_active)
-        DeviceData = Devices["M"].get(device)
-        exists = DeviceData is not None
-
-        def Toggle(d=device, v=var):
-            DeviceID = Devices["M"][d]["ID"]
-            if v.get():
-                subprocess.run([NWPath,"ConnectMicToSink",DeviceID,NameOfSink])
-                Sink["Inputs"][d] = True
-            else:
-                subprocess.run([NWPath,"RemoveMicFromSink",DeviceID,NameOfSink])
-                Sink["Inputs"][d] = False
-            SaveConfig("NullWire")
-
-        cb = nulltk.Checkbutton(RowM,text=device,variable=var,width=3,command=Toggle,anchor="w")
-        cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
-
-        if not exists:
-            cb.config(state="disabled")
-
-    # ==============================
-    # SOURCES ROW
-    # ==============================
-    SRow = nulltk.Frame(Frame)
-    SRow.grid(row=4, column=0, columnspan=3, sticky="ew", padx=5)
-    SRow.columnconfigure(2, weight=1)
-    nulltk.Button(SRow, text="Attach", width=6, command=lambda: OpenAddSourcePopup(NameOfSink, Sink))\
-    .grid(row=0, column=0, sticky="ew")
-    nulltk.Button(SRow, text="Remove", width=6, command=lambda: OpenRemoveSourcePopup(Sink))\
-    .grid(row=0, column=1, padx=(5,0), sticky="ew")
-    InnerFrameS = nulltk.Frame(SRow, bd=1, relief="solid")
-    InnerFrameS.grid(row=0, column=2, sticky="nsew", padx=5)
-    InnerFrameS.columnconfigure(0, weight=1)
-    InnerFrameS.rowconfigure(0, weight=1)
-    nulltk.Label(InnerFrameS,text = ", ".join(Sink["Sources"]) if Sink["Sources"] else "",anchor="nw",justify="left").grid(row=0, column=0, sticky="nsew")
-
-    # ==============================
-    # Mono cause why not
-    # ==============================
-
-    def ToggleMono():
-        Sink["Mono"] = MonoVar.get()
-        for d, enabled in Sink["Outputs"].items():
-            if not enabled:
-                continue
-
-            DeviceData = Devices["A"].get(d)
-            if not DeviceData:
-                continue
-
-            DeviceID = DeviceData["ID"]
-            subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
-            subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
-        SaveConfig("NullWire")
-
-    nulltk.Checkbutton(Column0,text="Mono?",variable=MonoVar,command=ToggleMono)\
-        .grid(row=0, column=1, padx=5, pady=5, sticky="w")
-    
-    # ==============================
-    # Mute is cool ig
-    # ==============================
-    
-    def ToggleMute():
-        Sink["Mute"] = MuteVar.get()
-        if Sink['Mute']:
-            subprocess.run([NWPath,"SetSinkVolume",NameOfSink,str(0)])
-        else:
-            ApplyVolume()
-        SaveConfig("NullWire")
-
-    nulltk.Checkbutton(Column0,text="Mute",variable=MuteVar,command=ToggleMute)\
-        .grid(row=0, column=2, padx=5, pady=5, sticky="w")
-
-    NullWireScrollArea.BindMouseWheel(Frame)
-
-    # - putting scale at the end so the feckin mouse scroll still works on it. the FUCK tkinter??? Still love you windows 1995 lookin ass bitch.
-
-    scale = nulltk.Scale(volume_frame,from_=0,to=150,orient="horizontal",showvalue=0,command=OnVolumeChange)
-    scale.grid(row=0, column=0, sticky="ew")
-    scale.bind("<ButtonRelease-1>", lambda e: ApplyVolume())
-    scale.bind("<Button-4>", lambda e: (scale.set(min(150, scale.get()+5)), ScheduleApply()))
-    scale.bind("<Button-5>", lambda e: (scale.set(max(0, scale.get()-5)), ScheduleApply()))
-    scale.set(start_vol)
-    nulltk.Label(volume_frame, textvariable=vol_var, width=3)\
-    .grid(row=0, column=1, padx=5)
-
-
-def OpenAddSourcePopup(name, Sink):
-    sources = GetAudioSources()
-
-    if len(sources) == 0:
-        return
-
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Attach Source")
-    Popup.geometry("300x400")
-    Popup.grab_set()
-
-    for src in sources:
-        found = False
-        owner = None
-        for n, s in Sinks.items():
-            if src in s["Sources"]:
-                owner = n
-                break
-        
-        bg = "#555555" if owner else None
-        fg = "#aaaaaa" if owner else None
-        label = src if not owner else f"{src} [FROM: {owner}]"
-
-        nulltk.Button(Popup,text=label,command=lambda s=src: SelectSource(name, Sink, s, Popup)).pack(fill="x")
-
-def SelectSource(name, Sink, source, Popup):
-    for s in Sinks.values():
-        if source in s["Sources"]:
-            s["Sources"].remove(source)
-
-    Sink["Sources"].append(source)
-
-    subprocess.run([NWPath,"ConnectSourceToSink",source,name])
-
-    SaveConfig("NullWire")
-    RefreshRoutingUI()
-    Popup.destroy()
-
-def OpenRemoveSourcePopup(Sink):
-    if len(Sink["Sources"]) == 0:
-        return
-
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Remove Source")
-    Popup.geometry("300x400")
-    Popup.grab_set()
-
-    for src in Sink["Sources"]:
-        nulltk.Button(Popup,text=src,command=lambda s=src: RemoveSource(Sink, s, Popup)).pack(fill="x")
-
-def RemoveSource(Sink, source, Popup):
-    if source in Sink["Sources"]:
-        Sink["Sources"].remove(source)
-    subprocess.run([NWPath,"RemoveSourceFromSink",source])
-    SaveConfig("NullWire")
-    RefreshRoutingUI()
-    Popup.destroy()
-
-def SourceConnection(name,  source):
-    subprocess.run([NWPath,"ConnectSourceToSink",source,name])
-
-def RefreshRoutingUI():
-    for w in NullWireRoutingObjects.winfo_children():
-        w.destroy()
-
-    for name, sink in Sinks.items():
-        AddRoutingBlock(name, sink)
-
-def CreateABlock(i):
-    frame = nulltk.Frame(LeftColumn, bd=1, relief="solid")
-    frame.pack(fill="x", pady=2)
-    frame.columnconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=0)
-    frame.columnconfigure(2, weight=0)
-    AKey = f"A{i}"
-    data = Devices["A"][AKey]
-    name = data["Name"] if data else "-"
-    container = nulltk.Frame(frame)
-    container.grid(row=0, column=0, sticky="nsew", padx=5)
-    container.columnconfigure(0, weight=1)
-    container.grid_propagate(False)
-
-    nulltk.Label(container, text=f"{AKey}: {name}", anchor="w")\
-        .grid(row=0, column=0, sticky="w")
-    volume = nulltk.Frame(frame)
-    volume.grid(row=0, column=1, sticky="e", padx=5)
-    volume_controls = nulltk.Frame(volume)
-    volume_controls.grid(row=0, column=0)
-    device_id = data["ID"] if data else None
-    start_vol = data.get("Volume") if data else None
-
-    if start_vol is None:
-        start_vol = GetAudioDeviceSystemVolume(device_id) if device_id else 100
-
-    vol_var = tk.StringVar(value=str(start_vol))
-    after_id = None
-
-    def ApplyVolume():
-        if not data:
-            return
-
-        volumenumber = data.get("Volume", 100)
-        device_id = data.get("ID")
-
-        if not device_id:
-            device_id = ResolveSinkID(data["Name"])
-
-        if not device_id:
-            return
-
-        data["ID"] = device_id
-
-        try:
-            subprocess.run(["pactl","set-sink-volume",device_id,f"{volumenumber}%"
-            ], check=True)
-
-        except subprocess.CalledProcessError:
-            new_id = ResolveSinkID(data["Name"])
-
-            if not new_id:
-                return
-
-            data["ID"] = new_id
-            SaveConfig("NullWire")
-
-            subprocess.run(["pactl","set-sink-volume",new_id,f"{volumenumber}%"], check=True)
-
-    def ScheduleApply():
-        nonlocal after_id
-
-        if after_id:
-            Root.after_cancel(after_id)
-
-        OnVolumeChange(scale.get())
-
-        after_id = Root.after(100, ApplyVolume)
-
-    def OnVolumeChange(val):
-        volumenumber = int(float(val))
-        vol_var.set(str(volumenumber))
-        data['Volume'] = volumenumber
-
-    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
-    scale.grid(row=0, column=0, sticky="e", padx=5)
-
-    def OnScrollUp(event):
-        scale.set(min(150, scale.get() + 5))
-        ScheduleApply()
-
-    def OnScrollDown(event):
-        scale.set(max(0, scale.get() - 5))
-        ScheduleApply()
-
-    scale.bind("<ButtonRelease-1>", lambda e: ScheduleApply())
-    scale.bind("<Button-4>", OnScrollUp)
-    scale.bind("<Button-5>", OnScrollDown)
-    scale.set(start_vol)
-    override_var = tk.BooleanVar(value=data.get("Dominant", False) if data else False)
-
-    def ToggleOverride():
-        state = override_var.get()
-
-        data["Dominant"] = state
-        SaveConfig("NullWire")
-        if state:
-            volume_controls.grid()
-        else:
-            volume_controls.grid_remove()
-
-    nulltk.Label(volume_controls, textvariable=vol_var, anchor="w", width= 3)\
-        .grid(row=0, column=1, sticky="w")
-
-    nulltk.Checkbutton(volume,text="Override System",width = 15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
-    
-    if override_var.get():
-        volume_controls.grid()
-    else:
-        volume_controls.grid_remove()
-
-    if data:
-        if data["IsSink"]:
-            volume.grid_remove()
-            volume_controls.grid_remove()
-
-    btns = nulltk.Frame(frame)
-    btns.grid(row=0, column=2)
-
-    nulltk.Button(btns, text="SET",
-        command=lambda k=AKey: OpenOutputPopup(k)).pack(side="left")
-
-    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=AKey: ClearOutput(k,ClearButton),width=11)
-    ClearButton.pack(side="left")
-    
-def CreateMBlock(i):
-    frame = nulltk.Frame(RightColumn, bd=1, relief="solid")
-    frame.pack(fill="x", pady=2)
-    frame.columnconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=0)
-    frame.columnconfigure(2, weight=0)
-    MKey = f"M{i}"
-    data = Devices["M"][MKey]
-    name = data["Name"] if data else "-"
-    container = nulltk.Frame(frame)
-    container.grid(row=0, column=0, sticky="nsew", padx=5)
-    container.columnconfigure(0, weight=1)
-    container.grid_propagate(False)
-    nulltk.Label(container, text=f"{MKey}: {name}", anchor="w")\
-        .grid(row=0, column=0, sticky="w")
-    volume = nulltk.Frame(frame)
-    volume.grid(row=0, column=1, sticky="e", padx=5)
-    volume_controls = nulltk.Frame(volume)
-    volume_controls.grid(row=0, column=0)
-    device_id = data["ID"] if data else None
-    start_vol = data.get("Volume") if data else None
-
-    if start_vol is None:
-        start_vol = GetMicrophoneSystemVolume(device_id) if device_id else 100
-
-    vol_var = tk.StringVar(value=str(start_vol))
-    after_id = None
-
-    def ApplyVolume():
-        if not data:
-            return
-
-        volumenumber = scale.get()
-        data["Volume"] = volumenumber
-        SaveConfig("NullWire")
-        device_id = data.get("ID")
-
-        if not device_id:
-            device_id = ResolveSourceID(data["Name"])
-        
-        if not device_id:
-            return
-        
-        data["ID"] = device_id
-
-        try:
-            subprocess.run(["pactl","set-source-volume",device_id,f"{volumenumber}%"], check=True)
-
-        except subprocess.CalledProcessError:
-            new_id = ResolveSourceID(data["Name"])
-
-            if not new_id:
-                return
-
-            data["ID"] = new_id
-            SaveConfig("NullWire")
-
-            subprocess.run(["pactl","set-source-volume",new_id,f"{volumenumber}%"], check=True)
-
-    def ScheduleApply():
-        nonlocal after_id
-        if after_id:
-            Root.after_cancel(after_id)
-        
-        OnVolumeChange(scale.get())
-        after_id = Root.after(150, ApplyVolume)
-
-    def OnVolumeChange(val):
-        volumenumber = int(float(val))
-        data['Volume'] = volumenumber
-        vol_var.set(str(volumenumber))
-
-    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
-    scale.grid(row=0, column=0, sticky="e", padx=5)
-
-    def OnScrollUp(event):
-        scale.set(min(150, scale.get() + 5))
-        
-        ScheduleApply()
-
-    def OnScrollDown(event):
-        scale.set(max(0, scale.get() - 5))
-        ScheduleApply()
-
-    scale.bind("<ButtonRelease-1>", lambda e: ScheduleApply())
-    scale.bind("<Button-4>", OnScrollUp)
-    scale.bind("<Button-5>", OnScrollDown)
-    scale.set(start_vol)
-    override_var = tk.BooleanVar(value=data.get("Dominant", False) if data else False)
-
-    def ToggleOverride():
-        if not data:
-            return
-
-        state = override_var.get()
-        data["Dominant"] = state
-        SaveConfig("NullWire")
-
-        if state:
-            volume_controls.grid()
-        else:
-            volume_controls.grid_remove()
-
-    nulltk.Label(volume_controls, textvariable=vol_var, width=3)\
-        .grid(row=0, column=1, sticky="w")
-
-    nulltk.Checkbutton(volume,text="Override System",width=15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
-
-    if override_var.get():
-        volume_controls.grid()
-    else:
-        volume_controls.grid_remove()
-
-    btns = nulltk.Frame(frame)
-    btns.grid(row=0, column=2)
-
-    nulltk.Button(btns, text="SET",
-        command=lambda k=MKey: OpenInputPopup(k)).pack(side="left")
-
-    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=MKey: ClearInput(k,ClearButton),width=11)
-    ClearButton.pack(side="left")
-    
-def BuildUI():
-    for i in range(1, 21):
-        CreateABlock(i)
-        CreateMBlock(i)
-
-def NullWireRebuildUI():
-    global LeftColumn, RightColumn, Divider
-    for widget in NullWireMainRow.winfo_children():
-        widget.destroy()
-    LeftColumn = nulltk.Frame(NullWireMainRow)
-    LeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
-    Divider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
-    Divider.grid(row=0, column=1, sticky="ns")
-    RightColumn = nulltk.Frame(NullWireMainRow)
-    RightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
-    BuildUI()
-
-def ClearOutput(key, Button, Timeout=4):
-
-    if Devices["A"][key] == None:
-        return
-    else:
-        EndTime = time.time() + (Timeout)
-
-    def Tick(key):
-        if Devices["A"][key]== None:
-            return
-        else:
-            Remaining = int(EndTime - time.time())
-
-            if Remaining <= 0:
-                if not Button.winfo_exists():
-                    return
-                Button.config(text="CLEAR")
-                Devices["A"][key]['DeleteConfirmation'] = False
-                return
-            if not Button.winfo_exists():
-                return
-            else:
-                Button.config(text=f"R U Sure? {Remaining}")
-                Root.after(1000, Tick, key)
-        
-    if Devices["A"][key]['DeleteConfirmation'] == False:
-        Devices["A"][key]['DeleteConfirmation'] = True
-        Tick(key)
-        return 
-    
-    print("should be hitting true?")
-
-    Devices["A"][key] = None
-    SaveConfig("NullWire")
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-
-def ClearInput(key,Button, Timeout=4):
-    
-    if Devices["M"][key] == None:
-        return
-    else:
-        EndTime = time.time() + (Timeout)
-
-    def Tick(key):
-        if Devices["M"][key]== None:
-            return
-        else:
-            Remaining = int(EndTime - time.time())
-
-            if Remaining <= 0:
-                if not Button.winfo_exists():
-                    return
-                Button.config(text="CLEAR")
-                Devices["M"][key]['DeleteConfirmation'] = False
-                return
-            if not Button.winfo_exists():
-                return
-            else:
-                Button.config(text=f"R U Sure? {Remaining}")
-                Root.after(1000, Tick, key)
-        
-    if Devices["M"][key]['DeleteConfirmation'] == False:
-        Devices["M"][key]['DeleteConfirmation'] = True
-        Tick(key)
-        return 
-    
-
-
-    Devices["M"][key] = None
-    SaveConfig("NullWire")
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-
-def OpenOutputPopup(targetKey):
-    BuildOutputSelectionList()
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Select Output Device")
-    Popup.geometry("400x500")
-    Popup.grab_set()
-    
-    for device in OutputDeviceSelection:
-        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectOutputDevice(d, targetKey, Popup)).pack(fill="x")
-
-def SelectOutputDevice(device, key, Popup):
-    Devices["A"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"IsSink": False, "DeleteConfirmation": False}
-    if "_NullWire" in device["SystemID"]:
-        Devices["A"][key]["IsSink"] = True
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-    SaveConfig("NullWire")
-    Popup.destroy()
-
-def OpenInputPopup(targetKey):
-
-    BuildInputSelectionList()
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Select Input Device")
-    Popup.geometry("400x500")
-    Popup.grab_set()
-    for device in InputDeviceSelection:
-        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectInputDevice(d, targetKey, Popup)).pack(fill="x")
-
-def SelectInputDevice(device, key, Popup):
-    Devices["M"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"DeleteConfirmation": False}
-    SaveConfig("NullWire")
-    NullWireRebuildUI()
-    RefreshRoutingUI()
-    Popup.destroy()
-
-def ApplySources():
-    active = GetAudioSources()
-    assigned = set()
-
-    for name, sink in Sinks.items():
-        for src in sink["Sources"]:
-            if src in active:
-                assigned.add(src)
-                SourceConnection(name, src)
-
-    for src in active:
-        if src not in assigned:
-            SourceConnection("@DEFAULT_SINK@", src)
-
-def ApplyOutputs():
-    for name, sink in Sinks.items():
-        for d, enabled in sink["Outputs"].items():
-            if not enabled:
-                continue
-
-            device = Devices["A"].get(d)
-            if not device:
-                print(f"Audio Device not found for {d}")
-                continue
-
-            device_id = ResolveSinkID(device["Name"])
-            if not device_id:
-                print(f"Audio Device ID not found for {device['Name']}")
-                continue
-
-            if device["ID"] != device_id:
-                device["ID"] = device_id
-
-            subprocess.run([NWPath,"ConnectSinkToAux",name,device_id,str(int(sink["Mono"]))])
-
-def ApplyInputs():
-    for name, sink in Sinks.items():
-        for d, enabled in sink["Inputs"].items():
-            if not enabled:
-                continue
-
-            device = Devices["M"].get(d)
-            if not device:
-                print(f"Mic Device not found for {d}")
-                continue
-
-            device_id = ResolveSourceID(device["Name"])
-            if device["ID"] != device_id:
-                device["ID"] = device_id
-
-            subprocess.run([NWPath,"ConnectMicToSink",name,device_id,])
-
-def GetSinkSystemVolume(name):
-    device_id = ResolveSinkID(name)
-    if not device_id:
-        return None
-
-    try:
-        out = subprocess.check_output(["pactl", "get-sink-volume", device_id],stderr=subprocess.DEVNULL).decode()
-
-        for part in out.split():
-            if "%" in part:
-                return int(part.replace("%", ""))
-    except:
-        return None
-
-    return None
-
-def ForceSinkVolume():
-    for name, dickt in Sinks.items():
-        if not dickt.get("Dominant"):
-            continue
-        targetvol = int(dickt.get("Volume", 1.0))
-
-        current = GetSinkSystemVolume(name)
-        if current is None:
-            continue
-
-        if abs(current - targetvol) > 2:
-            subprocess.run([NWPath,"SetSinkVolume",name,str(targetvol)])
-
-def ForceAudioDeviceVolume():
-    for devicenumber in Devices["A"].values():
-        if devicenumber == None:
-            continue
-        
-        if not devicenumber.get("Dominant"):
-            continue
-        
-        target = int(devicenumber.get("Volume", 100))
-
-        device_id = ResolveSinkID(devicenumber["Name"])
-        if not device_id:
-            continue
-
-        current = GetAudioDeviceSystemVolume(device_id)
-        if current is None:
-            continue
-
-        if abs(current - target) > 2:
-            subprocess.run(["pactl","set-sink-volume",device_id,f"{target}%"])
-
-def ForceMicDeviceVolume():
-    for devicenumber in Devices["M"].values():
-        if devicenumber == None:
-            continue
-
-        if not devicenumber.get("Dominant"):
-            continue
-
-        target = int(devicenumber.get("Volume", 100))
-
-        device_id = ResolveSourceID(devicenumber["Name"])
-        if not device_id:
-            continue
-
-        current = GetMicrophoneSystemVolume(device_id)
-        if current is None:
-            continue
-
-        if abs(current - target) > 2:
-            subprocess.run(["pactl","set-source-volume",device_id,f"{target}%"])
-
-# ————————————————————————————————————————————————————————————
-# NullMonitor
-# ————————————————————————————————————————————————————————————
-class ToolTip:
-    def __init__(self, widget, text):
-        self.widget = widget
-        self.text = text
-        self.tip = None
-
-        widget.bind("<Enter>", self.show)
-        widget.bind("<Leave>", self.hide)
-
-    def show(self, event=None):
-        if self.tip:
-            return
-
-        x = self.widget.winfo_rootx() + 20
-        y = self.widget.winfo_rooty() + 20
-
-        self.tip = nulltk.Toplevel(self.widget)
-        self.tip.overrideredirect(True)
-        self.tip.geometry(f"+{x}+{y}")
-
-        label = nulltk.Label(
-            self.tip,
-            text=self.text,
-            bg="black",
-            fg="white",
-            padx=5,
-            pady=3
-        )
-        label.pack()
-
-    def hide(self, event=None):
-        if self.tip:
-            self.tip.destroy()
-            self.tip = None
-
-def CaptureLayout():
-    try:
-        Out = subprocess.check_output([XrandrPath]).decode()
-    except:
-        return []
-
-    Layout = []
-
-    for Line in Out.splitlines():
-        if " connected" in Line:
-            Parts = Line.split()
-            ID = Parts[0]
-
-            Resolution = None
-            Pos = None
-            Primary = "primary" in Parts
-
-            for P in Parts:
-                if "+" in P and "x" in P:
-                    Resolution, X, Y = re.split(r"[+]", P)
-                    Pos = f"{X}x{Y}"
-                    break
-
-            if not Resolution:
-                continue
-
-            Layout.append({
-                "ID": ID,
-                "Resolution": Resolution,
-                "Pos": Pos,
-                "Primary": Primary
-            })
-
-    return Layout
-
-def GetMonitors():
-    try:
-        Out = subprocess.check_output([XrandrPath]).decode()
-    except:
-        return []
-
-    Monitors = []
-
-    for Line in Out.splitlines():
-        if " connected" in Line:
-            Parts = Line.split()
-            ID = Parts[0]
-
-            IsPrimary = " primary " in Line
-
-            Resolution = None
-            for P in Parts:
-                if "+" in P and "x" in P:
-                    Resolution = P.split("+")[0]
-                    break
-
-            if not Resolution:
-                continue
-
-            if IsPrimary:
-                Label = f"Primary ({ID} {Resolution})"
-            else:
-                Label = f"{ID} ({Resolution})"
-
-            Monitors.append({
-                "ID": ID,
-                "Label": Label,
-                "Primary": IsPrimary
-            })
-
-    return Monitors
-
-def GetProfiles():
-    return list(Profiles.keys()) if Profiles else ["NO PROFILES. GO CREATE ONE"]
-
-def ShowDetectionOverlay(which):
-    global OverlayWindows
-    if OverlayWindows:
-        return
-
-
-    OverlayWindows = []
-
-    Bounds = GetMonitorBounds()
-
-    for ID, B in Bounds.items():
-        W = B["x2"] - B["x1"]
-        H = B["y2"] - B["y1"]
-
-        if which == "detection":
-            Px = int(W * StartDetection)
-            Py = int(H * StartDetection)
-        else:
-            Px = EdgeBuffer
-            Py = EdgeBuffer
-
-        # Left
-        OverlayWindows.append(CreateOverlay(
-            B["x1"], B["y1"], Px, H
-        ))
-
-        # Right
-        OverlayWindows.append(CreateOverlay(
-            B["x2"] - Px, B["y1"], Px, H
-        ))
-
-        # Top
-        OverlayWindows.append(CreateOverlay(
-            B["x1"], B["y1"], W, Py
-        ))
-
-        # Bottom
-        OverlayWindows.append(CreateOverlay(
-            B["x1"], B["y2"] - Py, W, Py
-        ))
-    return OverlayWindows
-
-def CreateOverlay(x, y, w, h):
-    Popup = nulltk.Toplevel(Root)
-    Popup.overrideredirect(True)
-    Popup.attributes("-topmost", True)
-    Popup.attributes("-alpha", 0.25)
-
-    Popup.geometry(f"{w}x{h}+{x}+{y}")
-    Popup.configure(bg="red")
-
-    return Popup
-
-def HideDetectionOverlay():
-    global OverlayWindows
-
-    for W in OverlayWindows:
-        try:
-            W.destroy()
-        except:
-            pass
-
-    OverlayWindows = []
-
-def UpdateStartDetection(v):
-    global StartDetection
-    StartDetection = int(v) / 1000
-    NullMonitorStartValueLabel.config(text=f"{int(v)}   |") 
-    SaveConfig("NullMonitor")
-
-def OnHoverEnter(e, which):
-    global Overlays, HideJob
-    print("ENTER", which)
-    if HideJob:
-        Root.after_cancel(HideJob)
-        HideJob = None
-    HideDetectionOverlay()
-    Overlays = ShowDetectionOverlay(which)
-
-def OnHoverLeave(e):
-    global HideJob
-    HideJob = Root.after(50, HideDetectionOverlay)
-
-def DelayedHide():
-    Root.after(50, lambda: HideDetectionOverlay())
-
-def UpdateEdgeBuffer(*args):
-    global EdgeBuffer
-    try:
-        EdgeBuffer = int(NullMonitorEdgeBufferVar.get())
-        SaveConfig("NullMonitor")
-    except:
-        pass
-
-def UpdateScanTime(v):
-    global ScanTime
-    ScanTime = float(v)
-    NullMonitorScanValueLabel.config(text=f"{ScanTime:.3f}")
-    SaveConfig("NullMonitor")
-
-def CenterOnRoot(Popup, width, height):
-    Root.update_idletasks()
-
-    rx = Root.winfo_rootx()
-    ry = Root.winfo_rooty()
-    rw = Root.winfo_width()
-    rh = Root.winfo_height()
-
-    x = rx + (rw // 2) - (width // 2)
-    y = ry + (rh // 2) - (height // 2)
-
-    Popup.geometry(f"{width}x{height}+{x}+{y}")
-
-def SetActiveProfile(Name, Apply=True):
-    global ActiveProfile
-
-    ActiveProfile = Name
-
-    for P, W in ProfileWidgets.items():
-        W["ActiveVar"].set(P == Name)
-
-    if Apply:
-        if ActiveProfile not in Profiles:
-            return
-        ApplyProfileLayout(Name)
-
-    SaveConfig("NullMonitor")
-
-def ApplyProfileLayout(Name):
-    global NullMonitorSetActiveCheckBoxes
-
-    if Name not in Profiles:
-        return
-    Layout = Profiles[Name]["Layout"]
-    Current = GetMonitors()
-    Commands = ["xrandr"]
-    ActiveIDs = set()
-    for Monitor in Layout:
-        ID = Monitor["ID"]
-        ActiveIDs.add(ID)
-        Commands.extend([
-            "--output", ID,
-            "--mode", Monitor["Resolution"]
-        ])
-        X, Y = Monitor["Pos"].split("x")
-        Commands.extend([
-            "--pos", f"{X}x{Y}"
-        ])
-        if Monitor.get("Primary"):
-            Commands.append("--primary")
-    for Monitor in Current:
-        if Monitor["ID"] not in ActiveIDs:
-            Commands.extend([
-                "--output",
-                Monitor["ID"],
-                "--off"
-            ])
-
-
-
-    try:
-        def DisableProfileSwitches():
-            for item in NullMonitorSetActiveCheckBoxes:
-                item.config(state="disabled")
-            return
-
-        DisableProfileSwitches()
-
-        subprocess.run(
-            Commands,
-            check=True
-        )
-        
-
-        def EnableProfileSwitches():
-            for item in NullMonitorSetActiveCheckBoxes:
-                item.config(state="normal")
-            return
-
-        if Profiles[Name].get("EnabledWallPapers"):
-            Root.after(10000, lambda:UpdateLockScreenWallPapers(Name))
-            Root.after(5000, lambda: EnableProfileSwitches())
-        else:
-            Root.after(15000, lambda: EnableProfileSwitches())
-
-        
-
-
-    except Exception as E:
-        print("ApplyProfileLayout Error:", E)
-
-def DeleteProfile(Name,Button, Frame, Timeout=4):
-    global ActiveProfile
-
-    EndTime = time.time() + (Timeout)
-
-    def Tick(Name):
-        if Name not in Profiles:
-            return
-        else:
-            Remaining = int(EndTime - time.time())
-            if Remaining <= 0:
-                if not Button.winfo_exists():
-                    return
-                Button.config(text="Delete Profile?")
-                Profiles[Name]['DeleteConfirmation'] = False
-                return
-            if not Button.winfo_exists():
-                return
-            else:
-                Button.config(text=f"R U Sure? {Remaining}")
-                Root.after(1000, Tick, Name)
-
-    if Profiles[Name]['DeleteConfirmation'] == False:
-        Profiles[Name]['DeleteConfirmation'] = True
-        Tick(Name)
-        return
-
-
-    if len(Profiles) <= 1:
-        return
-    Frame.destroy()
-    Profiles.pop(Name, None)
-    ProfileWidgets.pop(Name, None)
-    if ActiveProfile == Name or len(Profiles) == 1:
-        New = list(Profiles.keys())[0]
-        SetActiveProfile(New)
-
-    SaveConfig("NullMonitor")
-
-def OpenRemoveWarp(Name):
-    Popup = nulltk.Toplevel(Root)
-    Popup.title("Remove Warp")
-    CenterOnRoot(Popup, 500, 300)
-
-    Frame = nulltk.Frame(Popup, padx=10, pady=10)
-    Frame.pack(fill="both", expand=True)
-
-    Warps = Profiles.get(Name, {}).get("Warps", {})
-
-    HasWarps = False
-
-    for SourceID, WarpList in list(Warps.items()):
-        for Warp in list(WarpList):
-            HasWarps = True
-
-            Text = (
-                f'{SourceID}: {Warp["Edge"]} → '
-                f'{Warp["Target"]}: {Warp["TargetEdge"]}'
-            )
-
-            nulltk.Button(
-                Frame,
-                text=Text,
-                anchor="w",
-                command=lambda S=SourceID, W=Warp: RemoveWarp(
-                    Name,
-                    S,
-                    W,
-                    Popup
-                )
-            ).pack(fill="x", pady=2)
-
-    if not HasWarps:
-        nulltk.Label(
-            Frame,
-            text="No warps configured."
-        ).pack(pady=10)
-
-def RemoveWarp(ProfileName, SourceID, Warp, Popup):
-    WarpList = Profiles[ProfileName]["Warps"].get(SourceID, [])
-
-    if Warp in WarpList:
-        WarpList.remove(Warp)
-
-    if not WarpList:
-        Profiles[ProfileName]["Warps"].pop(SourceID, None)
-
-    RefreshWarpDisplay(ProfileName)
-    SaveConfig("NullMonitor")
-
-    Popup.destroy()
-
-    OpenRemoveWarp(ProfileName)
-
-def RefreshWarpDisplay(Name):
-    Warps = Profiles.get(Name, {}).get("Warps", {})
-
-    Parts = []
-
-    for SourceID, WarpList in Warps.items():
-        for W in WarpList:
-            Parts.append(
-                f'{SourceID}: {W["Edge"]} → {W["Target"]}: {W["TargetEdge"]}'
-            )
-
-    Text = " , ".join(Parts) if Parts else "No warps"
-
-    ProfileWidgets[Name]["WarpVar"].set(Text)
-
-def SpawnMonitorPopups(OnSelect):
-    Popups = {}
-
-    Bounds = GetMonitorBounds()
-
-    for ID, B in Bounds.items():
-        Popup = nulltk.Toplevel(Root)
-        Popup.overrideredirect(True)
-        Popup.attributes("-topmost", True)
-
-        width = 200
-        height = 60
-
-        x = B["x1"] + 20
-        y = B["y1"] + 20
-
-        Popup.geometry(f"{width}x{height}+{x}+{y}")
-        Popup.config(cursor="hand2")
-
-        Label = nulltk.Label(
-            Popup,
-            text=f"Click Here\n{ID}",
-            bg="black",
-            fg="white",
-            font=("Arial", 12, "bold")
-        )
-        Label.pack(fill="both", expand=True)
-        Label.bind("<Enter>", lambda e, L=Label: L.config(bg="#333"))
-        Label.bind("<Leave>", lambda e, L=Label: L.config(bg="black"))
-
-        Label.bind("<Button-1>", lambda e, mid=ID: OnSelect(mid))
-
-        Popups[ID] = Popup
-
-    return Popups
-
-def CreateCenterPopup():
-    Popup = nulltk.Toplevel(Root)
-    CenterOnRoot(Popup, 400, 100)
-    Popup.attributes("-topmost", True)
-    
-
-    Frame = nulltk.Frame(Popup)
-    Frame.pack(fill="both", expand=True)
-
-    Label = nulltk.Label(Frame, text="", font=("Arial", 12))
-    Label.pack(expand=True)
-
-    
-
-    return Popup, Label
-
-def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
-    Popup = nulltk.Toplevel(Root)
-    CenterOnRoot(Popup, 300, 200)
-    Popup.title("Configure Warp")
-    Popup.attributes("-topmost", True)
-
-    Frame = nulltk.Frame(Popup, padx=10, pady=10)
-    Frame.pack()
-
-    nulltk.Label(Frame, text=f"{SourceID} → {TargetID}").pack(pady=5)
-
-    Edges = ["TopLeft", "Top", "TopRight",
-             "Right",
-             "BottomRight", "Bottom", "BottomLeft",
-             "Left"]
-
-    SourceEdgeVar = tk.StringVar(value=Edges[0])
-    TargetEdgeVar = tk.StringVar(value=Edges[0])
-
-    nulltk.Label(Frame, text="Source Edge").pack()
-    nulltk.Combobox(Frame, values=Edges, textvariable=SourceEdgeVar, state="readonly").pack()
-
-    nulltk.Label(Frame, text="Target Edge").pack()
-    nulltk.Combobox(Frame, values=Edges, textvariable=TargetEdgeVar, state="readonly").pack()
-
-    def Confirm():
-        Warp = {
-            "Edge": SourceEdgeVar.get(),
-            "Target": TargetID,
-            "TargetEdge": TargetEdgeVar.get()
-        }
-
-        if SourceID not in Profiles[ProfileName]["Warps"]:
-            Profiles[ProfileName]["Warps"][SourceID] = []
-
-        if Warp not in Profiles[ProfileName]["Warps"][SourceID]:
-            Profiles[ProfileName]["Warps"][SourceID].append(Warp)
-
-        RefreshWarpDisplay(ProfileName)
-        Popup.destroy()
-        SaveConfig("NullMonitor")
-
-    nulltk.Button(Frame, text="Confirm", command=Confirm).pack(pady=5)
-
-def StartWarpSelection(ProfileName):
-    State = {"source": None}
-
-    def Cleanup():
-        for p in list(Popups.values()):
-            try:
-                p.destroy()
-            except:
-                pass
-        try:
-            CenterPopup.destroy()
-        except:
-            pass
-
-    CenterPopup, CenterLabel = CreateCenterPopup()
-
-    CenterPopup.protocol("WM_DELETE_WINDOW", Cleanup)
-    CenterPopup.bind("<Escape>", lambda e: Cleanup())
-
-
-
-    def UpdateText(t):
-        CenterLabel.config(text=t)
-
-    def SelectSource(ID):
-        State["source"] = ID
-
-        # and with the commenting out of this...i allow single monitor warping ability \o/
-        #Popups[ID].destroy()
-        #del Popups[ID]
-
-        UpdateText("Click to set warping TO monitor")
-        for mid, popup in Popups.items():
-            for w in popup.winfo_children():
-                w.bind("<Button-1>", lambda e, m=mid: SelectTarget(m))
-
-    def SelectTarget(ID):
-        Source = State["source"]
-        for p in Popups.values():
-            p.destroy()
-
-        CenterPopup.destroy()
-
-        OpenWarpConfigPopup(ProfileName, Source, ID)
-
-    Popups = SpawnMonitorPopups(SelectSource)
-
-    UpdateText("Click to set warping FROM monitor")
-
-def OpenAddWarp(Name):
-    StartWarpSelection(Name)
-
-def BuildUIFromProfiles():
-    global NullMonitorSetActiveCheckBoxes
-
-    NullMonitorSetActiveCheckBoxes.clear()
-    
-    for w in NullMonitorProfileContainer.winfo_children():
-        w.destroy()
-
-    ProfileWidgets.clear()
-
-    for Name in Profiles:
-        CreateProfileBox(Name)
-
-    if ActiveProfile in ProfileWidgets:
-        SetActiveProfile(ActiveProfile, Apply= False)
-
-def GetMouseDirection(x, y):
-    global LastMousePos
-
-    if LastMousePos is None:
-        LastMousePos = (x, y)
-        return 0, 0
-
-    lx, ly = LastMousePos
-    dx = x - lx
-    dy = y - ly
-
-    LastMousePos = (x, y)
-
-    return dx, dy
-
-def IsEdgeBuffer(corner, x, y, B):
-    left   = x <= B["x1"] + EdgeBuffer
-    right  = x >= B["x2"] - EdgeBuffer
-    top    = y <= B["y1"] + EdgeBuffer
-    bottom = y >= B["y2"] - EdgeBuffer
-
-    if corner == "Left":
-        return left
-    if corner == "Right": 
-        return right
-    if corner == "Top": 
-        return top
-    if corner == "Bottom": 
-        return bottom
-
-    if corner == "TopLeft":
-        return left and top
-    if corner == "TopRight":
-        return right and top
-    if corner == "BottomLeft":
-        return left and bottom
-    if corner == "BottomRight":
-        return right and bottom
-
-    return False
-
-def ExecuteWarp(TargetID, TargetEdge, Bounds, ratio=None):
-    TB = Bounds[TargetID]
-    ratio = max(0, min(1, ratio))
-    width  = TB["x2"] - TB["x1"]
-    height = TB["y2"] - TB["y1"]
-
-    if TargetEdge == "TopLeft":
-        nx, ny = TB["x1"] + Offset, TB["y1"] + Offset
-
-    elif TargetEdge == "TopRight":
-        nx, ny = TB["x2"] - Offset, TB["y1"] + Offset
-
-    elif TargetEdge == "BottomLeft":
-        nx, ny = TB["x1"] + Offset, TB["y2"] - Offset
-
-    elif TargetEdge == "BottomRight":
-        nx, ny = TB["x2"] - Offset, TB["y2"] - Offset
-
-    elif TargetEdge == "Left":
-        nx = TB["x1"] + Offset
-        ny = TB["y1"] + int(ratio * height)
-
-    elif TargetEdge == "Right":
-        nx = TB["x2"] - Offset
-        ny = TB["y1"] + int(ratio * height)
-
-    elif TargetEdge == "Top":
-        nx = TB["x1"] + int(ratio * width)
-        ny = TB["y1"] + Offset
-
-    elif TargetEdge == "Bottom":
-        nx = TB["x1"] + int(ratio * width)
-        ny = TB["y2"] - Offset
-
-    else:
-        return
-
-
-    subprocess.run([XdotoolPath, "mousemove", str(nx), str(ny)])
-
-def GetCursorPos():
-    try:
-        Out = subprocess.check_output([XdotoolPath, "getmouselocation"]).decode()
-        Parts = dict(p.split(":") for p in Out.strip().split())
-        return int(Parts["x"]), int(Parts["y"])
-    except:
-        return None, None
-
-def GetMonitorBounds():
-    Bounds = {}
-
-    Layout = Profiles[ActiveProfile]["Layout"]
-
-    for M in Layout:
-        ID = M["ID"]
-
-        W, H = map(int, M["Resolution"].split("x"))
-        X, Y = map(int, M["Pos"].split("x"))
-
-        Bounds[ID] = {
-            "x1": X,
-            "y1": Y,
-            "x2": X + W,
-            "y2": Y + H
-        }
-
-    return Bounds
-
-def GetCurrentMonitor(x, y, Bounds):
-    for ID, B in Bounds.items():
-        if B["x1"] <= x <= B["x2"] and B["y1"] <= y <= B["y2"]:
-            return ID
-    return None
-
-def DetectEdge(x, y, B):
-    W = B["x2"] - B["x1"]
-    H = B["y2"] - B["y1"]
-
-    mx = (x - B["x1"]) / W
-    my = (y - B["y1"]) / H
-
-    left   = mx <= StartDetection
-    right  = mx >= 1 - StartDetection
-    top    = my <= StartDetection
-    bottom = my >= 1 - StartDetection
-
-    if top and left:
-        return "TopLeft"
-    if top and right:
-        return "TopRight"
-    if bottom and left:
-        return "BottomLeft"
-    if bottom and right:
-        return "BottomRight"
-
-    if top:
-        return "Top"
-    if bottom:
-        return "Bottom"
-    if left:
-        return "Left"
-    if right:
-        return "Right"
-
-    return None
-
-def ToggleNullMonitor():
-    global ScanForMouse
-    ScanForMouse = NullMonitorEnabledVar.get()
-    if ScanForMouse:
-        NullMonitorDisabledOverlay.place_forget()
-    else:
-        NullMonitorDisabledOverlay.place(
-            relx=0,
-            rely=0,
-            relwidth=1,
-            relheight=1
-        )
-    SaveConfig("NullMonitor")
-
-def UpdateDesktopWallPapers(ProfileName):
-
-    Profile = Profiles[ProfileName]
-    Layout = Profile["Layout"]
-    Wallpapers = Profile["Wallpapers"]
-
-    if not Layout:
-        return
-
-    MinX = min(int(M["Pos"].split("x")[0]) for M in Layout)
-    MinY = min(int(M["Pos"].split("x")[1]) for M in Layout)
-
-    MaxX = max(int(M["Pos"].split("x")[0]) +int(M["Resolution"].split("x")[0])for M in Layout)
-
-    MaxY = max(int(M["Pos"].split("x")[1]) +int(M["Resolution"].split("x")[1])for M in Layout)
-
-    CanvasWidth = MaxX - MinX
-    CanvasHeight = MaxY - MinY
-
-    Canvas = Image.new("RGB",(CanvasWidth, CanvasHeight),"black")
-
-    for Monitor in Layout:
-        ID = Monitor["ID"]
-        MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
-        MonitorWidth, MonitorHeight = map(int,Monitor["Resolution"].split("x"))
-        WallpaperData = Wallpapers.get(ID, {})
-        Path = WallpaperData.get("DTPath", "")
-        WallpaperMode = WallpaperData.get("DTMode", "Fill")
-        if not Path or not os.path.exists(Path):
-            continue
-        Wallpaper = Image.open(Path).convert("RGB")
-        PasteX = MonitorX - MinX
-        PasteY = MonitorY - MinY
-
-        if WallpaperMode == "Stretch":
-            Wallpaper = Wallpaper.resize((MonitorWidth, MonitorHeight))
-
-            Canvas.paste(Wallpaper,(PasteX, PasteY))
-
-        # CENTER
-        elif WallpaperMode == "Center":
-            X = PasteX + (MonitorWidth - Wallpaper.width) // 2
-            Y = PasteY + (MonitorHeight - Wallpaper.height) // 2
-            Canvas.paste(Wallpaper,(X, Y))
-
-        # TILE
-        elif WallpaperMode == "Tile":
-
-            for TileX in range(0,MonitorWidth,Wallpaper.width):
-                for TileY in range(0,MonitorHeight,Wallpaper.height):
-                    Canvas.paste(Wallpaper,(PasteX + TileX,PasteY + TileY))
-
-        # MAX
-        elif WallpaperMode == "Max":
-            Scale = min(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
-            NewWidth = int(Wallpaper.width * Scale)
-            NewHeight = int(Wallpaper.height * Scale)
-            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
-            X = PasteX + (MonitorWidth - NewWidth) // 2
-            Y = PasteY + (MonitorHeight - NewHeight) // 2
-            Canvas.paste(Wallpaper,(X, Y))
-        # FILL
-        else:
-            Scale = max(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
-            NewWidth = int(Wallpaper.width * Scale)
-            NewHeight = int(Wallpaper.height * Scale)
-            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
-            CropX = max(0,(NewWidth - MonitorWidth) // 2)
-            CropY = max(0,(NewHeight - MonitorHeight) // 2)
-            Wallpaper = Wallpaper.crop(
-                (
-                    CropX,
-                    CropY,
-                    CropX + MonitorWidth,
-                    CropY + MonitorHeight
-                )
-            )
-
-            Canvas.paste(Wallpaper,(PasteX, PasteY))
-
-    TempPath = os.path.join(
-        tempfile.gettempdir(),
-        "nullmonitor_wallpaper.png"
-    )
-
-    Canvas.save(TempPath)
-
-    subprocess.Popen(
-        [
-            "feh",
-            "--no-xinerama",
-            "--bg-scale",
-            TempPath
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-
-def UpdateLockScreenWallPapers(ProfileName):
-
-    Profile = Profiles[ProfileName]
-    Layout = Profile["Layout"]
-    Wallpapers = Profile["Wallpapers"]
-
-    if not Layout:
-        return
-
-    MinX = min(int(M["Pos"].split("x")[0]) for M in Layout)
-    MinY = min(int(M["Pos"].split("x")[1]) for M in Layout)
-
-    MaxX = max(int(M["Pos"].split("x")[0]) +int(M["Resolution"].split("x")[0])for M in Layout)
-
-    MaxY = max(int(M["Pos"].split("x")[1]) +int(M["Resolution"].split("x")[1])for M in Layout)
-
-    CanvasWidth = MaxX - MinX
-    CanvasHeight = MaxY - MinY
-
-
-    Canvas = Image.new("RGB",(CanvasWidth, CanvasHeight),"black")
-
-
-    print("Constructing Image")
-    for Monitor in Layout:
-        ID = Monitor["ID"]
-        MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
-        MonitorWidth, MonitorHeight = map(int,Monitor["Resolution"].split("x"))
-        WallpaperData = Wallpapers.get(ID, {})
-        Path = WallpaperData.get("LSPath", "")
-        WallpaperMode = WallpaperData.get("LSMode", "Fill")
-        if not Path or not os.path.exists(Path):
-            continue
-        Wallpaper = Image.open(Path).convert("RGB")
-        PasteX = MonitorX - MinX
-        PasteY = MonitorY - MinY
-
-        if WallpaperMode == "Stretch":
-            Wallpaper = Wallpaper.resize((MonitorWidth, MonitorHeight))
-
-            Canvas.paste(Wallpaper,(PasteX, PasteY))
-
-        # CENTER
-        elif WallpaperMode == "Center":
-            X = PasteX + (MonitorWidth - Wallpaper.width) // 2
-            Y = PasteY + (MonitorHeight - Wallpaper.height) // 2
-            Canvas.paste(Wallpaper,(X, Y))
-
-        # TILE
-        elif WallpaperMode == "Tile":
-
-            for TileX in range(0,MonitorWidth,Wallpaper.width):
-                for TileY in range(0,MonitorHeight,Wallpaper.height):
-                    Canvas.paste(Wallpaper,(PasteX + TileX,PasteY + TileY))
-
-        # MAX
-        elif WallpaperMode == "Max":
-            Scale = min(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
-            NewWidth = int(Wallpaper.width * Scale)
-            NewHeight = int(Wallpaper.height * Scale)
-            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
-            X = PasteX + (MonitorWidth - NewWidth) // 2
-            Y = PasteY + (MonitorHeight - NewHeight) // 2
-            Canvas.paste(Wallpaper,(X, Y))
-        # FILL
-        else:
-            Scale = max(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
-            NewWidth = int(Wallpaper.width * Scale)
-            NewHeight = int(Wallpaper.height * Scale)
-            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
-            CropX = max(0,(NewWidth - MonitorWidth) // 2)
-            CropY = max(0,(NewHeight - MonitorHeight) // 2)
-            Wallpaper = Wallpaper.crop(
-                (
-                    CropX,
-                    CropY,
-                    CropX + MonitorWidth,
-                    CropY + MonitorHeight
-                )
-            )
-
-            Canvas.paste(Wallpaper,(PasteX, PasteY))
-
-    TempPath = os.path.join(
-    tempfile.gettempdir(),
-    "nullmonitor_lockscreen_building.png"
-    )
-
-    FinalPath = os.path.join(
-        tempfile.gettempdir(),
-        "nullmonitor_lockscreen_wallpaper.png"
-    )
-
-    Canvas.save(TempPath)
-
-    os.replace(TempPath, FinalPath)
-
-    try:
-
-        subprocess.run([
-            "gsettings",
-            "set",
-            "org.cinnamon.desktop.background",
-            "picture-options",
-            "spanned"
-        ], check=True)
-
-        subprocess.run([
-            "gsettings",
-            "set",
-            "org.cinnamon.desktop.background",
-            "picture-uri",
-            f"file://{FinalPath}"
-        ], check=True)        
-    except Exception:
-        try:
-
-            subprocess.run([
-                "gsettings",
-                "set",
-                "org.cinnamon.desktop.background",
-                "picture-options",
-                "spanned"
-            ], check=True)
-
-            subprocess.run([
-                "gsettings",
-                "set",
-                "org.cinnamon.desktop.background",
-                "picture-uri-dark",
-                f"file://{FinalPath}"
-            ], check=True)
-
-            
-
-        except Exception as e:
-            print(e)
-    
-    Root.after(1, lambda: UpdateDesktopWallPapers(ProfileName))
+    SaveConfig("NullSuite")
     return
 
-def ManageWallPapers(Name):
+def Log(Message, Type = "Basic"):
+    TimeStamp = datetime.now().strftime("%H:%M:%S")
 
-    global MonitorLayoutObjects, MonitorWallPaperRows, MonitorBoxes
+    Type = Type.lower()
+    if Type == "warning":
+        LogNote = nulltk.Label(NullSuiteLog, text=f"{TimeStamp} — {Message}", fg="#CCCC00", bg="#000000", ThemeBG= False, ThemeFG= False, anchor="w")
+    elif Type == "error":
+        LogNote = nulltk.Label(NullSuiteLog, text=f"{TimeStamp} — {Message}", fg="#FF0000", bg="#000000", ThemeBG= False, ThemeFG= False, anchor="w")
+    else:
+        LogNote = nulltk.Label(NullSuiteLog, text=f"{TimeStamp} — {Message}", fg="#009900", bg="#000000", ThemeBG= False, ThemeFG= False, anchor="w")
 
-    for Widget in MonitorLayoutObjects: Widget.destroy()
-    for Widget in MonitorWallPaperRows: Widget.destroy()
+    LogNote.pack(fill="x", padx=10)
 
-    MonitorLayoutObjects.clear()
-    MonitorWallPaperRows.clear()
+def MyExceptionLogger(exc_type, exc_value, exc_traceback):
 
-    Layout = Profiles[Name]["Layout"]
-    Positions = [tuple(map(int,Monitor["Pos"].split("x"))) for Monitor in Layout]
-
-    MinX = min(X for X,Y in Positions)
-    MinY = min(Y for X,Y in Positions)
-
-    WallpaperModes = ["Fill","Stretch","Center","Max","Tile"]
-
-    Boxes = {}
-
-    for Monitor in Layout:
-        X,Y = map(int,Monitor["Pos"].split("x"))
-        Box = nulltk.LabelFrame(WallpaperLayoutContainer,text=Monitor["ID"],width=150,height=100)
-        Box.grid(row=(Y-MinY)//1000,column=(X-MinX)//1000,padx=3,pady=3)
-        Box.grid_propagate(False)
-        MonitorLayoutObjects.append(Box)
-
-    for Row, Monitor in enumerate(Layout):
-        ID = Monitor["ID"]
-        Data = Profiles[Name]["Wallpapers"].setdefault(ID,{
-            "DTPath": "",
-            "DTMode": "Fill",
-            "LSPath": "",
-            "LSMode": "Fill"
-        })
-        MonitorFrame = nulltk.LabelFrame(WallpaperScrollFrame.Inner,text=ID)
-        MonitorFrame.grid(row=Row+1,column=0,padx=5,pady=5,sticky="ew")
-        MonitorFrame.columnconfigure(0,weight=1)
-        MonitorFrame.columnconfigure(1,weight=0)
-        MonitorFrame.columnconfigure(2,weight=1)
-        MonitorWallPaperRows.append(MonitorFrame)
-
-        DTContainer = nulltk.Frame(MonitorFrame)
-        DTContainer.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
-        DTContainer.columnconfigure(1,weight=1)
-        ttk.Separator(MonitorFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
-        LSContainer = nulltk.Frame(MonitorFrame)
-        LSContainer.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
-        LSContainer.columnconfigure(1,weight=1)
-
-
-
-        DTPathVar = tk.StringVar(value=Data["DTPath"])
-        DTModeVar = tk.StringVar(value=Data.get("DTMode","Fill"))
-        LSPathVar = tk.StringVar(value=Data["LSPath"])
-        LSModeVar = tk.StringVar(value=Data.get("LSMode","Fill"))
-
-        def DTBrowseForPic(Data=Data, PathVar=DTPathVar, ProfileName=Name):
-            CurrentPath = DTPathVar.get()
-            InitialDir = (os.path.dirname(CurrentPath)if CurrentPath and os.path.exists(CurrentPath)else os.path.expanduser("~"))
-            Path = filedialog.askdirectory(initialdir=InitialDir,title="Choose Desktop Wallpaper Folder")
-            if Path:
-                SelectedImage = OpenImagePopUp(Path)
-                if SelectedImage:
-                    Data["DTPath"] = SelectedImage
-                    PathVar.set(os.path.basename(SelectedImage))
-                    SaveConfig("NullMonitor")
-                    UpdateDesktopWallPapers(ProfileName)
-
-        DTBrowseButton = nulltk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
-        DTBrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        nulltk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
-        DTModebox = nulltk.Combobox(DTContainer,textvariable=DTModeVar,values=WallpaperModes,state="readonly",width=18)
-        DTModebox.grid(row=0,column=2,padx=5,pady=5)
-
-        def DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
-            Data["DTMode"] = ModeVar.get()
-            UpdateDesktopWallPapers(ProfileName)
-            SaveConfig("NullMonitor")
-
-        DTModebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=DTModeVar,ProfileName=Name:DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
-
-        #-------
-
-        def LSBrowseForPic(Data=Data, PathVar=LSPathVar, ProfileName=Name):
-            CurrentPath = LSPathVar.get()
-            InitialDir = (os.path.dirname(CurrentPath)if CurrentPath and os.path.exists(CurrentPath)else os.path.expanduser("~"))
-            Path = filedialog.askdirectory(initialdir=InitialDir,title="Choose Lock Screen Wallpaper Folder")
-            if Path:
-                SelectedImage = OpenImagePopUp(Path)
-                if SelectedImage:
-                    Data["LSPath"] = SelectedImage
-                    PathVar.set(os.path.basename(SelectedImage))
-                    SaveConfig("NullMonitor")
-                    UpdateLockScreenWallPapers(ProfileName)
-
-        LSBrowseButton = nulltk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
-        LSBrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        nulltk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
-        LSModebox = nulltk.Combobox(LSContainer,textvariable=LSModeVar,values=WallpaperModes,state="readonly",width=18)
-        LSModebox.grid(row=0,column=2,padx=5,pady=5)
-
-        def LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
-            Data["LSMode"] = ModeVar.get()
-            UpdateLockScreenWallPapers(ProfileName)
-            SaveConfig("NullMonitor")
-
-        LSModebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=LSModeVar,ProfileName=Name:LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
-
-
-        Boxes[ID] = {
-            "DTBox": DTModebox,
-            "DTVar": DTModeVar,
-            "DTPathVar": DTPathVar,
-            "LSBox": LSModebox,
-            "LSVar": LSModeVar,
-            "LSPathVar": LSPathVar
-            }
-
-    MonitorBoxes = Boxes
-    NullMonitorNotebook.tab(NullMonitorWallPapersPage,state="normal")
-    NullMonitorNotebook.select(NullMonitorWallPapersPage)
-
-def NullMonitorNoteBookChange(event):
-    CurrentTab = NullMonitorNotebook.select()
-    if str(CurrentTab) == str(NullMonitorPage):
-        NullMonitorNotebook.tab(
-            NullMonitorWallPapersPage,
-            state="disabled"
+    ErrorText = "".join(
+        traceback.format_exception(
+            exc_type,
+            exc_value,
+            exc_traceback
         )
-    return
+    )
 
-def CreateProfileBox(Name):
-    global NullMonitorSetActiveCheckBoxes
-    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=5,pady=5)
-    Frame.pack(fill="x",pady=5)
+    Log(f"ERROR: {ErrorText}", "Error")
 
-    TopRow = nulltk.Frame(Frame)
-    TopRow.pack(fill="x")
-    TopRow.columnconfigure(2,weight=1)
+sys.excepthook = MyExceptionLogger
 
-    ActiveVar = tk.BooleanVar()
+Notebook = nulltk.Notebook(Main)
+Notebook.pack(fill="both", expand=True)
+NullSuite = nulltk.Frame(Notebook)
+NullWire = nulltk.Frame(Notebook)
+NullMonitor = nulltk.Frame(Notebook)
+NullMidi = nulltk.Frame(Notebook)
+NullProton = nulltk.Frame(Notebook)
+NullGit = nulltk.Frame(Notebook)
+NullFocus = nulltk.Frame(Notebook)
+NullMoji = nulltk.Frame(Notebook)
+Notebook.add(NullSuite, text="Main Menu")
+Notebook.add(NullWire, text="NullWire")
+Notebook.add(NullMonitor, text="NullMonitor")
+Notebook.add(NullMidi, text = "NullMidi")
+Notebook.add(NullProton, text = "NullProton")
+Notebook.add(NullGit, text = "NullGit")
+Notebook.add(NullFocus, text = "NullFocus")
+Notebook.add(NullMoji, text = "NullMoji")
+NullSuiteChangeLogPage = nulltk.Frame(NullSuite)
+NullSuiteChangeLogPage.pack(fill="both", expand=True)
+NullSuiteChangeLogPage.rowconfigure(2, weight=1)
+NullSuiteChangeLogPage.columnconfigure(0, weight=1)
+NullSuiteToggles = nulltk.Frame(NullSuiteChangeLogPage)
+NullSuiteToggles.grid(row=0,column=0, pady=(5,2), sticky="ew")
+NullSuiteTogglesOptions = nulltk.Frame(NullSuiteChangeLogPage)
+NullSuiteTogglesOptions.grid(row=1,column=0, pady=(2,20), sticky="ew")
+NullSuiteToggles.rowconfigure(0,weight=0)
+NullSuiteToggles.columnconfigure(0,weight=0)
+NullSuiteToggles.columnconfigure(1,weight=0)
+NullSuiteToggles.columnconfigure(2,weight=0)
+NullSuiteToggles.columnconfigure(3,weight=0)
+NullSuiteToggles.columnconfigure(4,weight=0)
+NullSuiteToggles.columnconfigure(5,weight=0)
+NullSuiteToggles.columnconfigure(6,weight=0)
+NullSuiteToggles.columnconfigure(7,weight=0)
+NullSuiteToggles.columnconfigure(8,weight=0)
+NullSuiteTogglesOptions.rowconfigure(0,weight=0)
+NullSuiteTogglesOptions.columnconfigure(0,weight=0)
+NullSuiteTogglesOptions.columnconfigure(1,weight=0)
+NullSuiteTogglesOptions.columnconfigure(2,weight=0)
+NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
+NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
+NullMonitorActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMonitor?", variable=NullMonitorActive,command=lambda: UpdateStartUpToggles("Cursor"))
+NullMonitorActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
+NullMidiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMidi?", variable=NullMidiActive,command=lambda: UpdateStartUpToggles("Midi"))
+NullMidiActivator.grid(row=0,column=2, padx=1,pady=1, sticky="w")
+NullProtonActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullProton?", variable=NullProtonActive,command=lambda: UpdateStartUpToggles("Proton"))
+NullProtonActivator.grid(row=0,column=3, padx=1,pady=1, sticky="w")
+NullGitActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullGit?", variable=NullGitActive,command=lambda: UpdateStartUpToggles("Git"))
+NullGitActivator.grid(row=0,column=4, padx=1,pady=1, sticky="w")
+NullFocusActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullFocus?", variable=NullFocusActive,command=lambda: UpdateStartUpToggles("Tracker"))
+NullFocusActivator.grid(row=0,column=5, padx=1,pady=1, sticky="w")
+NullMojiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMoji?", variable=NullMojiActive,command=lambda: UpdateStartUpToggles("Moji"))
+NullMojiActivator.grid(row=0,column=6, padx=1,pady=1, sticky="w")
+StartMinimizedActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start Minimized?", variable=StartMinimizedActive,command=lambda: UpdateStartUpToggles("Start"))
+StartMinimizedActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w")
+StartInTrayActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start In Tray?", variable=StartInTrayActive,command=lambda: UpdateStartUpToggles("Tray"))
+StartInTrayActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
+NullSuiteDarkModeToggle = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Dark Mode", variable= DarkTheme, command=lambda: ChangeTheme())
+NullSuiteDarkModeToggle.grid(row=0,column=2, padx=1,pady=1, sticky="we")
+ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=3,sticky="ns",padx=5)
+BlackVar = tk.IntVar(value=100)
+BlackValueText = nulltk.Label(NullSuiteTogglesOptions, text="Blackness")
+BlackValueText.grid(row=0, column=4, sticky="ew")
+BlackLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=BlackVar)
+BlackLevel.grid(row=0, column=5, sticky="ew")
+BlackLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
+BlackLevel.set(BlackVar.get())
+BlackLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=BlackVar, width=4)
+BlackLevelValue.grid(row=0, column=6, padx=5, sticky="w")
+ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=7,sticky="ns",padx=5)
+WhiteVar = tk.IntVar(value=100)
+WhiteValueText = nulltk.Label(NullSuiteTogglesOptions, text="Whiteness")
+WhiteValueText.grid(row=0, column=8, sticky="ew")
+WhiteLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=WhiteVar)
+WhiteLevel.grid(row=0, column=9, sticky="ew")
+WhiteLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
+WhiteLevel.set(WhiteVar.get())
+WhiteLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=WhiteVar, width=4)
+WhiteLevelValue.grid(row=0, column=10, padx=5, sticky="w")
+NullSuiteList = ScrollableFrame(NullSuiteChangeLogPage)
+NullSuiteList.grid(row=2,column=0, sticky="ensw", columnspan=99)
+NullSuiteList.rowconfigure(0,weight=1)
+NullSuiteList.columnconfigure(0,weight=1)
+NullSuiteListInner = NullSuiteList.Inner
+NullSuiteListInner.rowconfigure(0,weight=1)
+NullSuiteListInner.columnconfigure(0,weight=1)
+NullSuiteLog = nulltk.LabelFrame(NullSuiteListInner, text="NullSuite Log", bg="#000000", ThemeBG= False)
+NullSuiteLog.pack(fill="both", expand=True, padx=10, pady=10)
 
-    ActiveCheck = nulltk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
-    ActiveCheck.grid(row=0,column=0,padx=2,pady=2,sticky="ew")
+AboutNullWire = nulltk.Label(
+    NullSuiteChangeLogPage,
+    text="Welcome to NullSuite! A collective trashpile of applications from NullForgeStudios, for ease of use with LinuxMint!  Enjoy, This will ALWAYS be free, buuuuuuuut if you wanna donate to help it along... "
+)
+AboutNullWire.grid(row=3, column=0, sticky="ew", padx=5, pady=(5,0))
+link = nulltk.Label(
+    NullSuiteChangeLogPage,
+    text="Our Ko-fi",
+    fg="Blue",
+    cursor="hand2",
+    ThemeFG = False
+)
+link.grid(row=4, column=0, sticky="ew", padx=5, pady=(0,10))
+link.bind("<Button-1>", lambda e: webbrowser.open_new("https://ko-fi.com/nullforgestudios"))
 
-    NullMonitorSetActiveCheckBoxes.append(ActiveCheck)
 
-    DeleteBtn = nulltk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
-    DeleteBtn.grid(row=0,column=3,padx=2,pady=2,sticky="ew")
 
+def HideToTray():
+    global HiddenToTray
+    if SystemLoading:
+        return
+    Root.withdraw()
+    HiddenToTray = True
+
+def Startup():
+    global SystemLoading
+    SystemLoading = True
+    WaitForLoad()
     
-
-    EnableWallPaperVar = tk.BooleanVar(value=Profiles[Name].get("EnabledWallPapers",False))
-
-    def UpdateWallPaperEnabled(thisbutton):
-        Profiles[Name]["EnabledWallPapers"] = EnableWallPaperVar.get()
-        if Profiles[Name]["EnabledWallPapers"] == False:
-            thisbutton.grid_remove()
-        else:
-            thisbutton.grid(row=1,column=1,padx=2,pady=2)
-        SaveConfig("NullMonitor")
-
+def WaitForLoad():
+    global ProgramCount, BaseEmoji, NullMojiAllEmojiButtons, CustomEmojis, RecentEmojis
+    threading.Thread(target=StartTray, daemon=True).start()
+    threading.Thread(target=WatchShowSignal, daemon=True).start()
+    threading.Thread(target=NullMonitorLoop, daemon=True).start()
+    threading.Thread(target=NullMidiLoop, daemon=True).start()
+    threading.Thread(target=NullWireLoop, daemon=True).start()
+    threading.Thread(target=SoundPlayer, daemon=True).start()
+    threading.Thread(target=CymbalPlayer, daemon=True).start()
+    threading.Thread(target=DrumPlayer, daemon=True).start()
+    threading.Thread(target=NullGitLoop, daemon=True).start()
+    threading.Thread(target=NullFocusLoop, daemon=True).start()
+    threading.Thread(target=NullFocusFocusLoop, daemon=True).start()
+    threading.Thread(target=NullFocusClockLoop, daemon=True).start()
+    threading.Thread(target=NullFocusClipBoardLoop, daemon=True).start()
     
+    LoadConfig()
+    ChangeTheme()
 
-    ManageWallPaper = nulltk.Button(TopRow,text="Manage Wallpapers",command=lambda: ManageWallPapers(Name))
-    ManageWallPaper.grid(row=1,column=1,padx=2,pady=2,sticky="ew")
+    emojis = None
+    if not os.path.isfile(BaseEmojisPath):
+        Butts.set("Emoji File not found???")
+        Root.update_idletasks()
+        return
+    try:
+        with open(BaseEmojisPath, "r") as f:
+            data = json.load(f)
+            emojis = data.get("Emojis", [])
+            ColumnCount = 3
+            BaseEmoji = data.get("Emojis", [])
+            for i, EmojiData in enumerate(emojis):
+                Button = nulltk.Button(NullMojiAllEmojisInner,text=EmojiData["Emoji"],font=("Noto Color Emoji",15),command=lambda E=EmojiData: CopyEmoji(E), width = 4)
+                Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2)
+                NullMojiAllEmojiButtons.append(Button)
+            NullMojiAllEmojisColumnList.BindMouseWheel(NullMojiMainPage)
+    except Exception as e:
+        Butts.set(f"ERROR LOADING EMOJIS FILE\n\n{e}")
+        Root.update_idletasks()
+        return False
 
-    WallPapersEnabled = nulltk.Checkbutton(TopRow,text="Wallpapers",variable=EnableWallPaperVar,command= lambda: UpdateWallPaperEnabled(ManageWallPaper), width=16)
-    WallPapersEnabled.grid(row=0,column=1,padx=2,pady=2,sticky="ew")
+    try:
+        with open(ConfigPath, "r") as f:
+            data = json.load(f)
+            moji = data.get("NullMoji", {})
+            CustomEmojis = moji['CustomEmoji']
+            RecentEmojis = moji['RecentEmoji']
+    except Exception as e:
+        Butts.set(f"ERROR LOADING NULL Moji SAVE\n\n{e}")
+        Root.update_idletasks()
+        return False
+    
+    DoneLoadingCheck()
 
-    UpdateWallPaperEnabled(ManageWallPaper)
+def DoneLoadingCheck():
+    global SystemLoading
 
-    Spacer3 = nulltk.Frame(Frame,bg="black",height=2)
-    Spacer3.pack(fill="x",pady=5)
-
-    BtnRow = nulltk.Frame(Frame)
-    BtnRow.pack(fill="x")
-
-    nulltk.Button(BtnRow,text="Create Warp",command=lambda: OpenAddWarp(Name)).pack(side="left",padx=2)
-    nulltk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
-
-    WarpBox = nulltk.Frame(Frame,padx=1,pady=1)
-    WarpBox.pack(fill="x",pady=5)
-
-    InnerWarp = nulltk.Frame(WarpBox)
-    InnerWarp.pack(fill="x")
-
-    WarpVar = tk.StringVar()
-
-    WarpLabel = nulltk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
-    WarpLabel.pack(fill="x",padx=5,pady=3)
-
-    ProfileWidgets[Name] = {
-        "Frame": Frame,
-        "ActiveVar": ActiveVar,
-        "EnableWallPaperVar": EnableWallPaperVar,
-        "WarpVar": WarpVar
-    }
-
-    RefreshWarpDisplay(Name)
-
-def CreateProfile():
-    Name = NullMonitorProfileNameVar.get().strip()
-
-    if not Name:
+    if ProgramCount != LoadCompleted:
+        Root.after(10, DoneLoadingCheck)
         return
 
-    if Name in Profiles:
-        return
+    SystemLoading = False
+    try:
+        LoadPopup.grab_release()
+    except:
+        pass
+    LoadPopup.destroy()
+    Root.focus_force()
+    
 
-    Layout = CaptureLayout()
-    Wallpapers = {}
+#endregion
 
-    for monitor in Layout:
-        Wallpapers[monitor['ID']] = {
-            "DTPath": "",
-            "DTMode": "Fill",
-            "LSPath": "",
-            "LSMode": "Fill"
-            }
+#region NullProton
+ProtonDrive = os.path.join(BaseDir, "ProtonDrive")
+ProtonVars = {
+    "Default": tk.StringVar(value="[ not set ]"),
+    "A": tk.StringVar(value="[ not set ]"),
+    "B": tk.StringVar(value="[ not set ]"),
+    "Min": tk.BooleanVar(value=False),
+    "Close": tk.BooleanVar(value=False)
+}
+ProtonGames = []
+ProtonGameRows = []
+LogQueue = queue.Queue()
 
-    Profiles[Name] = {
-        "Layout": Layout,
-        "EnabledWallPapers": False,
-        "Wallpapers": Wallpapers,
-        "Warps": {},
-        "DeleteConfirmation": False,
-    }
-
-    CreateProfileBox(Name)
-    NullMonitorProfileNameVar.set("")
-    SetActiveProfile(Name)
-    SaveConfig("NullMonitor")
-
-
-
-# ————————————————————————————————————————————————————————————
-# NullProton
-# ————————————————————————————————————————————————————————————
 def RefreshRowUI(RowIndex):
     State = ProtonGames[RowIndex]
     Frame = ProtonGameRows[RowIndex]
@@ -3443,7 +1295,6 @@ def AddGameRow(State=None, Loading=False):
 
     if not Loading:
         SaveConfig("NullProton")
-
 
 def UpdateOverlay():
     while not LogQueue.empty():
@@ -3576,9 +1427,159 @@ def BuildEnv(State):
 
     return Env
 
-# ————————————————————————————————————————————————————————————
-# NullMidi
-# ————————————————————————————————————————————————————————————
+def MakeProtonRow(row, key, label):
+    nulltk.Label(ProtonTop, text=label, anchor="w").grid(row=row, column=0, padx=3, pady=5, sticky="w")
+
+    entry = nulltk.Entry(ProtonTop, textvariable=ProtonVars[key], state="readonly")
+    entry.grid(row=row, column=1, padx=3, pady=5, sticky="ew")
+
+    def Pick():
+        Home = os.path.expanduser("~")
+
+        Paths = [
+            os.path.join(Home, ".steam/root/compatibilitytools.d"),
+            os.path.join(Home, ".local/share/Steam/compatibilitytools.d")
+        ]
+
+        StartDir = next((p for p in Paths if os.path.isdir(p)), Home)
+
+        path = filedialog.askopenfilename(
+        title=f"Select Proton ({label})",
+        initialdir=StartDir,
+        filetypes=[("Proton Executable", "proton*"),("All Files", "*")])
+
+        if path:
+            ProtonVars[key].set(path)
+            SaveConfig("NullProton")
+
+    nulltk.Button(ProtonTop, text="Browse", command=Pick).grid(row=row, column=2, sticky="ew")
+
+ProtonMain = nulltk.Frame(NullProton)
+ProtonMain.pack(fill="both", expand=True, padx=10, pady=10)
+ProtonTop = nulltk.Frame(ProtonMain)
+ProtonTop.pack(fill="x")
+ProtonTop.rowconfigure(0, weight=1)
+ProtonTop.rowconfigure(1, weight=1)
+ProtonTop.rowconfigure(2, weight=1)
+ProtonTop.columnconfigure(0, weight=0)
+ProtonTop.columnconfigure(1, weight=2)
+ProtonTop.columnconfigure(2, weight=1)
+MakeProtonRow(0, "Default", "Default Proton:")
+MakeProtonRow(1, "A", "Proton A:")
+MakeProtonRow(2, "B", "Proton B:")
+ProtonScroll = ScrollableFrame(ProtonMain)
+ProtonScroll.pack(fill="both", expand=True)
+ProtonGameContainer = ProtonScroll.Inner
+ProtonGameContainer.columnconfigure(0, weight=1)
+nulltk.Frame(ProtonTop,height=2,bg="gray").grid(row=3,column=0,columnspan=3,sticky="ew",pady=6)
+nulltk.Button(ProtonTop, text="Add Game", command=AddGameRow).grid(row=4, column=2, sticky="ew",)
+checkboxframe = nulltk.Frame(ProtonTop)
+checkboxframe.grid(row=4, column=1, sticky="ew")
+checkboxframe.columnconfigure(0,weight=1)
+checkboxframe.columnconfigure(1,weight=1)
+CloseVar = tk.BooleanVar(value=ProtonVars["Close"].get())
+MinVar = tk.BooleanVar(value=ProtonVars["Min"].get())
+closenp = nulltk.Checkbutton(checkboxframe,text="Close To Tray",variable=ProtonVars["Close"])
+closenp.grid(row=0, column=0, sticky="ew")
+minimize = nulltk.Checkbutton(checkboxframe,text="Minimize On Launch",variable=ProtonVars["Min"])
+minimize.grid(row=0, column=1, sticky="ew")
+nulltk.Frame(ProtonTop,height=3,bg="gray").grid(row=5,column=0,columnspan=3,sticky="ew",pady=6)
+ProtonVars["Close"].trace_add("write",lambda *args: SaveConfig("NullProton"))
+ProtonVars["Min"].trace_add("write",lambda *args: SaveConfig("NullProton"))
+ProtonOverlay = nulltk.Frame(ProtonScroll, bg="#000000", ThemeBG = False)
+ProtonOverlay.place(relx=0, rely=0, relwidth=1, relheight=1)
+ProtonOverlay.lower()
+OverlayLabel = nulltk.Label(
+    ProtonOverlay,
+    text="",
+    fg="white",
+    bg="#000000",
+    justify="left",
+    anchor="nw"
+)
+OverlayLabel.pack(fill="both", expand=True, padx=10, pady=10)
+
+def StartUpNullProton():
+    global ProtonGames, LoadCompleted, ProtonGameRows,ActualProgramLoadedCount
+   
+    if NullProtonActive.get() == True:
+        proton = None
+        if not os.path.isfile(ConfigPath):
+            Butts.set("Save File not found???")
+            Root.update_idletasks()
+            return False
+        try:
+            with open(ConfigPath, "r") as f:
+                data = json.load(f)
+                proton = data.get("NullProton", {})
+        except Exception as e:
+            Butts.set(f"ERROR LOADING NULL PROTON SAVE\n\n{e}")
+            Root.update_idletasks()
+            return False
+
+        ProtonVars["Default"].set(proton.get("Default", "[ not set ]"))
+        ProtonVars["A"].set(proton.get("A", "[ not set ]"))
+        ProtonVars["B"].set(proton.get("B", "[ not set ]"))
+
+        ProtonGames.clear()
+        ProtonGames.extend(proton.get("Games", []))
+
+        for row in ProtonGameRows[:]:
+            row.destroy()
+
+        ProtonGameRows.clear()
+
+
+        for Game in ProtonGames.copy():
+            AddGameRow(Game, True)
+
+        Notebook.add(NullProton, text="NullProton"),
+        ActualProgramLoadedCount+=1
+    else:
+        Notebook.forget(NullProton)
+
+
+    LoadCompleted += 1
+    return
+
+
+#endregion
+
+#region NullMidi
+EscapeHeld = False
+HeldKeys = set()
+KeyBeingInput = False
+KeySaving = False
+MidiBeingInput = False
+MidiRows = []
+SaveRows = []
+MidiRowObjects = []
+MidiDeviceListeners = {}
+UInputDevice = None
+ActiveCapture = {
+    "Type": None,
+    "Cancel": False
+}
+SoundQueue = Queue()
+DrumQueue = Queue()
+CymbalQueue = Queue()
+CymbalChannelStart = 0
+CymbalChannelEnd = 149 
+DrumChannelStart = 150
+DrumChannelEnd = 199
+KickChannelStart = 200
+KickChannelEnd = 255  
+LastPedalValue = 100
+KickChannels = KickChannelStart
+DrumChannels = DrumChannelStart
+CymbalChannels = CymbalChannelStart
+PreviousPedalValue = 0
+HiHatPedalChoked = False
+LastHiHatState = "Open"
+NewHiHatState = "Open"
+HiHatHitHafClosedTime = time.time()
+WindowSelection = []
+
 def CancelActiveCapture():
     ActiveCapture["Cancel"] = True
 
@@ -3628,7 +1629,7 @@ def SoundPlayer():
 
             PlaySound(Data)
         except Exception as E:
-            print("SoundPlayer Error:", E)
+            Log(f"NullMidi: SoundPlayer Error:{E}", "Error")
             time.sleep(0.05)
 
 def CymbalPlayer():
@@ -3645,7 +1646,7 @@ def CymbalPlayer():
 
             PlaySound(Data)
         except Exception as E:
-            print("SoundPlayer Error:", E)
+            Log(f"NullMidi: SoundPlayer Error: {E}", "Error")
             time.sleep(0.05)
 
 def DrumPlayer():
@@ -3662,7 +1663,7 @@ def DrumPlayer():
 
             PlaySound(Data)
         except Exception as E:
-            print("SoundPlayer Error:", E)
+            Log(f"NullMidi: SoundPlayer Error: {E}", "Error")
             time.sleep(0.05)
 
 def CleanupDrumChannels(Drum):
@@ -3678,9 +1679,7 @@ def CleanupDrumChannels(Drum):
             Alive.append(ChannelID)
 
     Drum["Channels"] = Alive
-# ------------------------------ 
-# Key Handling 
-# ------------------------------
+
 def BuildGlobalUInputDevice():
     global UInputDevice
 
@@ -3760,7 +1759,6 @@ def PressKeyCombo(Keys, Window=False, SentWindowClassName=None):
             WindowIDs = Result.stdout.strip().splitlines()
 
             if not WindowIDs:
-                print("That window don't exist lol")
                 return
 
             XDOMap = {
@@ -3788,8 +1786,6 @@ def PressKeyCombo(Keys, Window=False, SentWindowClassName=None):
 
             return
 
-        print(Mapped)
-
         for Key in Mapped[:-1]:
             UInputDevice.emit(Key, 1)
 
@@ -3801,7 +1797,7 @@ def PressKeyCombo(Keys, Window=False, SentWindowClassName=None):
         UInputDevice.syn()
 
     except Exception as e:
-        print(f"PressKeyCombo Error: {e}")
+        Log(f"NullMidi: PressKeyCombo Error: {e}", "Error")
 
 def NormalizeKey(Key):
     Key = Key.upper()
@@ -3928,11 +1924,6 @@ def DetectKey(Button, Target, Field, Program, Page=None, Timeout=4):
     Root.bind("<KeyRelease>", OnRelease)
     Tick()
 
-
-
-# ------------------------------ 
-# Midi Handling
-# ------------------------------
 def StartMidiListener(Device):
 
     if Device in MidiDeviceListeners:
@@ -3946,13 +1937,12 @@ def StartMidiListener(Device):
             Port = mido.open_input(Device)
 
         except Exception as E:
-            print(f"❌ Failed To Open MIDI Device: {Device}")
-            print(E)
+            Log(f"NullMidi: ❌ Failed To Open MIDI Device: {Device}, \n {E}")
             return
 
         MidiDeviceListeners[Device]["Port"] = Port
 
-        print(f"🎹 Started MIDI Listener: {Device}")
+        Log(f"NullMidi: Successfully Started MIDI Listener for {Device}")
 
         while True:
             ListenerData = MidiDeviceListeners.get(Device)
@@ -3969,8 +1959,8 @@ def StartMidiListener(Device):
                     HandleMidiMessage(Device, Message)
 
             except Exception as E:
-                print(f"❌ MIDI Runtime Error ({Device})")
-                print(E)
+                Log(f"❌ MIDI Runtime Error ({Device})", "Error")
+                Log(E)
                 break
 
         try:
@@ -3978,7 +1968,7 @@ def StartMidiListener(Device):
         except:
             pass
 
-        print(f"🛑 Closed MIDI Listener: {Device}")
+        Log(f"NullMidi: Successfully Closed MIDI Listener for {Device}")
 
     Thread = threading.Thread(target=MidiListener, daemon=True)
 
@@ -4007,7 +1997,7 @@ def StopMidiListener(Device):
 
     del MidiDeviceListeners[Device]
 
-    print(f"🛑 Stopped MIDI Listener: {Device}")
+    Log(f"NullMidi: Successfully Closed MIDI Listener for {Device}")
 
 def GetMidiController(Row, Note):
     if Note == Row['PageUpMidi']:
@@ -4047,7 +2037,7 @@ def HandleMidiMessage(Device, msg):
                         continue
                 else:
                     if not ControllerInput:
-                        print("not controllerinput???")
+                        Log("NullMidi: It's set as a controller...but its not controller.")
                         continue
             elif Row['Keyboard']:
                 continue
@@ -4065,7 +2055,6 @@ def HandleMidiMessage(Device, msg):
                                 continue
                             if not HiHatPedalChoked:
                                 if (PreviousPedalValue < Drum['HiHatClosedThreshold']and LastPedalValue >= Drum['HiHatClosedThreshold']):
-                                    print("PEDAL CHOKE")
                                     HiHatPedalChoked = True
                                     for ChannelID in Drum['Channels']:
                                         pygame.mixer.Channel(ChannelID).fadeout(50)
@@ -4233,7 +2222,7 @@ def HandleMidiMessage(Device, msg):
 
         except Exception as E:
 
-            print("HandleMidiMessage Error:", E)
+            Log(f"NullMidi: HandleMidiMessage Error: {E}", "Error")
 
 def GetPorts(CurrentRow=None):
     try:
@@ -4519,8 +2508,6 @@ def ResolveDrum(Row, Note):
 
     return None
 
-
-
 def GetPlaybackChannel(DrumType):
 
     global CymbalChannels
@@ -4617,7 +2604,7 @@ def CreateVirtualPort(Row):
         Row["VirtualPortName"] = Name
         Row["VirtualPort"] = Port
     except Exception as E:
-        print(f"❌ Failed To Create Virtual Port: {E}")
+        Log(f"NullMidi: Failed To Create Virtual Port {E} — Midi device wont work")
         Row["VirtualPortName"] = None
         Row["VirtualPort"] = None
 
@@ -4626,7 +2613,7 @@ def DestroyVirtualPort(Row):
         if Row.get("VirtualPort"):
             Row["VirtualPort"].close()
     except Exception as e:
-        print(f"DestroyVirtualPort Error: {e}")
+        Log(f"NullMidi: Couldn't Destroy Virtual Port: {e}")
     Row["VirtualPort"] = None
     Row["VirtualPortName"] = None
 
@@ -4670,7 +2657,7 @@ def MidiFileOpen(Path):
             start_new_session=True
         )
     except Exception as e:
-        print(f"MidiFileOpen Error: {e}")
+        Log(f"NullMidi: Couldn't Open File Because: {e}")
     return
 
 def ControllerPageHandler(Row, Which):
@@ -4694,11 +2681,7 @@ def ControllerPageHandler(Row, Which):
                 Row['OutputPort'] = mido.open_output(Row['Device'])
             Row['OutputPort'].send(mido.Message("program_change",program=Row['ControllerPage']))
         except Exception as E:
-            print("Controller Page Sync Error:",E)
-
-# ------------------------------ 
-# UI Stuff
-# ------------------------------
+            Log(f"Uhhhh Controller didn't change page?:{E}")
 
 def SearchForSoundFile(Drum, var, Field):
         path = filedialog.askopenfilename(
@@ -6932,9 +4915,1580 @@ def RemoveMidiRow(Frame, Row, Button, Timeout=4):
     SaveConfig("NullMidi")
     return
 
-# ————————————————————————————————————————————————————————————
-# NullGit
-# ————————————————————————————————————————————————————————————
+
+TopBar = nulltk.Frame(NullMidi)
+TopBar.pack(fill="x", padx=5, pady=5)
+MidiScrollBox = ScrollableFrame(NullMidi)
+MidiScrollBox.pack(fill="both", expand=True)
+MidiContainer = MidiScrollBox.Inner
+nulltk.Button(TopBar, text="Add New Input", command=lambda: AddMidiRow(None)).pack(fill="x")
+ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=5)
+
+def NullMidiLoop():
+    global LoadTimes
+
+    while True:
+        if NullMidiActive.get() == True:
+            Ports = mido.get_input_names()
+            NeededDevices = set()
+            for Row in MidiRows:
+                if not Row.get("Active"):
+                    continue
+                Device = Row.get("Device")
+                if not Device:
+                    continue
+                if Device not in Ports:
+                    continue
+                NeededDevices.add(Device)
+            for Device in NeededDevices:
+                if Device not in MidiDeviceListeners:
+                    StartMidiListener(Device)
+            for Device in list(MidiDeviceListeners.keys()):
+                if Device not in NeededDevices:
+                    StopMidiListener(Device)
+
+        time.sleep(1)
+
+def StartUpNullMidi():
+    global MixerInitialized, MidiRows, LoadCompleted, MidiRowObjects,ActualProgramLoadedCount
+    if NullMidiActive.get() == True:
+
+        midi = None
+        if not os.path.isfile(ConfigPath):
+            Butts.set("Save File not found???")
+            Root.update_idletasks()
+            return False
+
+        try:
+            with open(ConfigPath, "r") as f:
+                data = json.load(f)
+                midi = data.get("NullMidi", {})
+
+            for row in MidiRowObjects[:]:
+                row.destroy()
+
+            MidiRows.clear()
+            MidiRowObjects.clear()
+
+            for row in midi.get("MidiRows", []):
+                AddMidiRow(row, True)
+
+        except Exception as e:
+            Butts.set(f"ERROR LOADING NULL MIDI SAVE\n\n{e}")
+            Root.update_idletasks()
+            return False
+
+        if MixerInitialized == False:
+            pygame.mixer.init(buffer=512)
+            pygame.mixer.set_num_channels(256)
+            MixerInitialized = True
+        
+        BuildGlobalUInputDevice()
+
+        Notebook.add(NullMidi, text="NullMidi")
+        ActualProgramLoadedCount+=1
+    else:
+        Notebook.forget(NullMidi)
+
+    LoadCompleted += 1
+    return
+
+#endregion
+
+#region NullMonitor
+Overlays = None
+OverlayWindows = []
+NullMonitorSetActiveCheckBoxes = []
+HideJob = None
+ScanForMouse = False
+XdotoolPath = shutil.which("xdotool") or "xdotool"
+XrandrPath = shutil.which("xrandr") or "xrandr"
+StartDetection = 0.01
+EdgeBuffer = 3
+ScanTime = 0.10
+BaseDir = os.path.dirname(os.path.abspath(__file__))
+RootDir = os.path.dirname(BaseDir)
+Profiles = {}
+ProfileWidgets = {}
+ActiveProfile = None
+LastMousePos = None
+LastMoveTime = 0
+LastWarpTime = 0
+WarpCooldown = 0.01
+Offset = 10
+if not XdotoolPath or not XrandrPath:
+    raise RuntimeError("xdotool or xrandr not found")
+MonitorLayoutObjects = []
+MonitorWallPaperRows = []
+MonitorBoxes = []
+
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tip = None
+
+        widget.bind("<Enter>", self.show)
+        widget.bind("<Leave>", self.hide)
+
+    def show(self, event=None):
+        if self.tip:
+            return
+
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + 20
+
+        self.tip = nulltk.Toplevel(self.widget)
+        self.tip.overrideredirect(True)
+        self.tip.geometry(f"+{x}+{y}")
+
+        label = nulltk.Label(
+            self.tip,
+            text=self.text,
+            bg="black",
+            fg="white",
+            padx=5,
+            pady=3
+        )
+        label.pack()
+
+    def hide(self, event=None):
+        if self.tip:
+            self.tip.destroy()
+            self.tip = None
+
+def CaptureLayout():
+    try:
+        Out = subprocess.check_output([XrandrPath]).decode()
+    except:
+        return []
+
+    Layout = []
+
+    for Line in Out.splitlines():
+        if " connected" in Line:
+            Parts = Line.split()
+            ID = Parts[0]
+
+            Resolution = None
+            Pos = None
+            Primary = "primary" in Parts
+
+            for P in Parts:
+                if "+" in P and "x" in P:
+                    Resolution, X, Y = re.split(r"[+]", P)
+                    Pos = f"{X}x{Y}"
+                    break
+
+            if not Resolution:
+                continue
+
+            Layout.append({
+                "ID": ID,
+                "Resolution": Resolution,
+                "Pos": Pos,
+                "Primary": Primary
+            })
+
+    return Layout
+
+def GetMonitors():
+    try:
+        Out = subprocess.check_output([XrandrPath]).decode()
+    except:
+        return []
+
+    Monitors = []
+
+    for Line in Out.splitlines():
+        if " connected" in Line:
+            Parts = Line.split()
+            ID = Parts[0]
+
+            IsPrimary = " primary " in Line
+
+            Resolution = None
+            for P in Parts:
+                if "+" in P and "x" in P:
+                    Resolution = P.split("+")[0]
+                    break
+
+            if not Resolution:
+                continue
+
+            if IsPrimary:
+                Label = f"Primary ({ID} {Resolution})"
+            else:
+                Label = f"{ID} ({Resolution})"
+
+            Monitors.append({
+                "ID": ID,
+                "Label": Label,
+                "Primary": IsPrimary
+            })
+
+    return Monitors
+
+def GetProfiles():
+    return list(Profiles.keys()) if Profiles else ["NO PROFILES. GO CREATE ONE"]
+
+def ShowDetectionOverlay(which):
+    global OverlayWindows
+    if OverlayWindows:
+        return
+
+
+    OverlayWindows = []
+
+    Bounds = GetMonitorBounds()
+
+    for ID, B in Bounds.items():
+        W = B["x2"] - B["x1"]
+        H = B["y2"] - B["y1"]
+
+        if which == "detection":
+            Px = int(W * StartDetection)
+            Py = int(H * StartDetection)
+        else:
+            Px = EdgeBuffer
+            Py = EdgeBuffer
+
+        # Left
+        OverlayWindows.append(CreateOverlay(
+            B["x1"], B["y1"], Px, H
+        ))
+
+        # Right
+        OverlayWindows.append(CreateOverlay(
+            B["x2"] - Px, B["y1"], Px, H
+        ))
+
+        # Top
+        OverlayWindows.append(CreateOverlay(
+            B["x1"], B["y1"], W, Py
+        ))
+
+        # Bottom
+        OverlayWindows.append(CreateOverlay(
+            B["x1"], B["y2"] - Py, W, Py
+        ))
+    return OverlayWindows
+
+def CreateOverlay(x, y, w, h):
+    Popup = nulltk.Toplevel(Root)
+    Popup.overrideredirect(True)
+    Popup.attributes("-topmost", True)
+    Popup.attributes("-alpha", 0.25)
+
+    Popup.geometry(f"{w}x{h}+{x}+{y}")
+    Popup.configure(bg="red")
+
+    return Popup
+
+def HideDetectionOverlay():
+    global OverlayWindows
+
+    for W in OverlayWindows:
+        try:
+            W.destroy()
+        except:
+            pass
+
+    OverlayWindows = []
+
+def UpdateStartDetection(v):
+    global StartDetection
+    StartDetection = int(v) / 1000
+    NullMonitorStartValueLabel.config(text=f"{int(v)}   |") 
+    SaveConfig("NullMonitor")
+
+def OnHoverEnter(e, which):
+    global Overlays, HideJob
+    if HideJob:
+        Root.after_cancel(HideJob)
+        HideJob = None
+    HideDetectionOverlay()
+    Overlays = ShowDetectionOverlay(which)
+
+def OnHoverLeave(e):
+    global HideJob
+    HideJob = Root.after(50, HideDetectionOverlay)
+
+def DelayedHide():
+    Root.after(50, lambda: HideDetectionOverlay())
+
+def UpdateEdgeBuffer(*args):
+    global EdgeBuffer
+    try:
+        EdgeBuffer = int(NullMonitorEdgeBufferVar.get())
+        SaveConfig("NullMonitor")
+    except:
+        pass
+
+def UpdateScanTime(v):
+    global ScanTime
+    ScanTime = float(v)
+    NullMonitorScanValueLabel.config(text=f"{ScanTime:.3f}")
+    SaveConfig("NullMonitor")
+
+def CenterOnRoot(Popup, width, height):
+    Root.update_idletasks()
+
+    rx = Root.winfo_rootx()
+    ry = Root.winfo_rooty()
+    rw = Root.winfo_width()
+    rh = Root.winfo_height()
+
+    x = rx + (rw // 2) - (width // 2)
+    y = ry + (rh // 2) - (height // 2)
+
+    Popup.geometry(f"{width}x{height}+{x}+{y}")
+
+def SetActiveProfile(Name, Apply=True):
+    global ActiveProfile
+
+    ActiveProfile = Name
+
+    for P, W in ProfileWidgets.items():
+        W["ActiveVar"].set(P == Name)
+
+    if Apply:
+        if ActiveProfile not in Profiles:
+            return
+        ApplyProfileLayout(Name)
+
+    SaveConfig("NullMonitor")
+
+def ApplyProfileLayout(Name):
+    global NullMonitorSetActiveCheckBoxes
+
+    if Name not in Profiles:
+        return
+    Layout = Profiles[Name]["Layout"]
+    Current = GetMonitors()
+    Commands = ["xrandr"]
+    ActiveIDs = set()
+    for Monitor in Layout:
+        ID = Monitor["ID"]
+        ActiveIDs.add(ID)
+        Commands.extend([
+            "--output", ID,
+            "--mode", Monitor["Resolution"]
+        ])
+        X, Y = Monitor["Pos"].split("x")
+        Commands.extend([
+            "--pos", f"{X}x{Y}"
+        ])
+        if Monitor.get("Primary"):
+            Commands.append("--primary")
+    for Monitor in Current:
+        if Monitor["ID"] not in ActiveIDs:
+            Commands.extend([
+                "--output",
+                Monitor["ID"],
+                "--off"
+            ])
+
+    try:
+        def DisableProfileSwitches():
+            for item in NullMonitorSetActiveCheckBoxes:
+                item.config(state="disabled")
+            return
+
+        DisableProfileSwitches()
+
+        subprocess.run(
+            Commands,
+            check=True
+        )
+        
+
+        def EnableProfileSwitches():
+            for item in NullMonitorSetActiveCheckBoxes:
+                item.config(state="normal")
+            return
+
+        if Profiles[Name].get("EnabledWallPapers"):
+            Root.after(10000, lambda:UpdateLockScreenWallPapers(Name))
+            Root.after(5000, lambda: EnableProfileSwitches())
+        else:
+            Root.after(15000, lambda: EnableProfileSwitches())
+
+    except Exception as E:
+        Log(f"NullMonitor: Couldn't apply profile because {E}")
+
+def DeleteProfile(Name,Button, Frame, Timeout=4):
+    global ActiveProfile
+
+    EndTime = time.time() + (Timeout)
+
+    def Tick(Name):
+        if Name not in Profiles:
+            return
+        else:
+            Remaining = int(EndTime - time.time())
+            if Remaining <= 0:
+                if not Button.winfo_exists():
+                    return
+                Button.config(text="Delete Profile?")
+                Profiles[Name]['DeleteConfirmation'] = False
+                return
+            if not Button.winfo_exists():
+                return
+            else:
+                Button.config(text=f"R U Sure? {Remaining}")
+                Root.after(1000, Tick, Name)
+
+    if Profiles[Name]['DeleteConfirmation'] == False:
+        Profiles[Name]['DeleteConfirmation'] = True
+        Tick(Name)
+        return
+
+
+    if len(Profiles) <= 1:
+        return
+    Frame.destroy()
+    Profiles.pop(Name, None)
+    ProfileWidgets.pop(Name, None)
+    if ActiveProfile == Name or len(Profiles) == 1:
+        New = list(Profiles.keys())[0]
+        SetActiveProfile(New)
+
+    SaveConfig("NullMonitor")
+
+def OpenRemoveWarp(Name):
+    Popup = nulltk.Toplevel(Root)
+    Popup.title("Remove Warp")
+    CenterOnRoot(Popup, 500, 300)
+
+    Frame = nulltk.Frame(Popup, padx=10, pady=10)
+    Frame.pack(fill="both", expand=True)
+
+    Warps = Profiles.get(Name, {}).get("Warps", {})
+
+    HasWarps = False
+
+    for SourceID, WarpList in list(Warps.items()):
+        for Warp in list(WarpList):
+            HasWarps = True
+
+            Text = (
+                f'{SourceID}: {Warp["Edge"]} → '
+                f'{Warp["Target"]}: {Warp["TargetEdge"]}'
+            )
+
+            nulltk.Button(
+                Frame,
+                text=Text,
+                anchor="w",
+                command=lambda S=SourceID, W=Warp: RemoveWarp(
+                    Name,
+                    S,
+                    W,
+                    Popup
+                )
+            ).pack(fill="x", pady=2)
+
+    if not HasWarps:
+        nulltk.Label(
+            Frame,
+            text="No warps configured."
+        ).pack(pady=10)
+
+def RemoveWarp(ProfileName, SourceID, Warp, Popup):
+    WarpList = Profiles[ProfileName]["Warps"].get(SourceID, [])
+
+    if Warp in WarpList:
+        WarpList.remove(Warp)
+
+    if not WarpList:
+        Profiles[ProfileName]["Warps"].pop(SourceID, None)
+
+    RefreshWarpDisplay(ProfileName)
+    SaveConfig("NullMonitor")
+
+    Popup.destroy()
+
+    OpenRemoveWarp(ProfileName)
+
+def RefreshWarpDisplay(Name):
+    Warps = Profiles.get(Name, {}).get("Warps", {})
+
+    Parts = []
+
+    for SourceID, WarpList in Warps.items():
+        for W in WarpList:
+            Parts.append(
+                f'{SourceID}: {W["Edge"]} → {W["Target"]}: {W["TargetEdge"]}'
+            )
+
+    Text = " , ".join(Parts) if Parts else "No warps"
+
+    ProfileWidgets[Name]["WarpVar"].set(Text)
+
+def SpawnMonitorPopups(OnSelect):
+    Popups = {}
+
+    Bounds = GetMonitorBounds()
+
+    for ID, B in Bounds.items():
+        Popup = nulltk.Toplevel(Root)
+        Popup.overrideredirect(True)
+        Popup.attributes("-topmost", True)
+
+        width = 200
+        height = 60
+
+        x = B["x1"] + 20
+        y = B["y1"] + 20
+
+        Popup.geometry(f"{width}x{height}+{x}+{y}")
+        Popup.config(cursor="hand2")
+
+        Label = nulltk.Label(
+            Popup,
+            text=f"Click Here\n{ID}",
+            bg="black",
+            fg="white",
+            font=("Arial", 12, "bold")
+        )
+        Label.pack(fill="both", expand=True)
+        Label.bind("<Enter>", lambda e, L=Label: L.config(bg="#333"))
+        Label.bind("<Leave>", lambda e, L=Label: L.config(bg="black"))
+
+        Label.bind("<Button-1>", lambda e, mid=ID: OnSelect(mid))
+
+        Popups[ID] = Popup
+
+    return Popups
+
+def CreateCenterPopup():
+    Popup = nulltk.Toplevel(Root)
+    CenterOnRoot(Popup, 400, 100)
+    Popup.attributes("-topmost", True)
+    
+
+    Frame = nulltk.Frame(Popup)
+    Frame.pack(fill="both", expand=True)
+
+    Label = nulltk.Label(Frame, text="", font=("Arial", 12))
+    Label.pack(expand=True)
+
+    
+
+    return Popup, Label
+
+def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
+    Popup = nulltk.Toplevel(Root)
+    CenterOnRoot(Popup, 300, 200)
+    Popup.title("Configure Warp")
+    Popup.attributes("-topmost", True)
+
+    Frame = nulltk.Frame(Popup, padx=10, pady=10)
+    Frame.pack()
+
+    nulltk.Label(Frame, text=f"{SourceID} → {TargetID}").pack(pady=5)
+
+    Edges = ["TopLeft", "Top", "TopRight",
+             "Right",
+             "BottomRight", "Bottom", "BottomLeft",
+             "Left"]
+
+    SourceEdgeVar = tk.StringVar(value=Edges[0])
+    TargetEdgeVar = tk.StringVar(value=Edges[0])
+
+    nulltk.Label(Frame, text="Source Edge").pack()
+    nulltk.Combobox(Frame, values=Edges, textvariable=SourceEdgeVar, state="readonly").pack()
+
+    nulltk.Label(Frame, text="Target Edge").pack()
+    nulltk.Combobox(Frame, values=Edges, textvariable=TargetEdgeVar, state="readonly").pack()
+
+    def Confirm():
+        Warp = {
+            "Edge": SourceEdgeVar.get(),
+            "Target": TargetID,
+            "TargetEdge": TargetEdgeVar.get()
+        }
+
+        if SourceID not in Profiles[ProfileName]["Warps"]:
+            Profiles[ProfileName]["Warps"][SourceID] = []
+
+        if Warp not in Profiles[ProfileName]["Warps"][SourceID]:
+            Profiles[ProfileName]["Warps"][SourceID].append(Warp)
+
+        RefreshWarpDisplay(ProfileName)
+        Popup.destroy()
+        SaveConfig("NullMonitor")
+
+    nulltk.Button(Frame, text="Confirm", command=Confirm).pack(pady=5)
+
+def StartWarpSelection(ProfileName):
+    State = {"source": None}
+
+    def Cleanup():
+        for p in list(Popups.values()):
+            try:
+                p.destroy()
+            except:
+                pass
+        try:
+            CenterPopup.destroy()
+        except:
+            pass
+
+    CenterPopup, CenterLabel = CreateCenterPopup()
+
+    CenterPopup.protocol("WM_DELETE_WINDOW", Cleanup)
+    CenterPopup.bind("<Escape>", lambda e: Cleanup())
+
+
+
+    def UpdateText(t):
+        CenterLabel.config(text=t)
+
+    def SelectSource(ID):
+        State["source"] = ID
+
+        # and with the commenting out of this...i allow single monitor warping ability \o/
+        #Popups[ID].destroy()
+        #del Popups[ID]
+
+        UpdateText("Click to set warping TO monitor")
+        for mid, popup in Popups.items():
+            for w in popup.winfo_children():
+                w.bind("<Button-1>", lambda e, m=mid: SelectTarget(m))
+
+    def SelectTarget(ID):
+        Source = State["source"]
+        for p in Popups.values():
+            p.destroy()
+
+        CenterPopup.destroy()
+
+        OpenWarpConfigPopup(ProfileName, Source, ID)
+
+    Popups = SpawnMonitorPopups(SelectSource)
+
+    UpdateText("Click to set warping FROM monitor")
+
+def OpenAddWarp(Name):
+    StartWarpSelection(Name)
+
+def BuildUIFromProfiles():
+    global NullMonitorSetActiveCheckBoxes
+
+    NullMonitorSetActiveCheckBoxes.clear()
+    
+    for w in NullMonitorProfileContainer.winfo_children():
+        w.destroy()
+
+    ProfileWidgets.clear()
+
+    for Name in Profiles:
+        CreateProfileBox(Name)
+
+    if ActiveProfile in ProfileWidgets:
+        SetActiveProfile(ActiveProfile, Apply= False)
+
+def GetMouseDirection(x, y):
+    global LastMousePos
+
+    if LastMousePos is None:
+        LastMousePos = (x, y)
+        return 0, 0
+
+    lx, ly = LastMousePos
+    dx = x - lx
+    dy = y - ly
+
+    LastMousePos = (x, y)
+
+    return dx, dy
+
+def IsEdgeBuffer(corner, x, y, B):
+    left   = x <= B["x1"] + EdgeBuffer
+    right  = x >= B["x2"] - EdgeBuffer
+    top    = y <= B["y1"] + EdgeBuffer
+    bottom = y >= B["y2"] - EdgeBuffer
+
+    if corner == "Left":
+        return left
+    if corner == "Right": 
+        return right
+    if corner == "Top": 
+        return top
+    if corner == "Bottom": 
+        return bottom
+
+    if corner == "TopLeft":
+        return left and top
+    if corner == "TopRight":
+        return right and top
+    if corner == "BottomLeft":
+        return left and bottom
+    if corner == "BottomRight":
+        return right and bottom
+
+    return False
+
+def ExecuteWarp(TargetID, TargetEdge, Bounds, ratio=None):
+    TB = Bounds[TargetID]
+    ratio = max(0, min(1, ratio))
+    width  = TB["x2"] - TB["x1"]
+    height = TB["y2"] - TB["y1"]
+
+    if TargetEdge == "TopLeft":
+        nx, ny = TB["x1"] + Offset, TB["y1"] + Offset
+
+    elif TargetEdge == "TopRight":
+        nx, ny = TB["x2"] - Offset, TB["y1"] + Offset
+
+    elif TargetEdge == "BottomLeft":
+        nx, ny = TB["x1"] + Offset, TB["y2"] - Offset
+
+    elif TargetEdge == "BottomRight":
+        nx, ny = TB["x2"] - Offset, TB["y2"] - Offset
+
+    elif TargetEdge == "Left":
+        nx = TB["x1"] + Offset
+        ny = TB["y1"] + int(ratio * height)
+
+    elif TargetEdge == "Right":
+        nx = TB["x2"] - Offset
+        ny = TB["y1"] + int(ratio * height)
+
+    elif TargetEdge == "Top":
+        nx = TB["x1"] + int(ratio * width)
+        ny = TB["y1"] + Offset
+
+    elif TargetEdge == "Bottom":
+        nx = TB["x1"] + int(ratio * width)
+        ny = TB["y2"] - Offset
+
+    else:
+        return
+
+
+    subprocess.run([XdotoolPath, "mousemove", str(nx), str(ny)])
+
+def GetCursorPos():
+    try:
+        Out = subprocess.check_output([XdotoolPath, "getmouselocation"]).decode()
+        Parts = dict(p.split(":") for p in Out.strip().split())
+        return int(Parts["x"]), int(Parts["y"])
+    except:
+        return None, None
+
+def GetMonitorBounds():
+    Bounds = {}
+
+    Layout = Profiles[ActiveProfile]["Layout"]
+
+    for M in Layout:
+        ID = M["ID"]
+
+        W, H = map(int, M["Resolution"].split("x"))
+        X, Y = map(int, M["Pos"].split("x"))
+
+        Bounds[ID] = {
+            "x1": X,
+            "y1": Y,
+            "x2": X + W,
+            "y2": Y + H
+        }
+
+    return Bounds
+
+def GetCurrentMonitor(x, y, Bounds):
+    for ID, B in Bounds.items():
+        if B["x1"] <= x <= B["x2"] and B["y1"] <= y <= B["y2"]:
+            return ID
+    return None
+
+def DetectEdge(x, y, B):
+    W = B["x2"] - B["x1"]
+    H = B["y2"] - B["y1"]
+
+    mx = (x - B["x1"]) / W
+    my = (y - B["y1"]) / H
+
+    left   = mx <= StartDetection
+    right  = mx >= 1 - StartDetection
+    top    = my <= StartDetection
+    bottom = my >= 1 - StartDetection
+
+    if top and left:
+        return "TopLeft"
+    if top and right:
+        return "TopRight"
+    if bottom and left:
+        return "BottomLeft"
+    if bottom and right:
+        return "BottomRight"
+
+    if top:
+        return "Top"
+    if bottom:
+        return "Bottom"
+    if left:
+        return "Left"
+    if right:
+        return "Right"
+
+    return None
+
+def ToggleNullMonitor():
+    global ScanForMouse
+    ScanForMouse = NullMonitorEnabledVar.get()
+    if ScanForMouse:
+        NullMonitorDisabledOverlay.place_forget()
+    else:
+        NullMonitorDisabledOverlay.place(
+            relx=0,
+            rely=0,
+            relwidth=1,
+            relheight=1
+        )
+    SaveConfig("NullMonitor")
+
+def UpdateDesktopWallPapers(ProfileName):
+
+    Profile = Profiles[ProfileName]
+    Layout = Profile["Layout"]
+    Wallpapers = Profile["Wallpapers"]
+
+    if not Layout:
+        return
+
+    MinX = min(int(M["Pos"].split("x")[0]) for M in Layout)
+    MinY = min(int(M["Pos"].split("x")[1]) for M in Layout)
+
+    MaxX = max(int(M["Pos"].split("x")[0]) +int(M["Resolution"].split("x")[0])for M in Layout)
+
+    MaxY = max(int(M["Pos"].split("x")[1]) +int(M["Resolution"].split("x")[1])for M in Layout)
+
+    CanvasWidth = MaxX - MinX
+    CanvasHeight = MaxY - MinY
+
+    Canvas = Image.new("RGB",(CanvasWidth, CanvasHeight),"black")
+
+    for Monitor in Layout:
+        ID = Monitor["ID"]
+        MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
+        MonitorWidth, MonitorHeight = map(int,Monitor["Resolution"].split("x"))
+        WallpaperData = Wallpapers.get(ID, {})
+        Path = WallpaperData.get("DTPath", "")
+        WallpaperMode = WallpaperData.get("DTMode", "Fill")
+        if not Path or not os.path.exists(Path):
+            continue
+        Wallpaper = Image.open(Path).convert("RGB")
+        PasteX = MonitorX - MinX
+        PasteY = MonitorY - MinY
+
+        if WallpaperMode == "Stretch":
+            Wallpaper = Wallpaper.resize((MonitorWidth, MonitorHeight))
+
+            Canvas.paste(Wallpaper,(PasteX, PasteY))
+
+        # CENTER
+        elif WallpaperMode == "Center":
+            X = PasteX + (MonitorWidth - Wallpaper.width) // 2
+            Y = PasteY + (MonitorHeight - Wallpaper.height) // 2
+            Canvas.paste(Wallpaper,(X, Y))
+
+        # TILE
+        elif WallpaperMode == "Tile":
+
+            for TileX in range(0,MonitorWidth,Wallpaper.width):
+                for TileY in range(0,MonitorHeight,Wallpaper.height):
+                    Canvas.paste(Wallpaper,(PasteX + TileX,PasteY + TileY))
+
+        # MAX
+        elif WallpaperMode == "Max":
+            Scale = min(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
+            NewWidth = int(Wallpaper.width * Scale)
+            NewHeight = int(Wallpaper.height * Scale)
+            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
+            X = PasteX + (MonitorWidth - NewWidth) // 2
+            Y = PasteY + (MonitorHeight - NewHeight) // 2
+            Canvas.paste(Wallpaper,(X, Y))
+        # FILL
+        else:
+            Scale = max(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
+            NewWidth = int(Wallpaper.width * Scale)
+            NewHeight = int(Wallpaper.height * Scale)
+            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
+            CropX = max(0,(NewWidth - MonitorWidth) // 2)
+            CropY = max(0,(NewHeight - MonitorHeight) // 2)
+            Wallpaper = Wallpaper.crop(
+                (
+                    CropX,
+                    CropY,
+                    CropX + MonitorWidth,
+                    CropY + MonitorHeight
+                )
+            )
+
+            Canvas.paste(Wallpaper,(PasteX, PasteY))
+
+    TempPath = os.path.join(
+        tempfile.gettempdir(),
+        "nullmonitor_wallpaper.png"
+    )
+
+    Canvas.save(TempPath)
+
+    subprocess.Popen(
+        [
+            "feh",
+            "--no-xinerama",
+            "--bg-scale",
+            TempPath
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+def UpdateLockScreenWallPapers(ProfileName):
+
+    Profile = Profiles[ProfileName]
+    Layout = Profile["Layout"]
+    Wallpapers = Profile["Wallpapers"]
+
+    if not Layout:
+        return
+
+    MinX = min(int(M["Pos"].split("x")[0]) for M in Layout)
+    MinY = min(int(M["Pos"].split("x")[1]) for M in Layout)
+
+    MaxX = max(int(M["Pos"].split("x")[0]) +int(M["Resolution"].split("x")[0])for M in Layout)
+
+    MaxY = max(int(M["Pos"].split("x")[1]) +int(M["Resolution"].split("x")[1])for M in Layout)
+
+    CanvasWidth = MaxX - MinX
+    CanvasHeight = MaxY - MinY
+
+
+    Canvas = Image.new("RGB",(CanvasWidth, CanvasHeight),"black")
+
+    for Monitor in Layout:
+        ID = Monitor["ID"]
+        MonitorX, MonitorY = map(int,Monitor["Pos"].split("x"))
+        MonitorWidth, MonitorHeight = map(int,Monitor["Resolution"].split("x"))
+        WallpaperData = Wallpapers.get(ID, {})
+        Path = WallpaperData.get("LSPath", "")
+        WallpaperMode = WallpaperData.get("LSMode", "Fill")
+        if not Path or not os.path.exists(Path):
+            continue
+        Wallpaper = Image.open(Path).convert("RGB")
+        PasteX = MonitorX - MinX
+        PasteY = MonitorY - MinY
+
+        if WallpaperMode == "Stretch":
+            Wallpaper = Wallpaper.resize((MonitorWidth, MonitorHeight))
+
+            Canvas.paste(Wallpaper,(PasteX, PasteY))
+
+        # CENTER
+        elif WallpaperMode == "Center":
+            X = PasteX + (MonitorWidth - Wallpaper.width) // 2
+            Y = PasteY + (MonitorHeight - Wallpaper.height) // 2
+            Canvas.paste(Wallpaper,(X, Y))
+
+        # TILE
+        elif WallpaperMode == "Tile":
+
+            for TileX in range(0,MonitorWidth,Wallpaper.width):
+                for TileY in range(0,MonitorHeight,Wallpaper.height):
+                    Canvas.paste(Wallpaper,(PasteX + TileX,PasteY + TileY))
+
+        # MAX
+        elif WallpaperMode == "Max":
+            Scale = min(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
+            NewWidth = int(Wallpaper.width * Scale)
+            NewHeight = int(Wallpaper.height * Scale)
+            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
+            X = PasteX + (MonitorWidth - NewWidth) // 2
+            Y = PasteY + (MonitorHeight - NewHeight) // 2
+            Canvas.paste(Wallpaper,(X, Y))
+        # FILL
+        else:
+            Scale = max(MonitorWidth / Wallpaper.width,MonitorHeight / Wallpaper.height)
+            NewWidth = int(Wallpaper.width * Scale)
+            NewHeight = int(Wallpaper.height * Scale)
+            Wallpaper = Wallpaper.resize((NewWidth, NewHeight))
+            CropX = max(0,(NewWidth - MonitorWidth) // 2)
+            CropY = max(0,(NewHeight - MonitorHeight) // 2)
+            Wallpaper = Wallpaper.crop(
+                (
+                    CropX,
+                    CropY,
+                    CropX + MonitorWidth,
+                    CropY + MonitorHeight
+                )
+            )
+
+            Canvas.paste(Wallpaper,(PasteX, PasteY))
+
+    TempPath = os.path.join(
+    tempfile.gettempdir(),
+    "nullmonitor_lockscreen_building.png"
+    )
+
+    FinalPath = os.path.join(
+        tempfile.gettempdir(),
+        "nullmonitor_lockscreen_wallpaper.png"
+    )
+
+    Canvas.save(TempPath)
+
+    os.replace(TempPath, FinalPath)
+
+    try:
+
+        subprocess.run([
+            "gsettings",
+            "set",
+            "org.cinnamon.desktop.background",
+            "picture-options",
+            "spanned"
+        ], check=True)
+
+        subprocess.run([
+            "gsettings",
+            "set",
+            "org.cinnamon.desktop.background",
+            "picture-uri",
+            f"file://{FinalPath}"
+        ], check=True)        
+    except Exception:
+        try:
+
+            subprocess.run([
+                "gsettings",
+                "set",
+                "org.cinnamon.desktop.background",
+                "picture-options",
+                "spanned"
+            ], check=True)
+
+            subprocess.run([
+                "gsettings",
+                "set",
+                "org.cinnamon.desktop.background",
+                "picture-uri-dark",
+                f"file://{FinalPath}"
+            ], check=True)
+
+            
+
+        except Exception as e:
+            Log(f"NullMonitor, Error updating lock screen wallpapers {e}", "Error")
+    
+    Root.after(1, lambda: UpdateDesktopWallPapers(ProfileName))
+    return
+
+def ManageWallPapers(Name):
+
+    global MonitorLayoutObjects, MonitorWallPaperRows, MonitorBoxes
+
+    for Widget in MonitorLayoutObjects: Widget.destroy()
+    for Widget in MonitorWallPaperRows: Widget.destroy()
+
+    MonitorLayoutObjects.clear()
+    MonitorWallPaperRows.clear()
+
+    Layout = Profiles[Name]["Layout"]
+    Positions = [tuple(map(int,Monitor["Pos"].split("x"))) for Monitor in Layout]
+
+    MinX = min(X for X,Y in Positions)
+    MinY = min(Y for X,Y in Positions)
+
+    WallpaperModes = ["Fill","Stretch","Center","Max","Tile"]
+
+    Boxes = {}
+
+    for Monitor in Layout:
+        X,Y = map(int,Monitor["Pos"].split("x"))
+        Box = nulltk.LabelFrame(WallpaperLayoutContainer,text=Monitor["ID"],width=150,height=100)
+        Box.grid(row=(Y-MinY)//1000,column=(X-MinX)//1000,padx=3,pady=3)
+        Box.grid_propagate(False)
+        MonitorLayoutObjects.append(Box)
+
+    for Row, Monitor in enumerate(Layout):
+        ID = Monitor["ID"]
+        Data = Profiles[Name]["Wallpapers"].setdefault(ID,{
+            "DTPath": "",
+            "DTMode": "Fill",
+            "LSPath": "",
+            "LSMode": "Fill"
+        })
+        MonitorFrame = nulltk.LabelFrame(WallpaperScrollFrame.Inner,text=ID)
+        MonitorFrame.grid(row=Row+1,column=0,padx=5,pady=5,sticky="ew")
+        MonitorFrame.columnconfigure(0,weight=1)
+        MonitorFrame.columnconfigure(1,weight=0)
+        MonitorFrame.columnconfigure(2,weight=1)
+        MonitorWallPaperRows.append(MonitorFrame)
+
+        DTContainer = nulltk.Frame(MonitorFrame)
+        DTContainer.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+        DTContainer.columnconfigure(1,weight=1)
+        ttk.Separator(MonitorFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+        LSContainer = nulltk.Frame(MonitorFrame)
+        LSContainer.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
+        LSContainer.columnconfigure(1,weight=1)
+
+
+
+        DTPathVar = tk.StringVar(value=Data["DTPath"])
+        DTModeVar = tk.StringVar(value=Data.get("DTMode","Fill"))
+        LSPathVar = tk.StringVar(value=Data["LSPath"])
+        LSModeVar = tk.StringVar(value=Data.get("LSMode","Fill"))
+
+        def DTBrowseForPic(Data=Data, PathVar=DTPathVar, ProfileName=Name):
+            CurrentPath = DTPathVar.get()
+            InitialDir = (os.path.dirname(CurrentPath)if CurrentPath and os.path.exists(CurrentPath)else os.path.expanduser("~"))
+            Path = filedialog.askdirectory(initialdir=InitialDir,title="Choose Desktop Wallpaper Folder")
+            if Path:
+                SelectedImage = OpenImagePopUp(Path)
+                if SelectedImage:
+                    Data["DTPath"] = SelectedImage
+                    PathVar.set(os.path.basename(SelectedImage))
+                    SaveConfig("NullMonitor")
+                    UpdateDesktopWallPapers(ProfileName)
+
+        DTBrowseButton = nulltk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
+        DTBrowseButton.grid(row=0,column=0,padx=5,pady=5)
+        nulltk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        DTModebox = nulltk.Combobox(DTContainer,textvariable=DTModeVar,values=WallpaperModes,state="readonly",width=18)
+        DTModebox.grid(row=0,column=2,padx=5,pady=5)
+
+        def DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
+            Data["DTMode"] = ModeVar.get()
+            UpdateDesktopWallPapers(ProfileName)
+            SaveConfig("NullMonitor")
+
+        DTModebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=DTModeVar,ProfileName=Name:DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
+
+        #-------
+
+        def LSBrowseForPic(Data=Data, PathVar=LSPathVar, ProfileName=Name):
+            CurrentPath = LSPathVar.get()
+            InitialDir = (os.path.dirname(CurrentPath)if CurrentPath and os.path.exists(CurrentPath)else os.path.expanduser("~"))
+            Path = filedialog.askdirectory(initialdir=InitialDir,title="Choose Lock Screen Wallpaper Folder")
+            if Path:
+                SelectedImage = OpenImagePopUp(Path)
+                if SelectedImage:
+                    Data["LSPath"] = SelectedImage
+                    PathVar.set(os.path.basename(SelectedImage))
+                    SaveConfig("NullMonitor")
+                    UpdateLockScreenWallPapers(ProfileName)
+
+        LSBrowseButton = nulltk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
+        LSBrowseButton.grid(row=0,column=0,padx=5,pady=5)
+        nulltk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        LSModebox = nulltk.Combobox(LSContainer,textvariable=LSModeVar,values=WallpaperModes,state="readonly",width=18)
+        LSModebox.grid(row=0,column=2,padx=5,pady=5)
+
+        def LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
+            Data["LSMode"] = ModeVar.get()
+            UpdateLockScreenWallPapers(ProfileName)
+            SaveConfig("NullMonitor")
+
+        LSModebox.bind("<<ComboboxSelected>>",lambda event, ID=ID, Data=Data, ModeVar=LSModeVar,ProfileName=Name:LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName))
+
+
+        Boxes[ID] = {
+            "DTBox": DTModebox,
+            "DTVar": DTModeVar,
+            "DTPathVar": DTPathVar,
+            "LSBox": LSModebox,
+            "LSVar": LSModeVar,
+            "LSPathVar": LSPathVar
+            }
+
+    MonitorBoxes = Boxes
+    NullMonitorNotebook.tab(NullMonitorWallPapersPage,state="normal")
+    NullMonitorNotebook.select(NullMonitorWallPapersPage)
+
+def NullMonitorNoteBookChange(event):
+    CurrentTab = NullMonitorNotebook.select()
+    if str(CurrentTab) == str(NullMonitorPage):
+        NullMonitorNotebook.tab(
+            NullMonitorWallPapersPage,
+            state="disabled"
+        )
+    return
+
+def CreateProfileBox(Name):
+    global NullMonitorSetActiveCheckBoxes
+    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=5,pady=5)
+    Frame.pack(fill="x",pady=5)
+
+    TopRow = nulltk.Frame(Frame)
+    TopRow.pack(fill="x")
+    TopRow.columnconfigure(2,weight=1)
+
+    ActiveVar = tk.BooleanVar()
+
+    ActiveCheck = nulltk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
+    ActiveCheck.grid(row=0,column=0,padx=2,pady=2,sticky="ew")
+
+    NullMonitorSetActiveCheckBoxes.append(ActiveCheck)
+
+    DeleteBtn = nulltk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
+    DeleteBtn.grid(row=0,column=3,padx=2,pady=2,sticky="ew")
+
+    
+
+    EnableWallPaperVar = tk.BooleanVar(value=Profiles[Name].get("EnabledWallPapers",False))
+
+    def UpdateWallPaperEnabled(thisbutton):
+        Profiles[Name]["EnabledWallPapers"] = EnableWallPaperVar.get()
+        if Profiles[Name]["EnabledWallPapers"] == False:
+            thisbutton.grid_remove()
+        else:
+            thisbutton.grid(row=1,column=1,padx=2,pady=2)
+        SaveConfig("NullMonitor")
+
+    
+
+    ManageWallPaper = nulltk.Button(TopRow,text="Manage Wallpapers",command=lambda: ManageWallPapers(Name))
+    ManageWallPaper.grid(row=1,column=1,padx=2,pady=2,sticky="ew")
+
+    WallPapersEnabled = nulltk.Checkbutton(TopRow,text="Wallpapers",variable=EnableWallPaperVar,command= lambda: UpdateWallPaperEnabled(ManageWallPaper), width=16)
+    WallPapersEnabled.grid(row=0,column=1,padx=2,pady=2,sticky="ew")
+
+    UpdateWallPaperEnabled(ManageWallPaper)
+
+    Spacer3 = nulltk.Frame(Frame,bg="black",height=2)
+    Spacer3.pack(fill="x",pady=5)
+
+    BtnRow = nulltk.Frame(Frame)
+    BtnRow.pack(fill="x")
+
+    nulltk.Button(BtnRow,text="Create Warp",command=lambda: OpenAddWarp(Name)).pack(side="left",padx=2)
+    nulltk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
+
+    WarpBox = nulltk.Frame(Frame,padx=1,pady=1)
+    WarpBox.pack(fill="x",pady=5)
+
+    InnerWarp = nulltk.Frame(WarpBox)
+    InnerWarp.pack(fill="x")
+
+    WarpVar = tk.StringVar()
+
+    WarpLabel = nulltk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
+    WarpLabel.pack(fill="x",padx=5,pady=3)
+
+    ProfileWidgets[Name] = {
+        "Frame": Frame,
+        "ActiveVar": ActiveVar,
+        "EnableWallPaperVar": EnableWallPaperVar,
+        "WarpVar": WarpVar
+    }
+
+    RefreshWarpDisplay(Name)
+
+def CreateProfile():
+    Name = NullMonitorProfileNameVar.get().strip()
+
+    if not Name:
+        return
+
+    if Name in Profiles:
+        return
+
+    Layout = CaptureLayout()
+    Wallpapers = {}
+
+    for monitor in Layout:
+        Wallpapers[monitor['ID']] = {
+            "DTPath": "",
+            "DTMode": "Fill",
+            "LSPath": "",
+            "LSMode": "Fill"
+            }
+
+    Profiles[Name] = {
+        "Layout": Layout,
+        "EnabledWallPapers": False,
+        "Wallpapers": Wallpapers,
+        "Warps": {},
+        "DeleteConfirmation": False,
+    }
+
+    CreateProfileBox(Name)
+    NullMonitorProfileNameVar.set("")
+    SetActiveProfile(Name)
+    SaveConfig("NullMonitor")
+
+
+NullMonitorNotebook = nulltk.Notebook(NullMonitor)
+NullMonitorNotebook.pack(fill="both", expand=True)
+NullMonitorPage = nulltk.Frame(NullMonitorNotebook)
+NullMonitorWallPapersPage = nulltk.Frame(NullMonitorNotebook)
+NullMonitorNotebook.add(NullMonitorPage, text="Main")
+NullMonitorNotebook.add(NullMonitorWallPapersPage, text="WallPapers",state="disabled")
+NullMonitorNotebook.bind("<<NotebookTabChanged>>",NullMonitorNoteBookChange)
+    #region NullMonitor Main Page
+NullMonitorCheck = nulltk.Frame(NullMonitorPage)
+NullMonitorCheck.pack(fill="x", padx=5, pady=5)
+NullMonitorTopBar = nulltk.Frame(NullMonitorPage)
+NullMonitorTopBar.pack(fill="x", padx=5, pady=5)
+NullMonitorTopBar.columnconfigure(0, weight=2)
+NullMonitorTopBar.columnconfigure(1, weight=1)
+NullMonitorTopBar.rowconfigure(0, weight=0)
+NullMonitorTopBar.rowconfigure(1, weight=0)
+NullMonitorProfileBox = nulltk.Frame(NullMonitorPage)
+NullMonitorProfileBox.pack(fill="x", padx=5, pady=5)
+NullMonitorProfileBox.columnconfigure(0, weight=2)
+NullMonitorProfileBox.columnconfigure(1, weight=1)
+NullMonitorProfileBox.rowconfigure(0, weight=0)
+NullMonitorProfileNameVar = tk.StringVar()
+NullMonitorProfileEntry = nulltk.Entry(NullMonitorProfileBox, textvariable=NullMonitorProfileNameVar)
+NullMonitorProfileEntry.grid(row=0, column=0, sticky="ew", padx=(0,5))
+NullMonitorCreateBtn = nulltk.Button(NullMonitorProfileBox, text="Create Profile", command=CreateProfile)
+NullMonitorCreateBtn.grid(row=0, column=1, sticky="ew")
+NullMonitorEditables = nulltk.Frame(NullMonitorTopBar)
+NullMonitorEditables.grid(row=1, column=0, sticky="ew", padx=(0,5))
+NullMonitorStartDetectionVar = tk.IntVar(value=int(StartDetection * 1000))
+NullMonitorRow = nulltk.Frame(NullMonitorEditables)
+NullMonitorRow.pack(fill="x", pady=2)
+NullMonitordetectionlabel = nulltk.Label(NullMonitorRow, text="Detection:", width=11)
+NullMonitordetectionlabel.grid(row=0, column=0, padx=(0,0), sticky="w")
+NullMonitorStartValueLabel = nulltk.Label(NullMonitorRow, text=f"{int(StartDetection * 1000)}   |", width=6)
+NullMonitorStartValueLabel.grid(row=0, column=2, padx=(0,0))
+NullMonitorScanValueLabel = nulltk.Label(NullMonitorRow, text=f"{ScanTime:.2f}", width=4)
+NullMonitorScanValueLabel.grid(row=0, column=7, padx=(0,0))
+NullMonitorSlider1 = nulltk.Scale(
+    NullMonitorRow,
+    from_=1,
+    to=50,
+    resolution=1,
+    orient="horizontal",
+    variable=NullMonitorStartDetectionVar,
+    command=lambda v: UpdateStartDetection(v),
+    showvalue=0
+)
+NullMonitorSlider1.grid(row=0, column=1, sticky="ew", padx=(0,0))
+ToolTip(NullMonitordetectionlabel, "When your mouse enters this area, edge detection begins, Lower values may help performance, but detection might suffer. Recommended is 15")
+NullMonitorSlider1.bind("<Button-4>", lambda e: (NullMonitorSlider1.set(min(50, NullMonitorSlider1.get()+5)), UpdateStartDetection(NullMonitorSlider1.get())))
+NullMonitorSlider1.bind("<Button-5>", lambda e: (NullMonitorSlider1.set(max(0, NullMonitorSlider1.get()-5)), UpdateStartDetection(NullMonitorSlider1.get())))
+NullMonitorSlider1.bind("<Enter>", lambda e: OnHoverEnter(e, "detection"))
+NullMonitorSlider1.bind("<Leave>", lambda e: DelayedHide())
+NullMonitoredge = nulltk.Label(NullMonitorRow, text="Buffer:", width= 7)
+NullMonitoredge.grid(row=0, column=3, padx=(0,0), sticky="w")
+NullMonitorEdgeBufferVar = tk.IntVar(value=EdgeBuffer)
+NullMonitorEntry = nulltk.Entry(NullMonitorRow, textvariable=NullMonitorEdgeBufferVar, width=5)
+NullMonitorEntry.grid(row=0, column=4, padx=(0,0))
+NullMonitorEntry.bind("<Enter>", lambda e: OnHoverEnter(e, "edge"))
+NullMonitorEntry.bind("<Leave>", lambda e: DelayedHide())
+NullMonitorEdgeBufferVar.trace_add("write", UpdateEdgeBuffer)
+ToolTip(NullMonitoredge, "How many pixels past the edge triggers a warp")
+NullMonitorScan = nulltk.Label(NullMonitorRow, text="|   ScanTime", width=12)
+NullMonitorScan.grid(row=0, column=5, padx=(0,0), sticky="w")
+NullMonitorScanTimeVar = tk.DoubleVar(value=ScanTime)
+NullMonitorSlider2 = nulltk.Scale(
+    NullMonitorRow,
+    from_=0.010,
+    to=0.20,
+    resolution=0.005,
+    orient="horizontal",
+    variable=NullMonitorScanTimeVar,
+    command=lambda v: UpdateScanTime(v),
+    showvalue=0
+)
+NullMonitorSlider2.grid(row=0, column=6, sticky="ew")
+NullMonitorSlider2.bind("<Button-4>", lambda e: (NullMonitorSlider2.set(min(150, NullMonitorSlider2.get()+0.005)), UpdateScanTime()))
+NullMonitorSlider2.bind("<Button-5>", lambda e: (NullMonitorSlider2.set(max(0, NullMonitorSlider2.get()-0.005)), UpdateScanTime()))
+ToolTip(NullMonitorScan, "How often the cursor is scanned (higher = less CPU, more delay). Recommended is 0.05 or lower.")
+NullMonitorScroll = ScrollableFrame(NullMonitorPage)
+NullMonitorScroll.pack(fill="both", expand=True, padx=5, pady=5)
+NullMonitorProfileContainer = NullMonitorScroll.Inner
+NullMonitorProfileContainer.pack(padx=(0,10),fill="x")
+NullMonitorEnabledVar = tk.BooleanVar(value=ScanForMouse)
+NullMonitorDisabledOverlay = nulltk.Frame(NullMonitorTopBar,bg="#000000", ThemeBG = False)
+NullMonitorDisabledOverlay.place(relx=0,rely=0,relwidth=1,relheight=1)
+NullMonitorOverlayText = nulltk.Label(NullMonitorDisabledOverlay,text="NullMonitor is currently disabled. When disabled, no cursor scanning occurs, and no background resources are used. Enable 'Scan For Mouse' to activate NullMonitor.",bg="#000000",fg="white", ThemeBG = False)
+NullMonitorOverlayText.pack(anchor="center")
+NullMonitorToggle = nulltk.Checkbutton(NullMonitorCheck,text="Scan For Mouse",variable=NullMonitorEnabledVar,command=ToggleNullMonitor)
+NullMonitorToggle.grid(row=0,column=1,columnspan=2,pady=(5,0))
+    #endregion
+
+    #region NullMonitor Wallpaper Page
+
+NullMonitorWallPapersPage.columnconfigure(0,weight=1)
+NullMonitorWallPapersPage.rowconfigure(2,weight=1)
+WallpaperPreviewFrame = nulltk.LabelFrame(NullMonitorWallPapersPage,text="Monitor Layout")
+WallpaperPreviewFrame.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+WallpaperPreviewFrame.columnconfigure(0,weight=1)
+
+WallpaperLayoutContainer = nulltk.Frame(WallpaperPreviewFrame)
+WallpaperLayoutContainer.grid(row=0,column=0,pady=5)
+
+WallpaperInfoFrame = nulltk.Frame(NullMonitorWallPapersPage)
+WallpaperInfoFrame.grid(row=1,column=0,padx=5,pady=5,sticky="ew")
+WallpaperInfoFrame.columnconfigure(0,weight=1)
+WallpaperInfoFrame.columnconfigure(1,weight=0)
+WallpaperInfoFrame.columnconfigure(2,weight=1)
+
+desktoplabel = nulltk.Label(WallpaperInfoFrame, text="Desktop Wallpapers")
+desktoplabel.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+ttk.Separator(WallpaperInfoFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+lockscreenlabel = nulltk.Label(WallpaperInfoFrame, text="LockScreen Wallpapers")
+lockscreenlabel.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
+
+
+WallpaperScrollFrame = ScrollableFrame(NullMonitorWallPapersPage)
+WallpaperScrollFrame.grid(row=2,column=0,padx=5,pady=5,sticky="nsew")
+WallpaperScrollFrame.Inner.columnconfigure(0,weight=1)
+    #endregion
+
+def NullMonitorLoop():
+    global LastWarpTime, LastOutputs, LastInputs, LastSources, LoadTimes
+    
+    while True:
+
+        if NullMonitorActive.get() == False:
+            time.sleep(1)
+            continue
+
+
+        if ScanForMouse:
+            x, y = GetCursorPos()
+            if x is None:
+                time.sleep(0.1)
+                continue
+
+            Bounds = GetMonitorBounds()
+            CurrentID = GetCurrentMonitor(x, y, Bounds)
+
+            if not CurrentID:
+                continue
+
+            B = Bounds[CurrentID]
+            Corner = DetectEdge(x, y, B)
+
+            if Corner not in ["TopLeft", "TopRight", "BottomLeft", "BottomRight", "Left", "Right", "Top", "Bottom"]:
+                continue
+
+            if not IsEdgeBuffer(Corner, x, y, B):
+                continue
+
+            if ActiveProfile not in Profiles:
+                time.sleep(0.05)
+                continue
+
+            Warps = Profiles[ActiveProfile]["Warps"]
+
+            if CurrentID not in Warps:
+                continue
+
+            for W in Warps[CurrentID]:
+                if W["Edge"] != Corner:
+                    continue
+
+                TargetID = W["Target"]
+                TargetEdge = W["TargetEdge"]
+
+                if TargetID not in Bounds:
+                    Log("NullMonitor: target not in bounds (I have no idea how the fuck you did that but here it is)")
+                    continue
+
+                SourceB = B
+
+                ratio = 0.5
+
+                if Corner in ["Left", "Right"]:
+                    ratio = (y - SourceB["y1"]) / (SourceB["y2"] - SourceB["y1"])
+                elif Corner in ["Top", "Bottom"]:
+                    ratio = (x - SourceB["x1"]) / (SourceB["x2"] - SourceB["x1"])
+
+                now = time.time()
+                if now - LastWarpTime < WarpCooldown:
+                    continue
+
+                LastWarpTime = now
+                ExecuteWarp(TargetID, TargetEdge, Bounds, ratio)
+                break
+
+        time.sleep(max(ScanTime, WarpCooldown))
+
+def StartUpNullMonitor():
+    global Profiles, ActiveProfile, ScanForMouse, LoadCompleted, SystemLoading,ActualProgramLoadedCount
+    
+    if NullMonitorActive.get() == True:
+        SystemLoading = True
+        cursor = None
+        if not os.path.isfile(ConfigPath):
+            Butts.set("Save File not found???")
+            Root.update_idletasks()
+            return False
+        try:
+            with open(ConfigPath, "r") as f:
+                data = json.load(f)
+                cursor = data.get("NullMonitor", {})
+
+        except Exception as e:
+            Butts.set(f"ERROR LOADING Null MonitorSAVE\n\n{e}")
+            Root.update_idletasks()
+            return False
+
+
+        Profiles.clear()
+        Profiles.update(cursor.get("Profiles", {}))
+        ActiveProfile = cursor.get("ActiveProfile")
+        ScanForMouse = cursor.get("ScanForMouse", False)
+        
+
+        if len(Profiles) == 0:
+            Layout = CaptureLayout()
+            Wallpapers = {}
+
+            for monitor in Layout:
+                Wallpapers[monitor['ID']] = {
+                    "DTPath": "",
+                    "DTMode": "Fill",
+                    "LSPath": "",
+                    "LSMode": "Fill"
+                    }
+
+            Profiles["Default"] = {
+            "Layout": Layout,
+            "EnabledWallPapers": False,
+            "Wallpapers": Wallpapers,
+            "Warps": {},
+            "DeleteConfirmation": False,
+            }
+            ActiveProfile = "Default"
+            SaveConfig("NullMonitor")
+        
+        BuildUIFromProfiles()
+        NullMonitorEnabledVar.set(ScanForMouse)
+        ToggleNullMonitor()
+
+        if ActiveProfile and Profiles[ActiveProfile].get("EnabledWallPapers"):
+            Root.after(1000,lambda:  UpdateLockScreenWallPapers(ActiveProfile))
+
+        Notebook.add(NullMonitor, text="NullMonitor")
+        ActualProgramLoadedCount+=1
+    else:
+        Notebook.forget(NullMonitor)
+
+    SystemLoading = False
+    LoadCompleted += 1
+    return
+
+#endregion
+
+#region NullGit
+Repos = {}
+RepoBoxes = []
+CurrentManagedRepo = None
+CurrentDownloadProcess = None
+NullGitDividers = []
+
 def InstallGitLoginThings():
     Result = NullMessageBox(Root,
     "Install GitHub Support?",
@@ -6982,10 +6536,6 @@ def InstallGitLoginThings():
     except Exception as e:
         NullMessageBox(Root,"It Broke",f"Failed to install for... Some reason. Probably This:\n\n{e}"
             ,("Well damn. OH WELL",)).Show()
-        messagebox.showerror(
-            "Install Failed",
-            f"Failed to install GitHub Support.\n\n{e}"
-        )
 
 def LoginToGitHub():
     try:
@@ -7002,8 +6552,6 @@ def LoginToGitHub():
     except Exception as e:
         NullMessageBox(Root,"Well that failed.",f"Somethin messedup. This:\n\n{str(e)}", ("Ok...",)).Show()
 
-
-
 def BrowseForRepo():
     Path = filedialog.askdirectory()
     if not Path:
@@ -7013,7 +6561,6 @@ def BrowseForRepo():
         NullGitInputPath.set(Path)
     else:
         NullMessageBox(Root,"Invalid Repo","There is no .git there...", ("Ok...",)).Show()
-
 
 def CreateRepo():
 
@@ -7149,7 +6696,6 @@ def CreateRepo():
     except Exception as e:
         NullMessageBox(Root,"Create Repo failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
-
 def SetCloneLocation():
     Path = filedialog.askdirectory()
     if not Path:
@@ -7276,9 +6822,9 @@ def GetLatestReleaseData(RepoName):
     except urllib.error.HTTPError as e:
         if e.code == 404:
             return None
-        print(e)
+        Log(f"NullGit: Error getting latest release data {e}", "Error")
     except Exception as e:
-        print(e)
+        Log(f"NullGit: Error getting latest release data {e}", "Error")
 
     return None
 
@@ -7311,7 +6857,7 @@ def GetRepoStatus(Repo):
                 return "💚 Up To Date"
             return "📛 Needs Updated"
         except Exception as e:
-            print("GetRepoStatus Release Error:", e)
+            Log(f"NullGit: Error getting latest release status - {e}", "Error")
             return "❔ Release Unknown"
 
     try:
@@ -7343,7 +6889,7 @@ def GetRepoStatus(Repo):
 
     except Exception as e:
 
-        print("GetRepoStatus Branch Error:", e)
+        Log(f"NullGit: Error getting branch status {e}", "Error")
 
         return "❔ Unknown"
 
@@ -7675,9 +7221,8 @@ def MergeBranch():
             cwd=Path,
             check=True
         )
-        print(f"Successfully merged {Branch} with {CurrentManagedRepo['CurrentBranch']} ")
     except Exception as e:
-        print(f"Merge failed: {e}")
+        Log(f"NullGit: Failed to merge {e}")
 
 def ManageRepo(Repo):
     global CurrentManagedRepo
@@ -7758,7 +7303,7 @@ def ManageRepo(Repo):
         MergeBranchBox["values"] = Branches
 
     except Exception as e:
-        print(e)
+        Log(f"NullGit: Error with Manage - {e}", "Error")
 
     NullGitNotebook.add(NullGitManagePage, text="Manage")
     NullGitNotebook.select(NullGitManagePage)
@@ -7832,7 +7377,6 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
 
                 Line = Line.strip()
 
-                print(Line)
 
                 PercentMatch = re.search(r"(\d+)\%", Line)
 
@@ -8170,10 +7714,7 @@ def UpdateReleaseOption(
 
     except Exception as e:
 
-        print(
-            "Release Detection Error:",
-            e
-        )
+       Log(f"NullGit: Release Detection Error - {e}", "Error")
 
 def GetCurrentCommit(Path):
     try:
@@ -8249,8 +7790,8 @@ def AddRepoObject(Repo):
 
     try:
         threading.Thread(target=UpdateReleaseOption,args=(Repo,RepoOptions,BranchBox),daemon=True).start()
-    except:
-        print("Release Detection Error:")
+    except Exception as e:
+        Log(f"NullGit: Release Detection Error {e}", "Error")
 
     
 
@@ -8293,13 +7834,11 @@ def AddRepoObject(Repo):
 
     NullGitDividers.append(RepoNullGitSep)
     
-
-
 def BuildRepoList():
     global RepoBoxes, NullGitDividers
 
-    for div in NullGitDividers:
-        NullGitDividers.destroy()
+    for div in range(len(NullGitDividers)):
+        NullGitDividers[div].destroy()
 
     NullGitDividers.clear()
 
@@ -8580,7 +8119,7 @@ def DeleteBranchOnGit():
 
 def CreateGitIgnoreFile():
     if not CurrentManagedRepo:
-        print("no current manage repo")
+        NullMessageBox(Root,"creating the .ignore failed o_O",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
         return
     Path = CurrentManagedRepo["Path"]
     GitIgnorePath = os.path.join(
@@ -8921,9 +8460,252 @@ def StashAndPull():
     except Exception as e:
         NullMessageBox(Root,"Well That Failed",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
-# ————————————————————————————————————————————————————————————
-# NullFocus
-# ————————————————————————————————————————————————————————————
+NullGitNotebook = nulltk.Notebook(NullGit)
+NullGitNotebook.pack(fill="both", expand=True)
+NullGitMainPage = nulltk.Frame(NullGitNotebook)
+NullGitManagePage = nulltk.Frame(NullGitNotebook)
+NullGitNotebook.add(NullGitMainPage, text="Repos")
+NullGitNotebook.add(NullGitManagePage, text="Manage")
+NullGitNotebook.bind("<<NotebookTabChanged>>",OnNotebookChanged)
+    #region MainPage
+NullGitMainPage.rowconfigure(0, weight=1)
+NullGitMainPage.columnconfigure(0, weight=1)
+NullGitInputPath = tk.StringVar()
+NullGitCreateRepoPath = tk.StringVar()
+NullGitCreateRepoLink = tk.StringVar()
+NullGitClonePath = tk.StringVar()
+NullGitCloneLink =tk.StringVar()
+NullGitReposList = ScrollableFrame(NullGitMainPage)
+NullGitReposList.grid(row=0, column=0, sticky="nsew", padx=5, columnspan=3)
+NullGitcontainer = NullGitReposList.Inner
+DownloadOverlay = nulltk.Frame(NullGit,bg="#000000", ThemeBG = False)
+DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
+DownloadOverlayLabel.pack(expand=True)
+nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
+NullGitOptionsArea = nulltk.LabelFrame(NullGitcontainer, text= "NullGit Options")
+NullGitOptionsArea.pack(fill="x", padx=5, pady=5)
+NullGitOptionsArea.columnconfigure(0, weight=1)
+NullGitOptionsArea.columnconfigure(1, weight=1)
+NullGitCheckUpdates = nulltk.Button(NullGitOptionsArea, text="Check For Updates",command=lambda:BuildRepoList())
+NullGitCheckUpdates.grid(row=0, column=0, columnspan=99, sticky="ew", padx=5, pady=(3,5))
+InstallGithubButton = nulltk.Button(NullGitOptionsArea, text="Install Github Login",command=lambda: InstallGitLoginThings())
+InstallGithubButton.grid(row=0, column=1, sticky="e", padx=5)
+InstallGithubButton.grid_forget()
+NullGitAddRepo = nulltk.LabelFrame(NullGitcontainer, text= "Add A Repo")
+NullGitAddRepo.pack(fill="x", padx=5, pady=5)
+NullGitAddRepo.columnconfigure(1, weight=1)
+nulltk.Button(NullGitAddRepo, text="Browse For Repo", width =16,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="e", padx=5, pady=5)
+nulltk.Entry(NullGitAddRepo,width=30,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
+nulltk.Button(NullGitAddRepo, text="Add Repo", width =16,command=lambda: AddRepo(NullGitInputPath.get())).grid(row=0, column=2, sticky="e", padx=5)
+NullGitCreateRepo = nulltk.LabelFrame(NullGitcontainer, text= "Create Repo")
+NullGitCreateRepo.pack(fill="x", padx=5, pady=5)
+NullGitCreateRepo.columnconfigure(1, weight=1)
+NullGitCreateRepo.columnconfigure(2, weight=1)
+nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
+nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=0, column=2, sticky="ew")
+nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=0, column=3, sticky="ew", padx=5)
+NullGitCloneRepo = nulltk.LabelFrame(NullGitcontainer, text= "Clone Repo")
+NullGitCloneRepo.pack(fill="x", padx=5, pady=5)
+NullGitCloneRepo.columnconfigure(1, weight=1)
+NullGitCloneRepo.columnconfigure(2, weight=1)
+nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
+GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
+GitCloneRepoEntry.grid(row=0, column=2, sticky="ew")
+ToolTip(GitCloneRepoEntry, "Paste the github link here. you do not need to add \"git\", just the link to the webpage will suffice.")
+nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=0, column=3, sticky="w", padx=5)
+NullGitSep = nulltk.Frame(NullGitcontainer,height=12, Reversed = True)
+NullGitSep.pack(fill="x", padx=1, pady=(10,5))
+    #endregion
+    #region ManagePage
+ManageRemoteURL = tk.StringVar()
+ManageRepoPath = tk.StringVar()
+ManageBranchName = tk.StringVar()
+GitIgnoredVar = tk.StringVar()
+CommittedVar = tk.StringVar()
+NullGitManagePage.columnconfigure(0, weight=1)
+NullGitManagePage.rowconfigure(0, weight=0)
+NullGitManagePage.rowconfigure(1, weight=0)
+NullGitManagePage.rowconfigure(2, weight=1)
+NullGitManagePage.rowconfigure(3, weight=1)
+NullGitManagePage.rowconfigure(4, weight=0)
+RepoFrame = nulltk.LabelFrame(NullGitManagePage,text="Repo Management",bd=3,relief="solid")
+RepoFrame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+RepoFrame.columnconfigure(0, weight=0)
+RepoFrame.columnconfigure(1, weight=1)
+RepoFrame.columnconfigure(2, weight=0)
+RepoFrame.rowconfigure(0, weight=1)
+BranchFrame = nulltk.LabelFrame(NullGitManagePage,text="Branch Management",bd=3,relief="solid")
+BranchFrame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+BranchFrame.columnconfigure(0, weight=0)
+BranchFrame.columnconfigure(1, weight=1)
+BranchFrame.columnconfigure(2, weight=0)
+BranchFrame.rowconfigure(0, weight=1)
+IgnoreFrame = nulltk.LabelFrame(NullGitManagePage,text="GitIgnore Management",bd=3,relief="solid")
+IgnoreFrame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
+IgnoreFrame.columnconfigure(0, weight=1)
+IgnoreFrame.rowconfigure(0, weight=0)
+IgnoreFrame.rowconfigure(1, weight=1)
+CommitFrame = nulltk.LabelFrame(NullGitManagePage,text="Commit Management",bd=3,relief="solid")
+CommitFrame.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
+CommitFrame.columnconfigure(0, weight=1)
+CommitFrame.columnconfigure(1, weight=1)
+CommitFrame.rowconfigure(0, weight=0)
+CommitFrame.rowconfigure(1, weight=0)
+CommitFrame.rowconfigure(2, weight=0)
+CommitFrame.rowconfigure(3, weight=1)
+NuclearFrame = nulltk.LabelFrame(NullGitManagePage,text="Nuclear Commands",bd=3,relief="solid")
+NuclearFrame.grid(row=4, column=0, sticky="ew", padx=5, pady=5)
+NuclearFrame.columnconfigure(0, weight=1)
+NuclearFrame.columnconfigure(1, weight=1)
+NuclearFrame.rowconfigure(0, weight=0)
+NuclearFrame.rowconfigure(1, weight=0)
+NuclearFrame.rowconfigure(2, weight=1)
+DeleteNullGitRepoButton = nulltk.Button(RepoFrame, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
+DeleteNullGitRepoButton.grid(row=0, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
+nulltk.Button(BranchFrame, text="Create Branch", width= 11, command=lambda:CreateBranchOnGit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
+nulltk.Entry(BranchFrame, textvariable=ManageBranchName).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
+nulltk.Button(BranchFrame, text="Rename Branch", width= 11, command=lambda:RenameBranchOnGit()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
+nulltk.Button(BranchFrame, text="Delete Branch", command=lambda:DeleteBranchOnGit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
+CurrentMergeBranch = tk.StringVar()
+MergeBranches = nulltk.Label(BranchFrame,text="Merge this branch into current:",font=("Arial", 12),justify="center")
+MergeBranches.grid(row=2, column=0, sticky="ew", padx=5, pady=2)
+MergeBranchBox = nulltk.Combobox(BranchFrame, values=[], textvariable=CurrentMergeBranch, state="readonly")
+MergeBranchBox.grid(row=2, column=1, sticky="ew", padx=5, pady=2)
+MergeButton = nulltk.Button(BranchFrame,text="Merge", command=lambda:MergeBranch())
+MergeButton.grid(row=2,column=2,sticky="ew",padx=5,pady=2)
+CreateGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Create .gitignore", command=lambda:CreateGitIgnoreFile())
+CreateGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
+EditGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Edit .gitignore", command=lambda:EditGitIgnoreFile())
+EditGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
+ToolTip(EditGitIgnoreButton, "Adding a file to the .gitignore also removes it from the repo, to remove something from the .gitignore, add a file/folder already in the .gitignore")
+GitList = ScrollableFrame(IgnoreFrame)
+GitList.grid(row=1, column=0, sticky="nsew", padx=5, columnspan=3)
+GitListContainer = GitList.Inner
+GitListContainer.configure(bg="white")
+CreateGitIgnoreButton.grid_remove()
+EditGitIgnoreButton.grid_remove()
+GitList.grid_remove()
+GitIgnoredLabel = nulltk.Label(GitListContainer,textvariable=GitIgnoredVar, justify="left",anchor="nw",bg="white",fg="black")
+GitIgnoredLabel.pack(fill="both",expand=True,padx=5,pady=5)
+nulltk.Button(CommitFrame, text="Add File To Commit", command=lambda:AddFileToCommit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
+nulltk.Button(CommitFrame, text="Remove File From Commit", command=lambda:RemoveFileFromCommit()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
+nulltk.Button(CommitFrame, text="Clear Current Commit", command=lambda:ClearCurrentCommit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=2)
+OnlyCommitMessage = tk.StringVar()
+nulltk.Entry(CommitFrame,width=30,textvariable=OnlyCommitMessage).grid(row=2, column=0, sticky="ew", padx=5)
+nulltk.Button(CommitFrame, text="Push Commit List", command=lambda:PushOnlyCommited()).grid(row=2, column=1, sticky="ew", padx=5, pady=2, columnspan=2)
+CommitList = ScrollableFrame(CommitFrame)
+CommitList.grid(row=3, column=0, sticky="nsew", padx=5, columnspan=2)
+CommitListContainer = CommitList.Inner
+CommitListContainer.configure(bg="white")
+CommittedLabel = nulltk.Label(CommitListContainer,textvariable=CommittedVar,justify="left",anchor="nw",bg="white",fg="black")
+CommittedLabel.pack(fill="both",expand=True,padx=5,pady=5) 
+Stash = nulltk.Button(NuclearFrame,text="Stash & Pull", command=lambda:StashAndPull())
+Stash.grid(row=0,column=0,sticky="ew",padx=5,pady=2,)
+ForcePush = nulltk.Button(NuclearFrame,text="Force Push", command=lambda:ForcePushCommit())
+ForcePush.grid(row=0,column=1,sticky="ew",padx=5,pady=2, columnspan=2)
+    #endregion
+
+def NullGitLoop():
+    while True:
+        if NullGitActive.get() == False:
+            time.sleep(1)
+            continue
+
+        for _ in range(1800):
+            if NullGitActive.get() == False:
+                break
+            time.sleep(1)
+
+        try:
+            if NullGitActive.get() == True:
+                Root.after(1, BuildRepoList)
+        except Exception as e:
+            Log(f"NullGit: The loop errored somehow - {e}")
+
+def StartUpNullGit():
+    global Repos, LoadCompleted, SystemLoading,ActualProgramLoadedCount
+    
+    if NullGitActive.get() == True:
+        SystemLoading = True
+        repos = None
+        if not os.path.isfile(ConfigPath):
+            Butts.set("Save File not found???")
+            Root.update_idletasks()
+            return False
+
+        try:
+            with open(ConfigPath, "r") as f:
+                data = json.load(f)
+                repos = data.get("NullGit", {})
+        except Exception as e:
+            Butts.set(f"ERROR LOADING NULL GIT SAVE\n\n{e}")
+            Root.update_idletasks()
+            return False
+        
+        Repos = repos.get("Repos", {})
+        BuildRepoList()
+
+
+        Notebook.add(NullGit, text="NullGit")
+        ActualProgramLoadedCount+=1
+    
+    else:
+        Notebook.forget(NullGit)
+    LoadCompleted += 1
+    SystemLoading = False
+    return
+
+#endregion
+
+#region NullFocus
+WriteToDiskSeconds = 60
+MinimumWindowTime = 1
+NewDayThreshold = 3
+CompletedCycles = []
+CurrentFocus = None
+OldFocus = None
+FocusStartTime = time.time()
+PreviousFocusStartTime = 0
+PreviousInputTime = 0
+CurrentInputTIme = time.time()
+LastWriteToDisk = time.time()
+CurrentCycle = {
+    "StartTime": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
+    "TimeSpent": {}}
+AppClassification = {}
+MouseListener = None
+KeyboardListener = None
+TrackerSaveTimer = None
+YearButtons = []
+MonthButtons = []
+CycleButtons = []
+ClassificationRows = []
+IgnoreAppDeleteConfirmation = {}
+TrackerReminders = {}
+OnCurrentCycle = False
+CurrentViewedYear = None
+CurrentViewedMonth = None
+CurrentViewedCycle = None
+TrackerPopup = None
+WindowDeleteConfirmation = {}
+ResetClock = True
+LastClockUpdate = None
+ClockRotation = 0
+ClockUpdatedViaCycle = True
+WaitForNullFocusLoad = False
+ClipBoardHistory = []
+ClipBoardRows = []
+LastClipBoard = None
+DontCopyToClipBoardData = False
+NullFocusOperators= []
+NullFocusOperatorRows = []
+LastProcessedFocus = None
+CurrentSpotifySong = ""
+SpotifyID = None
+DeletionCheckBoxes = []
+ClipLock = threading.Lock()
 
 def RegisterAnyActivity():
     global CurrentInputTIme, PreviousInputTime
@@ -9739,9 +9521,9 @@ def GetClipboard():
         }
 
     except Exception as e:
-        print("Clipboard Error:", e)
+        Log(f"NullFocus: Clipboard had an error?  {e}", "Error")
         return None
-ClipLock = threading.Lock()
+
 def AddClipBoardEntry(ClipBoardContents):
     global ClipBoardHistory
 
@@ -9792,7 +9574,7 @@ def AddClipBoardEntry(ClipBoardContents):
                     check=True
                 )
         except Exception as e:
-            print("Failed saving clipboard image:", e)
+            Log(f"NullFocus: Clipboard couldn't save image - {e}")
             return
 
         Row = {
@@ -10053,10 +9835,7 @@ def SaveClipBoard():
                     indent=2
                 )
         except Exception as e:
-            print(
-                "Saving clipboard failed:",
-                e
-            )
+            Log(f"NullFocus: Clipboard couldn't save - {e}")
 
 def DeleteClipboardItems():
     global ClipBoardRows, ClipBoardHistory
@@ -10069,7 +9848,7 @@ def DeleteClipboardItems():
                     if os.path.isfile(Row["Path"]):
                         os.remove(Row["Path"])
                 except Exception as e:
-                    print(e)
+                    Log(f"NullFocus: Clipboard couldn't delete - {e}")
 
             ClipBoardRows.remove(CBRow)
             ClipBoardHistory.remove(Row)
@@ -10308,11 +10087,525 @@ def AttemptToGetSpotifyID():
 
     return None
 
+NullFocusNotebook = nulltk.Notebook(NullFocus)
+NullFocusManagePage = nulltk.Frame(NullFocusNotebook)
+NullFocusLogsPage = nulltk.Frame(NullFocusNotebook)
+NullFocusClockPage = nulltk.Frame(NullFocusNotebook)
+NullFocusClipBoard = nulltk.Frame(NullFocusNotebook)
+NullFocusOperator = nulltk.Frame(NullFocusNotebook)
+NullFocusNotebook.pack(fill="both", expand=True)
+NullFocusManagePage.rowconfigure(0, weight=1)
+NullFocusManagePage.columnconfigure(0, weight=1)
+NullFocusLogsPage.rowconfigure(0, weight=1)
+NullFocusLogsPage.columnconfigure(0, weight=1)
+NullFocusNotebook.add(NullFocusLogsPage, text="Logs")
+NullFocusNotebook.add(NullFocusManagePage, text="Manage Tracking")
+NullFocusNotebook.add(NullFocusClockPage, text="Circadian Clock")
+NullFocusNotebook.add(NullFocusClipBoard, text="ClipBoard")
+NullFocusNotebook.add(NullFocusOperator, text="Operator")
+    #region ManagePage
+NullFocusManagePageMain = nulltk.Frame(NullFocusManagePage)
+NullFocusManagePageMain.pack(fill="both", expand=True)
+NullFocusManagePageMain.columnconfigure(0, weight=1)
+NullFocusManagePageMain.rowconfigure(0, weight=0)
+NullFocusManagePageMain.rowconfigure(1, weight=0)
+NullFocusManagePageMain.rowconfigure(2, weight=0)
+NullFocusManagePageMain.rowconfigure(3, weight=1)
+NullFocusManagePageSlidersNTexts = nulltk.Frame(NullFocusManagePageMain)
+NullFocusManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=5)
+NullFocusManagePageSlidersNTexts.columnconfigure(0, weight=1)
+NullFocusManagePageSlidersNTexts.columnconfigure(1, weight=1)
+NullFocusManagePageSlidersNTexts.columnconfigure(2, weight=1)
+NullFocusManagePageSlidersNTexts.rowconfigure(0, weight=0)
+NullFocusManagePageSlidersNTexts.rowconfigure(1, weight=0)
+NullFocusManagePageSlidersNTexts.rowconfigure(2, weight=0)
+TrackerWriteInterval = tk.IntVar(value = 1)
+TrackerMinimumWindowTime = tk.IntVar(value = 1)
+TrackerNewDay = tk.IntVar(value = 3)
+IgnoredAppListVar = tk.StringVar(value = "")
+WriteIntervalText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"Save To Disk Every: {TrackerWriteInterval.get()} Minutes")
+WriteIntervalText.grid(row=0, column=0, sticky="ew", pady=0)
+RequiredFocusText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"Window Focus Time Req: {TrackerMinimumWindowTime.get()} Seconds")
+RequiredFocusText.grid(row=0, column=1, sticky="ew", pady=0)
+NewDayText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
+NewDayText.grid(row=0, column=2, sticky="ew", pady=0)
+WriteIntervalSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
+WriteIntervalSlider.grid(row=1, column=0, sticky="ew", padx=5)
+RequiredFocusSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
+RequiredFocusSlider.grid(row=1, column=1, sticky="ew", padx=5)
+NewDaySlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
+NewDaySlider.grid(row=1, column=2, sticky="ew", padx=5)
+AddNewTrackerClass = nulltk.Button(NullFocusManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
+AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=5, padx=5)
+TrackerDiv = nulltk.Frame(NullFocusManagePageMain, height=3, bg="gray")
+TrackerDiv.grid(row=2, column=0, sticky="ew", pady=5)
+TrackerBottomLists = nulltk.Frame(NullFocusManagePageMain)
+TrackerBottomLists.grid(row=3, column=0, sticky="ensw", pady=(0,5))
+TrackerBottomLists.columnconfigure(0,weight=1)
+TrackerBottomLists.columnconfigure(1,weight=6)
+TrackerBottomLists.rowconfigure(0,weight=1)
+IgnoredAppsFrame = nulltk.Frame(TrackerBottomLists)
+IgnoredAppsFrame.grid(row=0, column=0, sticky="nsew")
+IgnoredAppsFrame.columnconfigure(0,weight=1)
+IgnoredAppsFrame.rowconfigure(0,weight=0)
+IgnoredAppsFrame.rowconfigure(1,weight=1)
+IgnoredAppsFrame.rowconfigure(2,weight=0)
+AddIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Add App", command=lambda: AddIgnoredTracker(), width = 30)
+AddIgnoredAppButton.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
+IgnoredAppsList = ScrollableFrame(IgnoredAppsFrame)
+IgnoredAppsList.grid(row=1, column=0, sticky="ewns",padx=5)
+IgnoredAppsContainer = IgnoredAppsList.Inner
+IgnoredAppsListText = nulltk.Label(IgnoredAppsContainer, textvariable = IgnoredAppListVar, anchor="center", justify="center")
+IgnoredAppsListText.pack(fill="x", expand=True)
+RemoveIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Remove App", command=lambda: DeleteIgnoredTracker(), width = 30)
+RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=5, padx=5)
+TrackerClassificationList = ScrollableFrame(TrackerBottomLists)
+TrackerClassificationList.grid(row=0, column=1, sticky="ensw", padx=5, pady=5)
+ClassiciationListContainer = TrackerClassificationList.Inner
+IgnoredAppsList.BindMouseWheel(NullFocusManagePageMain)
+TrackerClassificationList.BindMouseWheel(NullFocusManagePageMain)
+RequiredFocusSlider.bind("<Button-4>", lambda e: (TrackerMinimumWindowTime.set(min(60, TrackerMinimumWindowTime.get()+5)), UpdateTrackerQuality()))
+RequiredFocusSlider.bind("<Button-5>", lambda e: (TrackerMinimumWindowTime.set(max(1, TrackerMinimumWindowTime.get()-5)), UpdateTrackerQuality()))
+WriteIntervalSlider.bind("<Button-4>", lambda e: (TrackerWriteInterval.set(min(60, TrackerWriteInterval.get()+5)), UpdateTrackerQuality()))
+WriteIntervalSlider.bind("<Button-5>", lambda e: (TrackerWriteInterval.set(max(1, TrackerWriteInterval.get()-5)), UpdateTrackerQuality()))
+NewDaySlider.bind("<Button-4>", lambda e: (TrackerNewDay.set(min(23, TrackerNewDay.get()+1)), UpdateTrackerQuality()))
+NewDaySlider.bind("<Button-5>", lambda e: (TrackerNewDay.set(max(1, TrackerNewDay.get()-1)), UpdateTrackerQuality()))
+    #endregion
+    #region Logs Page
+NullFocusLogsPageInner = nulltk.Frame(NullFocusLogsPage)
+NullFocusLogsPageInner.grid(row=0, column=0, sticky="nsew")
+NullFocusLogsPageInner.rowconfigure(0,weight=0)
+NullFocusLogsPageInner.rowconfigure(1,weight=0)
+NullFocusLogsPageInner.rowconfigure(2,weight=1)
+NullFocusLogsPageInner.columnconfigure(0,weight=1)
+NullFocusLogsPageInner.columnconfigure(1,weight=1)
+NullFocusLogsPageInner.columnconfigure(2,weight=1)
+NullFocusLogsPageInner.columnconfigure(3,weight=7)
+InjectorButton = nulltk.Button(NullFocusLogsPageInner, text="Inject", command= lambda: InjectTracker())
+InjectorButton.grid(row=0, column=0, sticky="ew")
+InjectorText = nulltk.Label(NullFocusLogsPageInner, text="What You Are Injecting:")
+InjectorText.grid(row=0, column=1, sticky="ew", columnspan=2)
+InjectionEntry = nulltk.Entry(NullFocusLogsPageInner,)
+InjectionEntry.grid(row=0,column=3,padx=3,pady=3,sticky="ew")
+ToolTip(InjectorText, "E.g. When you took your medication, or did something important. It will show what you type, with the timestamp.")
+YearText = nulltk.Label(NullFocusLogsPageInner, text= f"Years", width=6)
+YearText.grid(row=1, column=0, sticky="ew")
+MonthText = nulltk.Label(NullFocusLogsPageInner, text= f"Months", width=7)
+MonthText.grid(row=1, column=1, sticky="ew")
+CycleText = nulltk.Label(NullFocusLogsPageInner, text= f"Cycles", width=8)
+CycleText.grid(row=1, column=2, sticky="ew")
+BreakDownText = nulltk.Label(NullFocusLogsPageInner, text= f"Breakdown")
+BreakDownText.grid(row=1, column=3, sticky="ew")
+CurrentLogView = tk.StringVar(value = "")
+YearChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
+YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=5, pady=5)
+YearChoicesBox.rowconfigure(0,weight=1)
+YearChoicesBox.columnconfigure(0,weight=1)
+YearChoices = ScrollableFrame(YearChoicesBox)
+YearChoices.pack(fill="both", expand=True, anchor="n")
+YearChoicesButtons = YearChoices.Inner
+YearChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
+MonthChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
+MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=5, pady=5)
+MonthChoicesBox.rowconfigure(0,weight=1)
+MonthChoicesBox.columnconfigure(0,weight=1)
+MonthChoices = ScrollableFrame(MonthChoicesBox)
+MonthChoices.pack(fill="both", expand=True, anchor="n")
+MonthChoicesButtons = MonthChoices.Inner
+MonthChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
+CycleChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
+CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=5, pady=5)
+CycleChoicesBox.rowconfigure(0,weight=1)
+CycleChoicesBox.columnconfigure(0,weight=1)
+CycleChoices = ScrollableFrame(CycleChoicesBox)
+CycleChoices.pack(fill="both", expand=True, anchor="n")
+CycleChoicesButtons = CycleChoices.Inner
+CycleChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
+LogDataBox = nulltk.Frame(NullFocusLogsPageInner)
+LogDataBox.grid(row=2,column=3, sticky="nsew",padx=5, pady=5)
+LogDataBox.rowconfigure(0,weight=1)
+LogDataBox.columnconfigure(0,weight=1)
+LogData = ScrollableFrame(LogDataBox)
+LogData.pack(fill="both", expand=True, anchor="n")
+LogDataInner = LogData.Inner
+LogDataLabel = nulltk.Label(LogDataInner, textvariable=CurrentLogView)
+LogDataLabel.pack(fill="both", expand=True, anchor="nw")
+YearChoices.BindMouseWheel(NullFocusLogsPageInner)
+MonthChoices.BindMouseWheel(NullFocusLogsPageInner)
+CycleChoices.BindMouseWheel(NullFocusLogsPageInner)
+LogData.BindMouseWheel(NullFocusLogsPageInner)
+    #endregion
+    #region Circadian Clock Page
+NullFocusClockPage.columnconfigure(0,weight=1)
+HereLine = nulltk.Label(NullFocusClockPage, text = "↓", font=("Arial, 18"))
+HereLine.grid(row=0, column=0, sticky="nswe", pady=(10,0))
+ClockLabel = nulltk.Label(NullFocusClockPage, image=ClockImage)
+ClockLabel.image = ClockImage
+ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
+    #endregion
+    #region ClipBoardPage
+NullFocusClipBoardPage = nulltk.Frame(NullFocusClipBoard)
+NullFocusClipBoardPage.pack(fill="both",expand="true")
+NullFocusClipBoardPage.pack(fill="both",expand="true")
+NullFocusClipBoardPage.columnconfigure(0, weight=1)
+NullFocusClipBoardPage.rowconfigure(1, weight=1)
+ClipBoardTopRow = nulltk.Frame(NullFocusClipBoardPage)
+ClipBoardTopRow.grid(column=0,row=0,sticky="ew",pady=(5,0), padx=5)
+ClipBoardTopRow.columnconfigure(0,weight=1)
+ClipBoardTopRow.columnconfigure(1,weight=1)
+ClipBoardTopRow.columnconfigure(2,weight=1)
+ClipboardDeletionButton= nulltk.Button(ClipBoardTopRow, text="Delete Checked", command=lambda: DeleteClipboardItems())
+ClipboardDeletionButton.grid(row=0,column=0,sticky="ew")
+ClipboardSelectAll= nulltk.Button(ClipBoardTopRow, text="Select All", command=lambda: SelectAllClipBoard())
+ClipboardSelectAll.grid(row=0,column=1,sticky="ew")
+ClipboardSelectNone= nulltk.Button(ClipBoardTopRow, text="Select None", command=lambda: SelectNoneClipBoard())
+ClipboardSelectNone.grid(row=0,column=2,sticky="ew")
+ClipBoardList = ScrollableFrame(NullFocusClipBoardPage)
+ClipBoardList.grid(column=0,row=1,sticky="nesw",columnspan=99, pady=5, padx=5)
+ClipBoardList.rowconfigure(0,weight=1)
+ClipBoardList.columnconfigure(0,weight=1)
+    #endregion
+    #region  OperatorPage
+NullFocusOperator.columnconfigure(0,weight=1)
+NullFocusOperator.rowconfigure(2,weight=1)
+NullFocusAddOperatorButton = nulltk.Button(NullFocusOperator, text = "Add Operator", command=lambda: AddOperatorWindow())
+NullFocusAddOperatorButton.grid(row=0,column=0, sticky="ew", padx=5)
+nulltk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=5)
+OperatorList = ScrollableFrame(NullFocusOperator)
+OperatorList.rowconfigure(0,weight=1)
+OperatorList.columnconfigure(0,weight=1)
+OperatorList.grid(row=2,column=0, sticky="ewns", pady=5, padx=5)
+    #endregion
 
-# ————————————————————————————————————————————————————————————
-# NullMoji
-# ————————————————————————————————————————————————————————————
-#This is probably what you're looking for vex.
+def NullFocusLoop():
+    global LastWriteToDisk, CurrentCycle, FocusStartTime
+
+    while True:
+        if NullFocusActive.get():
+            try:
+                now = time.time()
+                if (now - LastWriteToDisk>= (WriteToDiskSeconds * 60)):
+                    SaveTrackerLog()
+                    LastWriteToDisk = now
+                else:
+                    SpotifyTracker()
+            except Exception as e:
+                Log(f"NullFocus: Regular Loop error- {e}", "Error")
+        time.sleep(1)
+
+def NullFocusFocusLoop():
+    for WindowID in WatchFocus():
+        FocusedClass = GetWindowClass(WindowID)
+        ChangedWindowFocus(FocusedClass)
+
+def NullFocusClockLoop():
+    global ResetClock, LastClockUpdate, ClockOriginal, ClockLabel, ClockImage, ClockRotation, ClockUpdatedViaCycle
+     
+    while True:
+        if NullFocusActive.get():
+            try:
+                if ResetClock == True:
+                    ResetClock = False
+                    LastClockUpdate = time.time()
+                    if ClockUpdatedViaCycle == False:
+                        ClockRotation = 0
+                        Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
+                        Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
+                        #Width, Height = (100,100)
+                        #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                        ClockImage = ImageTk.PhotoImage(Rotated)
+                        Root.after(0,lambda: ClockLabel.config(image=ClockImage))
+                        ClockLabel.image = ClockImage
+                    else:
+                        ClockUpdatedViaCycle = False
+
+                        while WaitForNullFocusLoad == False:
+                            time.sleep(1)
+                            continue
+
+                        time.sleep(1)
+
+                        CycleStart = datetime.strptime(CurrentCycle["StartTime"],"%m/%d/%y - %I:%M%p")
+                        ElapsedSeconds = (datetime.now() - CycleStart).total_seconds()
+                        ElapsedHalfHours = int(ElapsedSeconds // 1800)
+                        ClockRotation = ElapsedHalfHours * 7.5
+
+                        Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
+                        Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
+                        #Width, Height = (100,100)
+                        #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                        ClockImage = ImageTk.PhotoImage(Rotated)
+                        Root.after(0,lambda: ClockLabel.config(image=ClockImage))
+                        ClockLabel.image = ClockImage
+                        
+                else:
+                    if LastClockUpdate != None:
+                        if time.time() - LastClockUpdate >= 1800:
+                            LastClockUpdate = time.time()
+                            ClockRotation += 7.5
+                            Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
+                            Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
+                            #Width, Height = (100,100)
+                            #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
+                            ClockImage = ImageTk.PhotoImage(Rotated)
+                            Root.after(0,lambda: ClockLabel.config(image=ClockImage))
+                            ClockLabel.image = ClockImage
+                time.sleep(30)
+                continue
+            except Exception as e:
+                Log(f"NullFocus: Somehow the Circadian Clock Loop Broke? - {e}")
+        time.sleep(3)
+
+
+    return
+
+def NullFocusClipBoardLoop():
+    global DontCopyToClipBoardData, LastClipBoard
+
+    while True:
+        
+        if NullFocusActive.get():
+            Current = GetClipboard()
+
+            if DontCopyToClipBoardData:
+                DontCopyToClipBoardData = False
+                LastClipBoard = Current['Hash']
+                continue
+
+            if Current:
+                if Current['Hash'] != LastClipBoard:
+
+
+                    LastClipBoard = Current['Hash']
+                    Root.after(0,lambda c=Current: AddClipBoardEntry(c))
+        time.sleep(1.5)
+
+def NullFocusRunOperators():
+    for Operator in NullFocusOperators:
+
+        if Operator['WindowClass'] == CurrentFocus:
+            ExecuteWindowChange(Operator, "Focused")
+
+        if Operator['WindowClass'] == OldFocus:
+            ExecuteWindowChange(Operator, "Unfocused")
+
+def StartUpNullFocus():
+    global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted,ActualProgramLoadedCount
+    global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
+    global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
+    global NullFocusOperatorRows, NullFocusOperators, ClipBoardHistory
+    
+    if NullFocusActive.get() == True:
+        SystemLoading = True
+        tracker = None
+
+        if not os.path.isdir(ClipboardPath):
+            os.makedirs(ClipboardPath, exist_ok=True)
+
+        if not os.path.isfile(ConfigPath):
+            Butts.set("Save File not found???")
+            Root.update_idletasks()
+            return False
+
+        try:
+            with open(ConfigPath, "r") as f:
+                data = json.load(f)
+                tracker = data.get("NullFocus", {})
+
+        except Exception as e:
+            Butts.set(f"ERROR LOADING Null Focus SAVE\n\n{e}")
+            Root.update_idletasks()
+            return False
+
+        AppClassification = tracker.get("AppClassification", {})
+        WriteToDiskSeconds = tracker.get("WriteToDiskSeconds",60)
+        MinimumWindowTime = tracker.get("MinimumWindowTime",1)
+        NewDayThreshold = tracker.get("NewDayThreshold",1)
+
+        UpdateTrackerQuality()
+
+        def StartTrackerListeners():
+            global MouseListener
+            global KeyboardListener
+            MouseListener = mouse.Listener(on_click=OnMouseClick, on_scroll=OnMouseScroll)
+            KeyboardListener = keyboard.Listener(on_press=OnKeyPress)
+            MouseListener.start()
+            KeyboardListener.start()
+        
+        StartTrackerListeners()
+
+        # -----  Log and Manage Tabs
+
+        YearFiles = [File for File in os.listdir(TrackerPath)if File.endswith(".json")]
+        if len(YearFiles) == 0:
+            Year = datetime.now().strftime("%Y")
+
+            YearPath = os.path.join(TrackerPath,f"{Year}.json")
+
+            with open(YearPath, "w") as f:
+                json.dump({}, f, indent=4)
+
+            YearFiles = [f"{Year}.json"]
+
+            YearMonthPath = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
+
+            os.makedirs(YearMonthPath, exist_ok=True)
+
+            SaveTrackerLog()
+            
+        ExistingYears = [Button.cget("text")for Button in YearButtons]
+
+        FileYears = [os.path.splitext(File)[0]for File in YearFiles]
+
+        if ExistingYears != FileYears:
+            for button in YearButtons:
+                button.destroy()
+
+            YearButtons.clear()
+
+            for Year in sorted(FileYears):
+                Button = nulltk.Button(YearChoicesButtons,text=Year,command=lambda Y=Year: ClickYearButton(Y), width=15)
+                Button.pack(fill="x")
+                YearButtons.append(Button)
+
+        LatestYear = max(os.path.splitext(File)[0]for File in YearFiles)
+        LatestYearPath = os.path.join(TrackerPath,f"{LatestYear}.json")
+        with open(LatestYearPath, "r") as f:
+            Data = json.load(f)
+        if Data:
+            LatestMonth = max(Data.keys(),key=lambda m: datetime.strptime(m, "%b"))
+        
+        if Data[LatestMonth]:
+            LatestCycleName = max(Data[LatestMonth].keys(),key=lambda x: datetime.strptime(x,"%m/%d/%y - %I:%M%p"))
+            LatestCycle = Data[LatestMonth][LatestCycleName]
+            LastCycleTime = LatestCycle.get("LastUpdated", 0)
+
+            if (time.time() - LastCycleTime < (NewDayThreshold * 3600)):
+                CurrentCycle = LatestCycle
+            else:
+                SleepTime = time.time() - LastCycleTime
+                CurrentCycle = {
+                    "StartTime": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
+                    "LastUpdated": time.time(),
+                    "TimeSpent": {
+                        "Sleep": {
+                            "Name": "Sleep",
+                            "FocusedTime": int(SleepTime),
+                            "ActiveTime": 0,
+                            "Classification": "Sleep"
+                            }
+                        }
+                    }
+                SaveTrackerLog()
+        
+        for i in ClassificationRows:
+            i.destroy()
+
+        ClassificationRows.clear()
+
+        for Classifications, app in AppClassification.items():
+            if Classifications == "Ignored" or Classifications == "Sleep":
+                continue
+            AddNewTracker(Classifications,True)
+
+        # --- Operators Stuff
+
+        for rows in NullFocusOperatorRows:
+            rows.destroy()
+
+        NullFocusOperatorRows.clear()
+
+        NullFocusOperators.clear()
+
+
+        for operators in tracker.get("Operators", []):
+            NullFocusOperators.append(operators)
+            CreateOperatorRow(operators)
+
+
+        #---- ClipBoard stuff
+
+
+        ClipBoardHistory.clear()
+
+        for rows in ClipBoardRows:
+            rows.destroy()
+
+        ClipBoardRows.clear()
+
+        MonthFolder = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
+
+        ClipSave = os.path.join(MonthFolder,"000-ClipBoard.json")
+        os.makedirs(MonthFolder, exist_ok=True)
+
+        if not os.path.isfile(ClipSave):
+            with open(ClipSave, "w") as f:
+                json.dump([], f, indent=2)
+
+        try:
+            with open(ClipSave, "r") as f:
+                clippy = json.load(f)
+
+
+        except Exception as e:
+            Butts.set(f"ERROR LOADING ClipBoard Save\n\n{e}")
+            Root.update_idletasks()
+            return False
+        
+        ClipBoardHistory = clippy
+
+        for Row in clippy:
+            Row['Collapsed'] = False
+            BuildClipBoardRow(Row)
+
+        Notebook.add(NullFocus, text="NullFocus")
+        ClickYearButton(LatestYear)
+        ClickMonthButton(LatestYear, LatestMonth)
+        ClickCycleButton(LatestYear,LatestMonth,CurrentCycle["StartTime"])
+        OnCurrentCycle = True
+        CurrentViewedCycle = CurrentCycle["StartTime"]
+        CurrentViewedMonth = LatestMonth
+        CurrentViewedYear = LatestYear
+
+        WaitForNullFocusLoad = True
+        ActualProgramLoadedCount+=1
+
+    else:
+        def StopTrackerListeners():
+            global MouseListener
+            global KeyboardListener
+
+            if MouseListener:
+                MouseListener.stop()
+                MouseListener = None
+
+            if KeyboardListener:
+                KeyboardListener.stop()
+                KeyboardListener = None
+
+        StopTrackerListeners()
+        Notebook.forget(NullFocus)
+
+    SystemLoading = False
+    LoadCompleted += 1
+    return
+
+#endregion
+
+#region NullMoji
+CustomEmojis = {}
+CustomEmojiRows = []
+RecentEmojis = []
+BaseEmoji = {}
+SearchAfterID = None
+PreviousWindowID = None
+CalledWithShortcut = False
+CopiedEmoji = None
+NullMojiSearchButtons = []
+NullMojiRecentButtons = []
+NullMojiAllEmojiButtons = []
+RootState = ""
+NullMojiPopupWindow = None
 
 def QueueEmojiSearch(*_):
     global SearchAfterID
@@ -10604,817 +10897,9 @@ def FocusBackOnOldWindow():
         NullMojiPopupWindow.destroy()
         NullMojiPopupWindow = None
     except Exception as e:
-        print(f"Could not focus window: {e}")
+        Log(f"NullMoji: Couldn't refocus on last window - {e}")
     return
 
-# ==========================================================================================
-# UI
-# ==========================================================================================
-
-# ————————————————————————————————————————————————————————————
-# Setup UI
-# ————————————————————————————————————————————————————————————
-Notebook = nulltk.Notebook(Main)
-Notebook.pack(fill="both", expand=True)
-NullSuite = nulltk.Frame(Notebook)
-NullWire = nulltk.Frame(Notebook)
-NullMonitor = nulltk.Frame(Notebook)
-NullMidi = nulltk.Frame(Notebook)
-NullProton = nulltk.Frame(Notebook)
-NullGit = nulltk.Frame(Notebook)
-NullFocus = nulltk.Frame(Notebook)
-NullMoji = nulltk.Frame(Notebook)
-
-Notebook.add(NullSuite, text="Main Menu")
-Notebook.add(NullWire, text="NullWire")
-Notebook.add(NullMonitor, text="NullMonitor")
-Notebook.add(NullMidi, text = "NullMidi")
-Notebook.add(NullProton, text = "NullProton")
-Notebook.add(NullGit, text = "NullGit")
-Notebook.add(NullFocus, text = "NullFocus")
-Notebook.add(NullMoji, text = "NullMoji")
-
-# ------------------------------
-# Null Suite UI
-# ------------------------------
-NullSuiteChangeLogPage = nulltk.Frame(NullSuite)
-NullSuiteChangeLogPage.pack(fill="both", expand=True)
-NullSuiteChangeLogPage.rowconfigure(2, weight=1)
-NullSuiteChangeLogPage.columnconfigure(0, weight=1)
-
-NullSuiteToggles = nulltk.Frame(NullSuiteChangeLogPage)
-NullSuiteToggles.grid(row=0,column=0, pady=(5,2), sticky="ew")
-NullSuiteTogglesOptions = nulltk.Frame(NullSuiteChangeLogPage)
-NullSuiteTogglesOptions.grid(row=1,column=0, pady=(2,20), sticky="ew")
-NullSuiteToggles.rowconfigure(0,weight=0)
-NullSuiteToggles.columnconfigure(0,weight=0)
-NullSuiteToggles.columnconfigure(1,weight=0)
-NullSuiteToggles.columnconfigure(2,weight=0)
-NullSuiteToggles.columnconfigure(3,weight=0)
-NullSuiteToggles.columnconfigure(4,weight=0)
-NullSuiteToggles.columnconfigure(5,weight=0)
-NullSuiteToggles.columnconfigure(6,weight=0)
-NullSuiteToggles.columnconfigure(7,weight=0)
-NullSuiteToggles.columnconfigure(8,weight=0)
-
-NullSuiteTogglesOptions.rowconfigure(0,weight=0)
-NullSuiteTogglesOptions.columnconfigure(0,weight=0)
-NullSuiteTogglesOptions.columnconfigure(1,weight=0)
-NullSuiteTogglesOptions.columnconfigure(2,weight=0)
-
-
-def UpdateStartUpToggles(Which):
-    
-    if Which == "Wire":
-        StartUpNullWire()
-
-    elif Which == "Cursor":
-        StartUpNullMonitor()
-
-    elif Which == "Midi":
-        StartUpNullMidi()
-
-    elif Which == "Proton":
-        StartUpNullProton()
-
-    elif Which == "Git":
-        StartUpNullGit()
-
-    elif Which == "Tracker":
-        StartUpNullFocus()
-
-    elif Which == "Moji":
-        StartUpNullMoji()
-
-    SaveConfig("NullSuite")
-    return
-
-NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
-NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
-
-NullMonitorActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMonitor?", variable=NullMonitorActive,command=lambda: UpdateStartUpToggles("Cursor"))
-NullMonitorActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
-
-NullMidiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMidi?", variable=NullMidiActive,command=lambda: UpdateStartUpToggles("Midi"))
-NullMidiActivator.grid(row=0,column=2, padx=1,pady=1, sticky="w")
-
-NullProtonActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullProton?", variable=NullProtonActive,command=lambda: UpdateStartUpToggles("Proton"))
-NullProtonActivator.grid(row=0,column=3, padx=1,pady=1, sticky="w")
-
-NullGitActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullGit?", variable=NullGitActive,command=lambda: UpdateStartUpToggles("Git"))
-NullGitActivator.grid(row=0,column=4, padx=1,pady=1, sticky="w")
-
-NullFocusActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullFocus?", variable=NullFocusActive,command=lambda: UpdateStartUpToggles("Tracker"))
-NullFocusActivator.grid(row=0,column=5, padx=1,pady=1, sticky="w")
-
-NullMojiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMoji?", variable=NullMojiActive,command=lambda: UpdateStartUpToggles("Moji"))
-NullMojiActivator.grid(row=0,column=6, padx=1,pady=1, sticky="w")
-
-StartMinimizedActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start Minimized?", variable=StartMinimizedActive,command=lambda: UpdateStartUpToggles("Start"))
-StartMinimizedActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w")
-
-StartInTrayActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start In Tray?", variable=StartInTrayActive,command=lambda: UpdateStartUpToggles("Tray"))
-StartInTrayActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
-
-NullSuiteDarkModeToggle = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Dark Mode", variable= DarkTheme, command=lambda: ChangeTheme())
-NullSuiteDarkModeToggle.grid(row=0,column=2, padx=1,pady=1, sticky="we")
-
-ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=3,sticky="ns",padx=5)
-
-
-BlackVar = tk.IntVar(value=100)
-
-
-BlackValueText = nulltk.Label(NullSuiteTogglesOptions, text="Blackness")
-BlackValueText.grid(row=0, column=4, sticky="ew")
-BlackLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=BlackVar)
-BlackLevel.grid(row=0, column=5, sticky="ew")
-BlackLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
-BlackLevel.set(BlackVar.get())
-BlackLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=BlackVar, width=4)
-BlackLevelValue.grid(row=0, column=6, padx=5, sticky="w")
-
-ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=7,sticky="ns",padx=5)
-
-WhiteVar = tk.IntVar(value=100)
-
-WhiteValueText = nulltk.Label(NullSuiteTogglesOptions, text="Whiteness")
-WhiteValueText.grid(row=0, column=8, sticky="ew")
-
-WhiteLevel = nulltk.Scale(NullSuiteTogglesOptions,from_=0,to=100,orient="horizontal",showvalue=0,variable=WhiteVar)
-WhiteLevel.grid(row=0, column=9, sticky="ew")
-WhiteLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
-
-WhiteLevel.set(WhiteVar.get())
-WhiteLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=WhiteVar, width=4)
-WhiteLevelValue.grid(row=0, column=10, padx=5, sticky="w")
-
-
-NullSuiteList = ScrollableFrame(NullSuiteChangeLogPage)
-NullSuiteList.grid(row=2,column=0, sticky="ensw", columnspan=99)
-NullSuiteList.rowconfigure(0,weight=1)
-NullSuiteList.columnconfigure(0,weight=1)
-
-NullSuiteListInner = NullSuiteList.Inner
-
-NullSuiteListInner.rowconfigure(0,weight=1)
-NullSuiteListInner.columnconfigure(0,weight=1)
-
-AboutNullWire = nulltk.Label(
-    NullSuiteChangeLogPage,
-    text="Welcome to NullSuite! A collective trashpile of applications from NullForgeStudios, for ease of use with LinuxMint!  Enjoy, This will ALWAYS be free, buuuuuuuut if you wanna donate to help it along... "
-)
-AboutNullWire.grid(row=3, column=0, sticky="ew", padx=5, pady=(5,0))
-
-link = nulltk.Label(
-    NullSuiteChangeLogPage,
-    text="Our Ko-fi",
-    fg="Blue",
-    cursor="hand2",
-    ThemeFG = False
-)
-link.grid(row=4, column=0, sticky="ew", padx=5, pady=(0,10))
-
-
-link.bind("<Button-1>", lambda e: webbrowser.open_new("https://ko-fi.com/nullforgestudios"))
-
-
-
-
-
-# ------------------------------
-# Null Proton UI
-# ------------------------------
-ProtonMain = nulltk.Frame(NullProton)
-ProtonMain.pack(fill="both", expand=True, padx=10, pady=10)
-ProtonTop = nulltk.Frame(ProtonMain)
-ProtonTop.pack(fill="x")
-ProtonTop.rowconfigure(0, weight=1)
-ProtonTop.rowconfigure(1, weight=1)
-ProtonTop.rowconfigure(2, weight=1)
-ProtonTop.columnconfigure(0, weight=0)
-ProtonTop.columnconfigure(1, weight=2)
-ProtonTop.columnconfigure(2, weight=1)
-
-def MakeProtonRow(row, key, label):
-    nulltk.Label(ProtonTop, text=label, anchor="w").grid(row=row, column=0, padx=3, pady=5, sticky="w")
-
-    entry = nulltk.Entry(ProtonTop, textvariable=ProtonVars[key], state="readonly")
-    entry.grid(row=row, column=1, padx=3, pady=5, sticky="ew")
-
-    def Pick():
-        Home = os.path.expanduser("~")
-
-        Paths = [
-            os.path.join(Home, ".steam/root/compatibilitytools.d"),
-            os.path.join(Home, ".local/share/Steam/compatibilitytools.d")
-        ]
-
-        StartDir = next((p for p in Paths if os.path.isdir(p)), Home)
-
-        path = filedialog.askopenfilename(
-        title=f"Select Proton ({label})",
-        initialdir=StartDir,
-        filetypes=[("Proton Executable", "proton*"),("All Files", "*")])
-
-        if path:
-            ProtonVars[key].set(path)
-            SaveConfig("NullProton")
-
-    nulltk.Button(ProtonTop, text="Browse", command=Pick).grid(row=row, column=2, sticky="ew")
-
-MakeProtonRow(0, "Default", "Default Proton:")
-MakeProtonRow(1, "A", "Proton A:")
-MakeProtonRow(2, "B", "Proton B:")
-ProtonScroll = ScrollableFrame(ProtonMain)
-ProtonScroll.pack(fill="both", expand=True)
-ProtonGameContainer = ProtonScroll.Inner
-ProtonGameContainer.columnconfigure(0, weight=1)
-nulltk.Frame(ProtonTop,height=2,bg="gray").grid(row=3,column=0,columnspan=3,sticky="ew",pady=6)
-nulltk.Button(ProtonTop, text="Add Game", command=AddGameRow).grid(row=4, column=2, sticky="ew",)
-checkboxframe = nulltk.Frame(ProtonTop)
-checkboxframe.grid(row=4, column=1, sticky="ew")
-checkboxframe.columnconfigure(0,weight=1)
-checkboxframe.columnconfigure(1,weight=1)
-
-CloseVar = tk.BooleanVar(value=ProtonVars["Close"].get())
-MinVar = tk.BooleanVar(value=ProtonVars["Min"].get())
-closenp = nulltk.Checkbutton(checkboxframe,text="Close To Tray",variable=ProtonVars["Close"])
-closenp.grid(row=0, column=0, sticky="ew")
-minimize = nulltk.Checkbutton(checkboxframe,text="Minimize On Launch",variable=ProtonVars["Min"])
-minimize.grid(row=0, column=1, sticky="ew")
-
-nulltk.Frame(ProtonTop,height=3,bg="gray").grid(row=5,column=0,columnspan=3,sticky="ew",pady=6)
-
-ProtonVars["Close"].trace_add("write",lambda *args: SaveConfig("NullProton"))
-ProtonVars["Min"].trace_add("write",lambda *args: SaveConfig("NullProton"))
-ProtonOverlay = nulltk.Frame(ProtonScroll, bg="#000000", ThemeBG = False)
-ProtonOverlay.place(relx=0, rely=0, relwidth=1, relheight=1)
-ProtonOverlay.lower()
-OverlayLabel = nulltk.Label(
-    ProtonOverlay,
-    text="",
-    fg="white",
-    bg="#000000",
-    justify="left",
-    anchor="nw"
-)
-OverlayLabel.pack(fill="both", expand=True, padx=10, pady=10)
-
-# ------------------------------
-# Null Midi UI
-# ------------------------------
-TopBar = nulltk.Frame(NullMidi)
-TopBar.pack(fill="x", padx=5, pady=5)
-MidiScrollBox = ScrollableFrame(NullMidi)
-MidiScrollBox.pack(fill="both", expand=True)
-MidiContainer = MidiScrollBox.Inner
-nulltk.Button(TopBar, text="Add New Input", command=lambda: AddMidiRow(None)).pack(fill="x")
-ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=5)
-# ------------------------------
-# Null MonitorUI
-# ------------------------------
-NullMonitorNotebook = nulltk.Notebook(NullMonitor)
-NullMonitorNotebook.pack(fill="both", expand=True)
-NullMonitorPage = nulltk.Frame(NullMonitorNotebook)
-NullMonitorWallPapersPage = nulltk.Frame(NullMonitorNotebook)
-NullMonitorNotebook.add(NullMonitorPage, text="Main")
-NullMonitorNotebook.add(NullMonitorWallPapersPage, text="WallPapers",state="disabled")
-NullMonitorNotebook.bind("<<NotebookTabChanged>>",NullMonitorNoteBookChange)
-# --------------- NullMonitor Main Page
-NullMonitorCheck = nulltk.Frame(NullMonitorPage)
-NullMonitorCheck.pack(fill="x", padx=5, pady=5)
-NullMonitorTopBar = nulltk.Frame(NullMonitorPage)
-NullMonitorTopBar.pack(fill="x", padx=5, pady=5)
-NullMonitorTopBar.columnconfigure(0, weight=2)
-NullMonitorTopBar.columnconfigure(1, weight=1)
-NullMonitorTopBar.rowconfigure(0, weight=0)
-NullMonitorTopBar.rowconfigure(1, weight=0)
-NullMonitorProfileBox = nulltk.Frame(NullMonitorPage)
-NullMonitorProfileBox.pack(fill="x", padx=5, pady=5)
-NullMonitorProfileBox.columnconfigure(0, weight=2)
-NullMonitorProfileBox.columnconfigure(1, weight=1)
-NullMonitorProfileBox.rowconfigure(0, weight=0)
-NullMonitorProfileNameVar = tk.StringVar()
-NullMonitorProfileEntry = nulltk.Entry(NullMonitorProfileBox, textvariable=NullMonitorProfileNameVar)
-NullMonitorProfileEntry.grid(row=0, column=0, sticky="ew", padx=(0,5))
-NullMonitorCreateBtn = nulltk.Button(NullMonitorProfileBox, text="Create Profile", command=CreateProfile)
-NullMonitorCreateBtn.grid(row=0, column=1, sticky="ew")
-NullMonitorEditables = nulltk.Frame(NullMonitorTopBar)
-NullMonitorEditables.grid(row=1, column=0, sticky="ew", padx=(0,5))
-NullMonitorStartDetectionVar = tk.IntVar(value=int(StartDetection * 1000))
-NullMonitorRow = nulltk.Frame(NullMonitorEditables)
-NullMonitorRow.pack(fill="x", pady=2)
-NullMonitordetectionlabel = nulltk.Label(NullMonitorRow, text="Detection:", width=11)
-NullMonitordetectionlabel.grid(row=0, column=0, padx=(0,0), sticky="w")
-NullMonitorStartValueLabel = nulltk.Label(NullMonitorRow, text=f"{int(StartDetection * 1000)}   |", width=6)
-NullMonitorStartValueLabel.grid(row=0, column=2, padx=(0,0))
-NullMonitorScanValueLabel = nulltk.Label(NullMonitorRow, text=f"{ScanTime:.2f}", width=4)
-NullMonitorScanValueLabel.grid(row=0, column=7, padx=(0,0))
-NullMonitorSlider1 = nulltk.Scale(
-    NullMonitorRow,
-    from_=1,
-    to=50,
-    resolution=1,
-    orient="horizontal",
-    variable=NullMonitorStartDetectionVar,
-    command=lambda v: UpdateStartDetection(v),
-    showvalue=0
-)
-NullMonitorSlider1.grid(row=0, column=1, sticky="ew", padx=(0,0))
-ToolTip(NullMonitordetectionlabel, "When your mouse enters this area, edge detection begins, Lower values may help performance, but detection might suffer. Recommended is 15")
-NullMonitorSlider1.bind("<Button-4>", lambda e: (NullMonitorSlider1.set(min(50, NullMonitorSlider1.get()+5)), UpdateStartDetection(NullMonitorSlider1.get())))
-NullMonitorSlider1.bind("<Button-5>", lambda e: (NullMonitorSlider1.set(max(0, NullMonitorSlider1.get()-5)), UpdateStartDetection(NullMonitorSlider1.get())))
-NullMonitorSlider1.bind("<Enter>", lambda e: OnHoverEnter(e, "detection"))
-NullMonitorSlider1.bind("<Leave>", lambda e: DelayedHide())
-NullMonitoredge = nulltk.Label(NullMonitorRow, text="Buffer:", width= 7)
-NullMonitoredge.grid(row=0, column=3, padx=(0,0), sticky="w")
-NullMonitorEdgeBufferVar = tk.IntVar(value=EdgeBuffer)
-NullMonitorEntry = nulltk.Entry(NullMonitorRow, textvariable=NullMonitorEdgeBufferVar, width=5)
-NullMonitorEntry.grid(row=0, column=4, padx=(0,0))
-NullMonitorEntry.bind("<Enter>", lambda e: OnHoverEnter(e, "edge"))
-NullMonitorEntry.bind("<Leave>", lambda e: DelayedHide())
-NullMonitorEdgeBufferVar.trace_add("write", UpdateEdgeBuffer)
-ToolTip(NullMonitoredge, "How many pixels past the edge triggers a warp")
-NullMonitorScan = nulltk.Label(NullMonitorRow, text="|   ScanTime", width=12)
-NullMonitorScan.grid(row=0, column=5, padx=(0,0), sticky="w")
-NullMonitorScanTimeVar = tk.DoubleVar(value=ScanTime)
-NullMonitorSlider2 = nulltk.Scale(
-    NullMonitorRow,
-    from_=0.010,
-    to=0.20,
-    resolution=0.005,
-    orient="horizontal",
-    variable=NullMonitorScanTimeVar,
-    command=lambda v: UpdateScanTime(v),
-    showvalue=0
-)
-NullMonitorSlider2.grid(row=0, column=6, sticky="ew")
-NullMonitorSlider2.bind("<Button-4>", lambda e: (NullMonitorSlider2.set(min(150, NullMonitorSlider2.get()+0.005)), UpdateScanTime()))
-NullMonitorSlider2.bind("<Button-5>", lambda e: (NullMonitorSlider2.set(max(0, NullMonitorSlider2.get()-0.005)), UpdateScanTime()))
-ToolTip(NullMonitorScan, "How often the cursor is scanned (higher = less CPU, more delay). Recommended is 0.05 or lower.")
-NullMonitorScroll = ScrollableFrame(NullMonitorPage)
-NullMonitorScroll.pack(fill="both", expand=True, padx=5, pady=5)
-NullMonitorProfileContainer = NullMonitorScroll.Inner
-NullMonitorProfileContainer.pack(padx=(0,10),fill="x")
-NullMonitorEnabledVar = tk.BooleanVar(value=ScanForMouse)
-NullMonitorDisabledOverlay = nulltk.Frame(NullMonitorTopBar,bg="#000000", ThemeBG = False)
-NullMonitorDisabledOverlay.place(relx=0,rely=0,relwidth=1,relheight=1)
-NullMonitorOverlayText = nulltk.Label(NullMonitorDisabledOverlay,text="NullMonitor is currently disabled. When disabled, no cursor scanning occurs, and no background resources are used. Enable 'Scan For Mouse' to activate NullMonitor.",bg="#000000",fg="white", ThemeBG = False)
-NullMonitorOverlayText.pack(anchor="center")
-NullMonitorToggle = nulltk.Checkbutton(NullMonitorCheck,text="Scan For Mouse",variable=NullMonitorEnabledVar,command=ToggleNullMonitor)
-NullMonitorToggle.grid(row=0,column=1,columnspan=2,pady=(5,0))
-# --------------- NullMonitor Wallpaper Page
-
-NullMonitorWallPapersPage.columnconfigure(0,weight=1)
-NullMonitorWallPapersPage.rowconfigure(2,weight=1)
-WallpaperPreviewFrame = nulltk.LabelFrame(NullMonitorWallPapersPage,text="Monitor Layout")
-WallpaperPreviewFrame.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
-WallpaperPreviewFrame.columnconfigure(0,weight=1)
-
-WallpaperLayoutContainer = nulltk.Frame(WallpaperPreviewFrame)
-WallpaperLayoutContainer.grid(row=0,column=0,pady=5)
-
-WallpaperInfoFrame = nulltk.Frame(NullMonitorWallPapersPage)
-WallpaperInfoFrame.grid(row=1,column=0,padx=5,pady=5,sticky="ew")
-WallpaperInfoFrame.columnconfigure(0,weight=1)
-WallpaperInfoFrame.columnconfigure(1,weight=0)
-WallpaperInfoFrame.columnconfigure(2,weight=1)
-
-desktoplabel = nulltk.Label(WallpaperInfoFrame, text="Desktop Wallpapers")
-desktoplabel.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
-ttk.Separator(WallpaperInfoFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
-lockscreenlabel = nulltk.Label(WallpaperInfoFrame, text="LockScreen Wallpapers")
-lockscreenlabel.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
-
-
-WallpaperScrollFrame = ScrollableFrame(NullMonitorWallPapersPage)
-WallpaperScrollFrame.grid(row=2,column=0,padx=5,pady=5,sticky="nsew")
-WallpaperScrollFrame.Inner.columnconfigure(0,weight=1)
-# ------------------------------
-# Null Wire UI
-# ------------------------------
-NullWireNotebook = nulltk.Notebook(NullWire)
-NullWireNotebook.pack(fill="both", expand=True)
-NullWireRoutingPage = nulltk.Frame(NullWireNotebook)
-NullWireDevicesPage = nulltk.Frame(NullWireNotebook)
-NullWireNotebook.add(NullWireRoutingPage, text="Wires")
-NullWireNotebook.add(NullWireDevicesPage, text="Devices")
-# --------------- Routing Page
-NullWireRoutingTop = nulltk.Frame(NullWireRoutingPage)
-NullWireRoutingTop.pack(fill="x")
-NullWireRoutingEntry = nulltk.Entry(NullWireRoutingTop)
-NullWireRoutingEntry.pack(side="left", fill="x", expand=True)
-NullWireAddButton = nulltk.Button(NullWireRoutingTop, text="Add")
-NullWireAddButton.pack(side="left", fill="x", expand=True)
-NullWireScrollArea = ScrollableFrame(NullWireRoutingPage)
-NullWireScrollArea.pack(fill="both", expand=True)
-NullWireRoutingObjects = NullWireScrollArea.Inner
-NullWireAddButton.config(command=AddRoutingObject)
-# --------------- Devices Page
-NullWireMainRow = nulltk.Frame(NullWireDevicesPage)
-NullWireMainRow.pack(fill="both", expand=True)
-NullWireMainRow.columnconfigure(0, weight=49, uniform="group")
-NullWireMainRow.columnconfigure(1, weight=2,  uniform="group")
-NullWireMainRow.columnconfigure(2, weight=49, uniform="group")
-NullWireLeftColumn = nulltk.Frame(NullWireMainRow)
-NullWireLeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
-NullWireDivider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
-NullWireDivider.grid(row=0, column=1, sticky="ns")
-NullWireRightColumn = nulltk.Frame(NullWireMainRow)
-NullWireRightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
-# ------------------------------
-# Null Git UI
-# ------------------------------
-NullGitNotebook = nulltk.Notebook(NullGit)
-NullGitNotebook.pack(fill="both", expand=True)
-NullGitMainPage = nulltk.Frame(NullGitNotebook)
-NullGitManagePage = nulltk.Frame(NullGitNotebook)
-NullGitNotebook.add(NullGitMainPage, text="Repos")
-NullGitNotebook.add(NullGitManagePage, text="Manage")
-NullGitNotebook.bind("<<NotebookTabChanged>>",OnNotebookChanged)
-# -------------- Main Page
-NullGitMainPage.rowconfigure(0, weight=1)
-NullGitMainPage.columnconfigure(0, weight=1)
-NullGitInputPath = tk.StringVar()
-NullGitCreateRepoPath = tk.StringVar()
-NullGitCreateRepoLink = tk.StringVar()
-NullGitClonePath = tk.StringVar()
-NullGitCloneLink =tk.StringVar()
-
-NullGitReposList = ScrollableFrame(NullGitMainPage)
-NullGitReposList.grid(row=0, column=0, sticky="nsew", padx=5, columnspan=3)
-
-NullGitcontainer = NullGitReposList.Inner
-DownloadOverlay = nulltk.Frame(NullGit,bg="#000000", ThemeBG = False)
-DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
-DownloadOverlayLabel.pack(expand=True)
-nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
-
-
-NullGitOptionsArea = nulltk.LabelFrame(NullGitcontainer, text= "NullGit Options")
-#NullGitOptionsArea.grid(row=0, column=0, sticky="ew", columnspan=99, padx=5)
-NullGitOptionsArea.pack(fill="x", padx=5, pady=5)
-NullGitOptionsArea.columnconfigure(0, weight=1)
-NullGitOptionsArea.columnconfigure(1, weight=1)
-NullGitCheckUpdates = nulltk.Button(NullGitOptionsArea, text="Check For Updates",command=lambda:BuildRepoList())
-NullGitCheckUpdates.grid(row=0, column=0, columnspan=99, sticky="ew", padx=5, pady=(3,5))
-InstallGithubButton = nulltk.Button(NullGitOptionsArea, text="Install Github Login",command=lambda: InstallGitLoginThings())
-InstallGithubButton.grid(row=0, column=1, sticky="e", padx=5)
-InstallGithubButton.grid_forget()
-
-
-
-NullGitAddRepo = nulltk.LabelFrame(NullGitcontainer, text= "Add A Repo")
-#NullGitAddRepo.grid(row=1, column=0, sticky="ew", columnspan=99, padx=5)
-NullGitAddRepo.pack(fill="x", padx=5, pady=5)
-NullGitAddRepo.columnconfigure(1, weight=1)
-nulltk.Button(NullGitAddRepo, text="Browse For Repo", width =16,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="e", padx=5, pady=5)
-nulltk.Entry(NullGitAddRepo,width=30,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-nulltk.Button(NullGitAddRepo, text="Add Repo", width =16,command=lambda: AddRepo(NullGitInputPath.get())).grid(row=0, column=2, sticky="e", padx=5)
-
-
-NullGitCreateRepo = nulltk.LabelFrame(NullGitcontainer, text= "Create Repo")
-#NullGitCreateRepo.grid(row=2, column=0, sticky="ew", columnspan=99, padx=5)
-NullGitCreateRepo.pack(fill="x", padx=5, pady=5)
-NullGitCreateRepo.columnconfigure(1, weight=1)
-NullGitCreateRepo.columnconfigure(2, weight=1)
-nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
-nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
-nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=0, column=2, sticky="ew")
-nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=0, column=3, sticky="ew", padx=5)
-
-NullGitCloneRepo = nulltk.LabelFrame(NullGitcontainer, text= "Clone Repo")
-#NullGitCloneRepo.grid(row=3, column=0, sticky="ew", columnspan=99, pady=(0, 10), padx=5)
-NullGitCloneRepo.pack(fill="x", padx=5, pady=5)
-NullGitCloneRepo.columnconfigure(1, weight=1)
-NullGitCloneRepo.columnconfigure(2, weight=1)
-nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
-GitCloneRepoEntry.grid(row=0, column=2, sticky="ew")
-ToolTip(GitCloneRepoEntry, "Paste the github link here. you do not need to add \"git\", just the link to the webpage will suffice.")
-
-nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=0, column=3, sticky="w", padx=5)
-
-
-
-NullGitSep = nulltk.Frame(NullGitcontainer,height=12, Reversed = True)
-NullGitSep.pack(fill="x", padx=1, pady=(10,5))
-
-
-
-
-
-# --------------- manage
-ManageRemoteURL = tk.StringVar()
-ManageRepoPath = tk.StringVar()
-ManageBranchName = tk.StringVar()
-GitIgnoredVar = tk.StringVar()
-CommittedVar = tk.StringVar()
-
-NullGitManagePage.columnconfigure(0, weight=1)
-NullGitManagePage.rowconfigure(0, weight=0)
-NullGitManagePage.rowconfigure(1, weight=0)
-NullGitManagePage.rowconfigure(2, weight=1)
-NullGitManagePage.rowconfigure(3, weight=1)
-NullGitManagePage.rowconfigure(4, weight=0)
-
-
-
-RepoFrame = nulltk.LabelFrame(NullGitManagePage,text="Repo Management",bd=3,relief="solid")
-RepoFrame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-RepoFrame.columnconfigure(0, weight=0)
-RepoFrame.columnconfigure(1, weight=1)
-RepoFrame.columnconfigure(2, weight=0)
-RepoFrame.rowconfigure(0, weight=1)
-BranchFrame = nulltk.LabelFrame(NullGitManagePage,text="Branch Management",bd=3,relief="solid")
-BranchFrame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-BranchFrame.columnconfigure(0, weight=0)
-BranchFrame.columnconfigure(1, weight=1)
-BranchFrame.columnconfigure(2, weight=0)
-BranchFrame.rowconfigure(0, weight=1)
-IgnoreFrame = nulltk.LabelFrame(NullGitManagePage,text="GitIgnore Management",bd=3,relief="solid")
-IgnoreFrame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
-IgnoreFrame.columnconfigure(0, weight=1)
-IgnoreFrame.rowconfigure(0, weight=0)
-IgnoreFrame.rowconfigure(1, weight=1)
-CommitFrame = nulltk.LabelFrame(NullGitManagePage,text="Commit Management",bd=3,relief="solid")
-CommitFrame.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
-CommitFrame.columnconfigure(0, weight=1)
-CommitFrame.columnconfigure(1, weight=1)
-CommitFrame.rowconfigure(0, weight=0)
-CommitFrame.rowconfigure(1, weight=0)
-CommitFrame.rowconfigure(2, weight=0)
-CommitFrame.rowconfigure(3, weight=1)
-
-NuclearFrame = nulltk.LabelFrame(NullGitManagePage,text="Nuclear Commands",bd=3,relief="solid")
-NuclearFrame.grid(row=4, column=0, sticky="ew", padx=5, pady=5)
-NuclearFrame.columnconfigure(0, weight=1)
-NuclearFrame.columnconfigure(1, weight=1)
-NuclearFrame.rowconfigure(0, weight=0)
-NuclearFrame.rowconfigure(1, weight=0)
-NuclearFrame.rowconfigure(2, weight=1)
-DeleteNullGitRepoButton = nulltk.Button(RepoFrame, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
-DeleteNullGitRepoButton.grid(row=0, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
-
-
-nulltk.Button(BranchFrame, text="Create Branch", width= 11, command=lambda:CreateBranchOnGit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-nulltk.Entry(BranchFrame, textvariable=ManageBranchName).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-nulltk.Button(BranchFrame, text="Rename Branch", width= 11, command=lambda:RenameBranchOnGit()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
-nulltk.Button(BranchFrame, text="Delete Branch", command=lambda:DeleteBranchOnGit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
-
-CurrentMergeBranch = tk.StringVar()
-MergeBranches = nulltk.Label(BranchFrame,text="Merge this branch into current:",font=("Arial", 12),justify="center")
-MergeBranches.grid(row=2, column=0, sticky="ew", padx=5, pady=2)
-MergeBranchBox = nulltk.Combobox(BranchFrame, values=[], textvariable=CurrentMergeBranch, state="readonly")
-MergeBranchBox.grid(row=2, column=1, sticky="ew", padx=5, pady=2)
-MergeButton = nulltk.Button(BranchFrame,text="Merge", command=lambda:MergeBranch())
-MergeButton.grid(row=2,column=2,sticky="ew",padx=5,pady=2)
-
-CreateGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Create .gitignore", command=lambda:CreateGitIgnoreFile())
-CreateGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
-EditGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Edit .gitignore", command=lambda:EditGitIgnoreFile())
-EditGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
-ToolTip(EditGitIgnoreButton, "Adding a file to the .gitignore also removes it from the repo, to remove something from the .gitignore, add a file/folder already in the .gitignore")
-GitList = ScrollableFrame(IgnoreFrame)
-GitList.grid(row=1, column=0, sticky="nsew", padx=5, columnspan=3)
-GitListContainer = GitList.Inner
-GitListContainer.configure(bg="white")
-CreateGitIgnoreButton.grid_remove()
-EditGitIgnoreButton.grid_remove()
-GitList.grid_remove()
-GitIgnoredLabel = nulltk.Label(GitListContainer,textvariable=GitIgnoredVar, justify="left",anchor="nw",bg="white",fg="black")
-GitIgnoredLabel.pack(fill="both",expand=True,padx=5,pady=5)
-nulltk.Button(CommitFrame, text="Add File To Commit", command=lambda:AddFileToCommit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-nulltk.Button(CommitFrame, text="Remove File From Commit", command=lambda:RemoveFileFromCommit()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-nulltk.Button(CommitFrame, text="Clear Current Commit", command=lambda:ClearCurrentCommit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=2)
-OnlyCommitMessage = tk.StringVar()
-nulltk.Entry(CommitFrame,width=30,textvariable=OnlyCommitMessage).grid(row=2, column=0, sticky="ew", padx=5)
-nulltk.Button(CommitFrame, text="Push Commit List", command=lambda:PushOnlyCommited()).grid(row=2, column=1, sticky="ew", padx=5, pady=2, columnspan=2)
-CommitList = ScrollableFrame(CommitFrame)
-CommitList.grid(row=3, column=0, sticky="nsew", padx=5, columnspan=2)
-CommitListContainer = CommitList.Inner
-CommitListContainer.configure(bg="white")
-CommittedLabel = nulltk.Label(CommitListContainer,textvariable=CommittedVar,justify="left",anchor="nw",bg="white",fg="black")
-CommittedLabel.pack(fill="both",expand=True,padx=5,pady=5) 
-Stash = nulltk.Button(NuclearFrame,text="Stash & Pull", command=lambda:StashAndPull())
-Stash.grid(row=0,column=0,sticky="ew",padx=5,pady=2,)
-ForcePush = nulltk.Button(NuclearFrame,text="Force Push", command=lambda:ForcePushCommit())
-ForcePush.grid(row=0,column=1,sticky="ew",padx=5,pady=2, columnspan=2)
-
-
-# ------------------------------
-# Null Focus UI
-# ------------------------------
-NullFocusNotebook = nulltk.Notebook(NullFocus)
-NullFocusManagePage = nulltk.Frame(NullFocusNotebook)
-NullFocusLogsPage = nulltk.Frame(NullFocusNotebook)
-NullFocusClockPage = nulltk.Frame(NullFocusNotebook)
-NullFocusClipBoard = nulltk.Frame(NullFocusNotebook)
-NullFocusOperator = nulltk.Frame(NullFocusNotebook)
-
-
-NullFocusNotebook.pack(fill="both", expand=True)
-
-NullFocusManagePage.rowconfigure(0, weight=1)
-NullFocusManagePage.columnconfigure(0, weight=1)
-
-NullFocusLogsPage.rowconfigure(0, weight=1)
-NullFocusLogsPage.columnconfigure(0, weight=1)
-NullFocusNotebook.add(NullFocusLogsPage, text="Logs")
-NullFocusNotebook.add(NullFocusManagePage, text="Manage Tracking")
-NullFocusNotebook.add(NullFocusClockPage, text="Circadian Clock")
-NullFocusNotebook.add(NullFocusClipBoard, text="ClipBoard")
-NullFocusNotebook.add(NullFocusOperator, text="Operator")
-
-
-
-
-#--- Manage
-NullFocusManagePageMain = nulltk.Frame(NullFocusManagePage)
-NullFocusManagePageMain.pack(fill="both", expand=True)
-
-NullFocusManagePageMain.columnconfigure(0, weight=1)
-NullFocusManagePageMain.rowconfigure(0, weight=0)
-NullFocusManagePageMain.rowconfigure(1, weight=0)
-NullFocusManagePageMain.rowconfigure(2, weight=0)
-NullFocusManagePageMain.rowconfigure(3, weight=1)
-NullFocusManagePageSlidersNTexts = nulltk.Frame(NullFocusManagePageMain)
-NullFocusManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=5)
-NullFocusManagePageSlidersNTexts.columnconfigure(0, weight=1)
-NullFocusManagePageSlidersNTexts.columnconfigure(1, weight=1)
-NullFocusManagePageSlidersNTexts.columnconfigure(2, weight=1)
-NullFocusManagePageSlidersNTexts.rowconfigure(0, weight=0)
-NullFocusManagePageSlidersNTexts.rowconfigure(1, weight=0)
-NullFocusManagePageSlidersNTexts.rowconfigure(2, weight=0)
-TrackerWriteInterval = tk.IntVar(value = 1)
-TrackerMinimumWindowTime = tk.IntVar(value = 1)
-TrackerNewDay = tk.IntVar(value = 3)
-IgnoredAppListVar = tk.StringVar(value = "")
-WriteIntervalText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"Save To Disk Every: {TrackerWriteInterval.get()} Minutes")
-WriteIntervalText.grid(row=0, column=0, sticky="ew", pady=0)
-RequiredFocusText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"Window Focus Time Req: {TrackerMinimumWindowTime.get()} Seconds")
-RequiredFocusText.grid(row=0, column=1, sticky="ew", pady=0)
-NewDayText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
-NewDayText.grid(row=0, column=2, sticky="ew", pady=0)
-WriteIntervalSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
-WriteIntervalSlider.grid(row=1, column=0, sticky="ew", padx=5)
-RequiredFocusSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
-RequiredFocusSlider.grid(row=1, column=1, sticky="ew", padx=5)
-NewDaySlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
-NewDaySlider.grid(row=1, column=2, sticky="ew", padx=5)
-AddNewTrackerClass = nulltk.Button(NullFocusManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
-AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=5, padx=5)
-TrackerDiv = nulltk.Frame(NullFocusManagePageMain, height=3, bg="gray")
-TrackerDiv.grid(row=2, column=0, sticky="ew", pady=5)
-TrackerBottomLists = nulltk.Frame(NullFocusManagePageMain)
-TrackerBottomLists.grid(row=3, column=0, sticky="ensw", pady=(0,5))
-TrackerBottomLists.columnconfigure(0,weight=1)
-TrackerBottomLists.columnconfigure(1,weight=6)
-TrackerBottomLists.rowconfigure(0,weight=1)
-IgnoredAppsFrame = nulltk.Frame(TrackerBottomLists)
-IgnoredAppsFrame.grid(row=0, column=0, sticky="nsew")
-IgnoredAppsFrame.columnconfigure(0,weight=1)
-IgnoredAppsFrame.rowconfigure(0,weight=0)
-IgnoredAppsFrame.rowconfigure(1,weight=1)
-IgnoredAppsFrame.rowconfigure(2,weight=0)
-AddIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Add App", command=lambda: AddIgnoredTracker(), width = 30)
-AddIgnoredAppButton.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
-IgnoredAppsList = ScrollableFrame(IgnoredAppsFrame)
-IgnoredAppsList.grid(row=1, column=0, sticky="ewns",padx=5)
-IgnoredAppsContainer = IgnoredAppsList.Inner
-IgnoredAppsListText = nulltk.Label(IgnoredAppsContainer, textvariable = IgnoredAppListVar, anchor="center", justify="center")
-IgnoredAppsListText.pack(fill="x", expand=True)
-RemoveIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Remove App", command=lambda: DeleteIgnoredTracker(), width = 30)
-RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=5, padx=5)
-TrackerClassificationList = ScrollableFrame(TrackerBottomLists)
-TrackerClassificationList.grid(row=0, column=1, sticky="ensw", padx=5, pady=5)
-ClassiciationListContainer = TrackerClassificationList.Inner
-IgnoredAppsList.BindMouseWheel(NullFocusManagePageMain)
-TrackerClassificationList.BindMouseWheel(NullFocusManagePageMain)
-RequiredFocusSlider.bind("<Button-4>", lambda e: (TrackerMinimumWindowTime.set(min(60, TrackerMinimumWindowTime.get()+5)), UpdateTrackerQuality()))
-RequiredFocusSlider.bind("<Button-5>", lambda e: (TrackerMinimumWindowTime.set(max(1, TrackerMinimumWindowTime.get()-5)), UpdateTrackerQuality()))
-WriteIntervalSlider.bind("<Button-4>", lambda e: (TrackerWriteInterval.set(min(60, TrackerWriteInterval.get()+5)), UpdateTrackerQuality()))
-WriteIntervalSlider.bind("<Button-5>", lambda e: (TrackerWriteInterval.set(max(1, TrackerWriteInterval.get()-5)), UpdateTrackerQuality()))
-NewDaySlider.bind("<Button-4>", lambda e: (TrackerNewDay.set(min(23, TrackerNewDay.get()+1)), UpdateTrackerQuality()))
-NewDaySlider.bind("<Button-5>", lambda e: (TrackerNewDay.set(max(1, TrackerNewDay.get()-1)), UpdateTrackerQuality()))
-#---Logs
-NullFocusLogsPageInner = nulltk.Frame(NullFocusLogsPage)
-NullFocusLogsPageInner.grid(row=0, column=0, sticky="nsew")
-NullFocusLogsPageInner.rowconfigure(0,weight=0)
-NullFocusLogsPageInner.rowconfigure(1,weight=0)
-NullFocusLogsPageInner.rowconfigure(2,weight=1)
-NullFocusLogsPageInner.columnconfigure(0,weight=1)
-NullFocusLogsPageInner.columnconfigure(1,weight=1)
-NullFocusLogsPageInner.columnconfigure(2,weight=1)
-NullFocusLogsPageInner.columnconfigure(3,weight=7)
-InjectorButton = nulltk.Button(NullFocusLogsPageInner, text="Inject", command= lambda: InjectTracker())
-InjectorButton.grid(row=0, column=0, sticky="ew")
-InjectorText = nulltk.Label(NullFocusLogsPageInner, text="What You Are Injecting:")
-InjectorText.grid(row=0, column=1, sticky="ew", columnspan=2)
-InjectionEntry = nulltk.Entry(NullFocusLogsPageInner,)
-InjectionEntry.grid(row=0,column=3,padx=3,pady=3,sticky="ew")
-ToolTip(InjectorText, "E.g. When you took your medication, or did something important. It will show what you type, with the timestamp.")
-YearText = nulltk.Label(NullFocusLogsPageInner, text= f"Years", width=6)
-YearText.grid(row=1, column=0, sticky="ew")
-MonthText = nulltk.Label(NullFocusLogsPageInner, text= f"Months", width=7)
-MonthText.grid(row=1, column=1, sticky="ew")
-CycleText = nulltk.Label(NullFocusLogsPageInner, text= f"Cycles", width=8)
-CycleText.grid(row=1, column=2, sticky="ew")
-BreakDownText = nulltk.Label(NullFocusLogsPageInner, text= f"Breakdown")
-BreakDownText.grid(row=1, column=3, sticky="ew")
-CurrentLogView = tk.StringVar(value = "")
-YearChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
-YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=5, pady=5)
-YearChoicesBox.rowconfigure(0,weight=1)
-YearChoicesBox.columnconfigure(0,weight=1)
-YearChoices = ScrollableFrame(YearChoicesBox)
-YearChoices.pack(fill="both", expand=True, anchor="n")
-YearChoicesButtons = YearChoices.Inner
-YearChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
-
-MonthChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
-MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=5, pady=5)
-MonthChoicesBox.rowconfigure(0,weight=1)
-MonthChoicesBox.columnconfigure(0,weight=1)
-MonthChoices = ScrollableFrame(MonthChoicesBox)
-MonthChoices.pack(fill="both", expand=True, anchor="n")
-MonthChoicesButtons = MonthChoices.Inner
-MonthChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
-
-CycleChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
-CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=5, pady=5)
-CycleChoicesBox.rowconfigure(0,weight=1)
-CycleChoicesBox.columnconfigure(0,weight=1)
-CycleChoices = ScrollableFrame(CycleChoicesBox)
-CycleChoices.pack(fill="both", expand=True, anchor="n")
-CycleChoicesButtons = CycleChoices.Inner
-CycleChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
-
-LogDataBox = nulltk.Frame(NullFocusLogsPageInner)
-LogDataBox.grid(row=2,column=3, sticky="nsew",padx=5, pady=5)
-LogDataBox.rowconfigure(0,weight=1)
-LogDataBox.columnconfigure(0,weight=1)
-LogData = ScrollableFrame(LogDataBox)
-LogData.pack(fill="both", expand=True, anchor="n")
-LogDataInner = LogData.Inner
-LogDataLabel = nulltk.Label(LogDataInner, textvariable=CurrentLogView)
-LogDataLabel.pack(fill="both", expand=True, anchor="nw")
-YearChoices.BindMouseWheel(NullFocusLogsPageInner)
-MonthChoices.BindMouseWheel(NullFocusLogsPageInner)
-CycleChoices.BindMouseWheel(NullFocusLogsPageInner)
-LogData.BindMouseWheel(NullFocusLogsPageInner)
-# -----------Circadian Clock 
-NullFocusClockPage.columnconfigure(0,weight=1)
-HereLine = nulltk.Label(NullFocusClockPage, text = "↓", font=("Arial, 18"))
-HereLine.grid(row=0, column=0, sticky="nswe", pady=(10,0))
-ClockLabel = nulltk.Label(NullFocusClockPage, image=ClockImage)
-ClockLabel.image = ClockImage
-ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
-# ---------- ClipBoard
-NullFocusClipBoardPage = nulltk.Frame(NullFocusClipBoard)
-NullFocusClipBoardPage.pack(fill="both",expand="true")
-
-NullFocusClipBoardPage.pack(fill="both",expand="true")
-NullFocusClipBoardPage.columnconfigure(0, weight=1)
-NullFocusClipBoardPage.rowconfigure(1, weight=1)
-ClipBoardTopRow = nulltk.Frame(NullFocusClipBoardPage)
-ClipBoardTopRow.grid(column=0,row=0,sticky="ew",pady=(5,0), padx=5)
-ClipBoardTopRow.columnconfigure(0,weight=1)
-ClipBoardTopRow.columnconfigure(1,weight=1)
-ClipBoardTopRow.columnconfigure(2,weight=1)
-
-ClipboardDeletionButton= nulltk.Button(ClipBoardTopRow, text="Delete Checked", command=lambda: DeleteClipboardItems())
-ClipboardDeletionButton.grid(row=0,column=0,sticky="ew")
-ClipboardSelectAll= nulltk.Button(ClipBoardTopRow, text="Select All", command=lambda: SelectAllClipBoard())
-ClipboardSelectAll.grid(row=0,column=1,sticky="ew")
-ClipboardSelectNone= nulltk.Button(ClipBoardTopRow, text="Select None", command=lambda: SelectNoneClipBoard())
-ClipboardSelectNone.grid(row=0,column=2,sticky="ew")
-
-
-ClipBoardList = ScrollableFrame(NullFocusClipBoardPage)
-ClipBoardList.grid(column=0,row=1,sticky="nesw",columnspan=99, pady=5, padx=5)
-ClipBoardList.rowconfigure(0,weight=1)
-ClipBoardList.columnconfigure(0,weight=1)
-
-# ---------- Operator
-NullFocusOperator.columnconfigure(0,weight=1)
-NullFocusOperator.rowconfigure(2,weight=1)
-
-NullFocusAddOperatorButton = nulltk.Button(NullFocusOperator, text = "Add Operator", command=lambda: AddOperatorWindow())
-NullFocusAddOperatorButton.grid(row=0,column=0, sticky="ew", padx=5)
-
-nulltk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=5)
-
-OperatorList = ScrollableFrame(NullFocusOperator)
-OperatorList.rowconfigure(0,weight=1)
-OperatorList.columnconfigure(0,weight=1)
-OperatorList.grid(row=2,column=0, sticky="ewns", pady=5, padx=5)
-
-# ------------------------------
-# Null Moji UI
-# ------------------------------
 NullMojiMainPage = nulltk.Frame(NullMoji)
 NullMojiMainPage.pack(fill="both", expand=True) 
 NullMojiMainPage.columnconfigure(0, weight=1)
@@ -11439,14 +10924,11 @@ NullMojiAllSearchColumn.columnconfigure(1, weight=0)
 NullMojiAllSearchColumn.rowconfigure(0, weight=0)
 NullMojiAllSearchColumn.rowconfigure(1, weight=0)
 NullMojiAllSearchColumn.rowconfigure(2, weight=1)
-
-
 NullMojiSearchEmojisText = nulltk.Label(NullMojiAllSearchColumn,text="Recent/Search Emojis")
 NullMojiSearchEmojisText.grid(row=0, column=0, sticky="ew",)
 NullMojiSearchHelp = nulltk.Label(NullMojiAllSearchColumn,text="(?)",width=4)
 NullMojiSearchHelp.grid(row=0, column=1, sticky="w",padx=(3,0))
 ToolTip(NullMojiSearchHelp, "When not typing, Your recent selected emojis are shown.\n Right click to remove them.\n Left click to copy to clipboard")
-
 NullMojiSearchBar = nulltk.Entry(NullMojiAllSearchColumn,textvariable=NullMojiSearchBarVar)
 NullMojiSearchBar.grid(row=1,column=0,padx=3,pady=3,sticky="ew", columnspan=2)
 NullMojiSearchBarVar.trace_add("write", lambda *_: QueueEmojiSearch())
@@ -11460,7 +10942,6 @@ NullMojiAllRecentColumnList.grid(row=2,column=0, sticky="nsew", columnspan=2)
 NullMojiAllRecentColumnListInner = NullMojiAllRecentColumnList.Inner
 NullMojiCustomEmojiBarEmojiVar = tk.StringVar(value = "")
 NullMojiCustomEmojiBarNameVar = tk.StringVar(value = "")
-
 NullMojiAllCustomsColumn= nulltk.Frame(NullMojiMainPage)
 NullMojiAllCustomsColumn.grid(row=0,column=2, sticky="nsew")
 NullMojiAllCustomsColumn.columnconfigure(0, weight=1)
@@ -11475,8 +10956,6 @@ NullMojiCustomEmojisText.grid(row=0, column=0, sticky="ew",)
 NullMojiCustomHelp = nulltk.Label(NullMojiAllCustomsColumn,text="(?)",width=4)
 NullMojiCustomHelp.grid(row=0, column=2, sticky="w",padx=(3,0))
 ToolTip(NullMojiCustomHelp, "You can create Custom Emojis by filling in the name, and Emoji section. \nIt does not have to be emoji's. It can be plain text. e.g. \":)\"")
-
-
 NullMojiAllCustomsColumnList = ScrollableFrame(NullMojiAllCustomsColumn)
 NullMojiAllCustomsColumnList.grid(row=3,column=0, sticky="nsew", columnspan=3)
 NullMojiAllCustomsColumnListInner = NullMojiAllCustomsColumnList.Inner
@@ -11490,80 +10969,1049 @@ NullMojiCustomEmojiEmojiText = nulltk.Label(NullMojiAllCustomsColumn,text="<- Em
 NullMojiCustomEmojiEmojiText.grid(row=2,column=1,padx=3,pady=3,sticky="ew")
 NullMojiCustomEmojiAddButton = nulltk.Button(NullMojiAllCustomsColumn, text="Add Custom", command=lambda: AddCustomEmoji())
 NullMojiCustomEmojiAddButton.grid(row=1,column=2,padx=3,pady=3,sticky="ew", rowspan=2)
-# ==========================================================================================
-# Initializing
-# ==========================================================================================
+
+def StartUpNullMoji():
+    global LoadCompleted, CustomEmojis, RecentEmojis,ActualProgramLoadedCount
+   
+    if NullMojiActive.get() == True:
+        RebuildCustomEmojiUI()
+        BuildRecentEmojis()
+        Notebook.add(NullMoji, text="NullMoji")
+        ActualProgramLoadedCount +=1
+    else:
+        Notebook.forget(NullMoji)
+
+    LoadCompleted += 1
+    return
 
 
-def NullMonitorLoop():
-    global LastWarpTime, LastOutputs, LastInputs, LastSources, LoadTimes
+#endregion
+
+#region NullWire
+
+LoadedSounds = {}
+Sinks = {}
+Devices = {
+    "A": {f"A{i}": None for i in range(1, 21)},
+    "M": {f"M{i}": None for i in range(1, 21)}
+}
+OutputDevices = []
+OutputDeviceSelection = []
+InputDevices = []
+InputDeviceSelection = []
+AudioSources = []
+IgnoreSources = [
+    "speech-dispatcher",
+    "speech-dispatcher-dummy",
+]
+
+def RefreshOutputDevices():
+    global OutputDevices
+
+    try:
+        out = subprocess.check_output(["pactl", "list", "sinks"]).decode()
+    except:
+        OutputDevices = []
+        return
+
+    devices = []
+    current = {}
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if line.startswith("Name:"):
+            current["SystemID"] = line.split(":", 1)[1].strip()
+
+        elif line.startswith("Description:"):
+            current["UIName"] = line.split(":", 1)[1].strip()
+
+            if "SystemID" in current:
+                devices.append(current)
+                current = {}
+
+    OutputDevices = devices
+
+def BuildOutputSelectionList():
+    global OutputDeviceSelection
+    RefreshOutputDevices()
+    used_ids = set()
+
+    for slot in Devices["A"].values():
+        if slot and "ID" in slot:
+            used_ids.add(slot["ID"])
+
+    OutputDeviceSelection = []
+
+    for device in OutputDevices:
+        if device["SystemID"] not in used_ids:
+            OutputDeviceSelection.append(device)
+
+    return OutputDeviceSelection
+
+def RefreshInputDevices():
+    global InputDevices
+
+    try:
+        out = subprocess.check_output(["pactl", "list", "sources"]).decode()
+    except:
+        InputDevices = []
+        return
+
+    devices = []
+    current = {}
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if line.startswith("Name:"):
+            current["SystemID"] = line.split(":", 1)[1].strip()
+
+        elif line.startswith("Description:"):
+            current["UIName"] = line.split(":", 1)[1].strip()
+
+            if "SystemID" in current:
+                if ".monitor" not in current["SystemID"]:
+                    devices.append(current)
+                current = {}
+
+    InputDevices = devices
+
+def BuildInputSelectionList():
+    global InputDeviceSelection
+    RefreshInputDevices()
+    used_ids = set()
+
+    for slot in Devices["M"].values():
+        if slot and "ID" in slot:
+            used_ids.add(slot["ID"])
+
+    InputDeviceSelection = []
+
+    for device in InputDevices:
+        if device["SystemID"] not in used_ids:
+            InputDeviceSelection.append(device)
+
+    return InputDeviceSelection
+
+def GetAudioSources():
+    global AudioSources
+    try:
+        out = subprocess.check_output(["pactl", "list", "sink-inputs"]).decode()
+    except:
+        return []
+
+    sources = []
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if "application.name" in line:
+            name = line.split("=", 1)[1].strip().strip('"')
+
+            if any(ignore in name for ignore in IgnoreSources):
+                continue
+
+            if name not in sources:
+                sources.append(name)
+
+    AudioSources = sources
+    return sources
+
+def GetAudioDeviceSystemVolume(DeviceID):
+    try:
+        out = subprocess.check_output(
+            ["pactl", "get-sink-volume", DeviceID]
+        ).decode()
+
+        for part in out.split():
+            if "%" in part:
+                return int(part.replace("%", ""))
+    except:
+        pass
+
+    return 0
+
+def GetMicrophoneSystemVolume(source):
+    try:
+        out = subprocess.check_output(
+            ["pactl", "get-source-volume", source]
+        ).decode()
+
+        for part in out.split():
+            if "%" in part:
+                return int(part.replace("%", ""))
+    except:
+        pass
+
+    return 0
+
+def ResolveSinkID(name):
+    for d in OutputDevices:
+        if d["UIName"] == name:
+            return d["SystemID"]
+    return None
+
+def ResolveSourceID(target_name):
+    out = subprocess.check_output(["pactl", "list", "short", "sources"]).decode()
+    for line in out.splitlines():
+        parts = line.split()
+        idx = parts[0]
+        name = parts[1]
+        if target_name in name:
+            return idx
+
+    return None
+
+def IsOutputEnabled(Sink, key):
+    return Sink["Outputs"].get(key, False)
+
+def IsInputEnabled(Sink, key):
+    return Sink["Inputs"].get(key, False)
+
+def AddRoutingObject():
+    global Sinks
+    name = NullWireRoutingEntry.get()
+    name = name.replace(" ", "")
+    if not name:
+        Log("WHATDOESTHISMEAN")
+        name = f"Sink {len(Sinks)}"
+
+    name = name + "_NullWire"
+    new = {"Mono": False, "Mute":False, "Outputs": {f"A{i}": False for i in range(1, 21)},"Inputs":  {f"M{i}": False for i in range(1, 21)},"Sources": [],"Volume": 100,"DeleteConfirmation": False}
+    Sinks[name] = new
+    subprocess.run([NWPath,"CreateSink",name])
+    SaveConfig("NullWire")
+    RefreshRoutingUI()
+    NullWireRoutingEntry.delete(0, tk.END)
+
+def AddRoutingBlock(NameOfSink, Sink):
+    Frame = nulltk.Frame(NullWireRoutingObjects)
+    Frame.pack(fill="x", padx=5, pady=5)
+    Frame.columnconfigure(0, weight=1)
+    Frame.rowconfigure(0, weight=1)
+    Frame.rowconfigure(1, weight=1)
+    Frame.rowconfigure(2, weight=1)
+    Frame.rowconfigure(3, weight=1) 
+    Frame.rowconfigure(4, weight=1)
+    Frame.rowconfigure(5, weight=1)
+    nulltk.Frame(Frame, height=5)\
+    .grid(row=5, column=0, columnspan=3)
+
     
-    while True:
+    # ==============================
+    # TOP ROW (DELETE + NAME)
+    # ==============================
+    def Delete(NameOfSink, Sink, Button,Timeout=4):
+        global Sinks
 
-        if NullMonitorActive.get() == False:
-            time.sleep(1)
+        EndTime = time.time() + (Timeout)
+
+        def Tick(Sink):
+            if Sink == None:
+                return
+            else:
+                Remaining = int(EndTime - time.time())
+                if Remaining <= 0:
+                    if not Button.winfo_exists():
+                        return
+                    Button.config(text="Delete Wire")
+                    Sink['DeleteConfirmation'] = False
+                    return
+                if not Button.winfo_exists():
+                    return
+                else:
+                    Button.config(text=f"R U Sure? {Remaining}")
+                    Root.after(1000, Tick, Sink)
+
+        if Sink['DeleteConfirmation'] == False:
+            Sink['DeleteConfirmation'] = True
+            Tick(Sink)
+            return
+        
+
+        Sinks.pop(NameOfSink)
+        subprocess.run([NWPath,"DeleteSink",NameOfSink,])
+        SaveConfig("NullWire")
+        RefreshRoutingUI()
+
+    Column0 = nulltk.Frame(Frame)
+    Column0.grid(row=0, column=0, sticky="ew", padx=5)
+    Column0.columnconfigure(0, weight=0)  
+    Column0.columnconfigure(1, weight=0)  
+    Column0.columnconfigure(2, weight=0)  
+    Column0.columnconfigure(3, weight=2) 
+    Column0.columnconfigure(3, weight=1) 
+
+    DeleteSinkButton = nulltk.Button(Column0, text="Delete Wire", command=lambda: Delete(NameOfSink, Sink,DeleteSinkButton), width = 12)
+    DeleteSinkButton.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+    
+    MonoVar = tk.BooleanVar(value=Sink.get("Mono", False))
+    MuteVar = tk.BooleanVar(value=Sink.get("Mute", False))
+    InnerFrame = nulltk.Frame(Column0)
+    InnerFrame.grid(row=0, column=3, sticky="ew", padx=2)
+    InnerFrame.columnconfigure(0, weight=1)
+    display_name = NameOfSink.replace("_NullWire", "")
+    nulltk.Label(InnerFrame, text=display_name, anchor="w")\
+    .grid(row=0, column=0, sticky="ew")
+    volume_frame = nulltk.Frame(Column0)
+    volume_frame.grid(row=0, column=4, sticky="ew", padx=5)
+    volume_frame.columnconfigure(0, weight=1)
+    start_vol = Sink.get("Volume", 100)
+    vol_var = tk.StringVar(value=str(start_vol))
+    after_id = None
+
+    def ApplyVolume():
+        volumenumber = scale.get()
+        Sink["Volume"] = volumenumber
+        SaveConfig("NullWire")
+        subprocess.run([NWPath,"SetSinkVolume",NameOfSink,str(volumenumber)])
+
+    def ScheduleApply():
+        nonlocal after_id
+        if after_id:
+            Root.after_cancel(after_id)
+        after_id = Root.after(150, ApplyVolume)
+
+    def OnVolumeChange(val):
+        vol_var.set(str(int(float(val))))
+
+    # ==============================
+    # THICK DIVIDER
+    # ==============================
+    nulltk.Frame(Frame, height=3, bg="#555")\
+        .grid(row=1, column=0, columnspan=3, sticky="ew", pady=3)
+    
+    # ==============================
+    # AUDIO DEVICES ROW
+    # ==============================
+    RowA = nulltk.Frame(Frame)
+    RowA.grid(row=2, column=0, columnspan=3, sticky="ew", padx=5, pady=0)
+    RowA.columnconfigure(0, weight=1)
+    AllDevices = [f"A{i}" for i in range(1, 21)]
+    for i, device in enumerate(AllDevices):
+        RowA.columnconfigure(i, weight=1)
+        enabled = IsOutputEnabled(Sink, device)
+        var = tk.BooleanVar(value=enabled)
+        is_active = IsOutputEnabled(Sink, device)
+        exists = Devices["A"].get(device) is not None
+        def Toggle(d=device, v=var):
+            DeviceData = Devices["A"].get(d)
+            DeviceID = DeviceData["ID"]
+            if v.get():
+                logger = subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
+                Sink["Outputs"][d] = True
+            else:
+                logger = subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
+                Sink["Outputs"][d] = False
+            SaveConfig("NullWire")
+        cb = nulltk.Checkbutton(RowA,text=device,variable=var,width=3,command=Toggle,anchor="w")
+        cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
+
+        if not exists:
+            cb.config(state="disabled")
+
+    # ==============================
+    # MIC DEVICES ROW
+    # ==============================
+    RowM = nulltk.Frame(Frame)
+    RowM.grid(row=3, column=0, columnspan=3, sticky="ew", padx=5)
+    RowM.columnconfigure(0, weight=1)
+
+    # ------------------------------
+    # BUILD TOGGLES
+    # ------------------------------
+    AllMics = [f"M{i}" for i in range(1, 21)]
+
+    for i, device in enumerate(AllMics):
+        RowM.columnconfigure(i, weight=1)
+        is_active = IsInputEnabled(Sink, device)
+        var = tk.BooleanVar(value=is_active)
+        DeviceData = Devices["M"].get(device)
+        exists = DeviceData is not None
+
+        def Toggle(d=device, v=var):
+            DeviceID = Devices["M"][d]["ID"]
+            if v.get():
+                logger = subprocess.run([NWPath,"ConnectMicToSink",DeviceID,NameOfSink])
+                Log(f"NullWire ConnectMicToSink: {logger.stdout}")
+                Sink["Inputs"][d] = True
+            else:
+                logger = subprocess.run([NWPath,"RemoveMicFromSink",DeviceID,NameOfSink])
+                Log(f"NullWire RemoveMicFromSink: {logger.stdout}")
+                Sink["Inputs"][d] = False
+            SaveConfig("NullWire")
+
+        cb = nulltk.Checkbutton(RowM,text=device,variable=var,width=3,command=Toggle,anchor="w")
+        cb.grid(row=0, column=i, sticky="ew", padx=2, pady=0)
+
+        if not exists:
+            cb.config(state="disabled")
+
+    # ==============================
+    # SOURCES ROW
+    # ==============================
+    SRow = nulltk.Frame(Frame)
+    SRow.grid(row=4, column=0, columnspan=3, sticky="ew", padx=5)
+    SRow.columnconfigure(2, weight=1)
+    nulltk.Button(SRow, text="Attach", width=6, command=lambda: OpenAddSourcePopup(NameOfSink, Sink))\
+    .grid(row=0, column=0, sticky="ew")
+    nulltk.Button(SRow, text="Remove", width=6, command=lambda: OpenRemoveSourcePopup(Sink))\
+    .grid(row=0, column=1, padx=(5,0), sticky="ew")
+    InnerFrameS = nulltk.Frame(SRow, bd=1, relief="solid")
+    InnerFrameS.grid(row=0, column=2, sticky="nsew", padx=5)
+    InnerFrameS.columnconfigure(0, weight=1)
+    InnerFrameS.rowconfigure(0, weight=1)
+    nulltk.Label(InnerFrameS,text = ", ".join(Sink["Sources"]) if Sink["Sources"] else "",anchor="nw",justify="left").grid(row=0, column=0, sticky="nsew")
+
+    # ==============================
+    # Mono cause why not
+    # ==============================
+
+    def ToggleMono():
+        Sink["Mono"] = MonoVar.get()
+        for d, enabled in Sink["Outputs"].items():
+            if not enabled:
+                continue
+
+            DeviceData = Devices["A"].get(d)
+            if not DeviceData:
+                continue
+
+            DeviceID = DeviceData["ID"]
+            logger = subprocess.run([NWPath,"RemoveSinkFromAux",NameOfSink,DeviceID])
+            logger = subprocess.run([NWPath,"ConnectSinkToAux",NameOfSink,DeviceID,str(int(Sink["Mono"]))])
+        SaveConfig("NullWire")
+
+    nulltk.Checkbutton(Column0,text="Mono?",variable=MonoVar,command=ToggleMono)\
+        .grid(row=0, column=1, padx=5, pady=5, sticky="w")
+    
+    # ==============================
+    # Mute is cool ig
+    # ==============================
+    
+    def ToggleMute():
+        Sink["Mute"] = MuteVar.get()
+        if Sink['Mute']:
+            subprocess.run([NWPath,"SetSinkVolume",NameOfSink,str(0)])
+        else:
+            ApplyVolume()
+        SaveConfig("NullWire")
+
+    nulltk.Checkbutton(Column0,text="Mute",variable=MuteVar,command=ToggleMute)\
+        .grid(row=0, column=2, padx=5, pady=5, sticky="w")
+
+    NullWireScrollArea.BindMouseWheel(Frame)
+
+    # - putting scale at the end so the feckin mouse scroll still works on it. the FUCK tkinter??? Still love you windows 1995 lookin ass bitch.
+
+    scale = nulltk.Scale(volume_frame,from_=0,to=150,orient="horizontal",showvalue=0,command=OnVolumeChange)
+    scale.grid(row=0, column=0, sticky="ew")
+    scale.bind("<ButtonRelease-1>", lambda e: ApplyVolume())
+    scale.bind("<Button-4>", lambda e: (scale.set(min(150, scale.get()+5)), ScheduleApply()))
+    scale.bind("<Button-5>", lambda e: (scale.set(max(0, scale.get()-5)), ScheduleApply()))
+    scale.set(start_vol)
+    nulltk.Label(volume_frame, textvariable=vol_var, width=3)\
+    .grid(row=0, column=1, padx=5)
+
+def OpenAddSourcePopup(name, Sink):
+    sources = GetAudioSources()
+
+    if len(sources) == 0:
+        return
+
+    Popup = nulltk.Toplevel(Root)
+    Popup.title("Attach Source")
+    Popup.geometry("300x400")
+    Popup.grab_set()
+
+    for src in sources:
+        found = False
+        owner = None
+        for n, s in Sinks.items():
+            if src in s["Sources"]:
+                owner = n
+                break
+        
+        bg = "#555555" if owner else None
+        fg = "#aaaaaa" if owner else None
+        label = src if not owner else f"{src} [FROM: {owner}]"
+
+        nulltk.Button(Popup,text=label,command=lambda s=src: SelectSource(name, Sink, s, Popup)).pack(fill="x")
+
+def SelectSource(name, Sink, source, Popup):
+    for s in Sinks.values():
+        if source in s["Sources"]:
+            s["Sources"].remove(source)
+
+    Sink["Sources"].append(source)
+
+    logger = subprocess.run([NWPath,"ConnectSourceToSink",source,name])
+
+    SaveConfig("NullWire")
+    RefreshRoutingUI()
+    Popup.destroy()
+
+def OpenRemoveSourcePopup(Sink):
+    if len(Sink["Sources"]) == 0:
+        return
+
+    Popup = nulltk.Toplevel(Root)
+    Popup.title("Remove Source")
+    Popup.geometry("300x400")
+    Popup.grab_set()
+
+    for src in Sink["Sources"]:
+        nulltk.Button(Popup,text=src,command=lambda s=src: RemoveSource(Sink, s, Popup)).pack(fill="x")
+
+def RemoveSource(Sink, source, Popup):
+    if source in Sink["Sources"]:
+        Sink["Sources"].remove(source)
+    logger = subprocess.run([NWPath,"RemoveSourceFromSink",source])
+    Log(f"NullWire RemoveSourceFromSink: {logger.stdout}")
+    SaveConfig("NullWire")
+    RefreshRoutingUI()
+    Popup.destroy()
+
+def SourceConnection(name,  source):
+    logger = subprocess.run([NWPath,"ConnectSourceToSink",source,name])
+
+def RefreshRoutingUI():
+    for w in NullWireRoutingObjects.winfo_children():
+        w.destroy()
+
+    for name, sink in Sinks.items():
+        AddRoutingBlock(name, sink)
+
+def CreateABlock(i):
+    frame = nulltk.Frame(LeftColumn, bd=1, relief="solid")
+    frame.pack(fill="x", pady=2)
+    frame.columnconfigure(0, weight=1)
+    frame.columnconfigure(1, weight=0)
+    frame.columnconfigure(2, weight=0)
+    AKey = f"A{i}"
+    data = Devices["A"][AKey]
+    name = data["Name"] if data else "-"
+    container = nulltk.Frame(frame)
+    container.grid(row=0, column=0, sticky="nsew", padx=5)
+    container.columnconfigure(0, weight=1)
+    container.grid_propagate(False)
+
+    nulltk.Label(container, text=f"{AKey}: {name}", anchor="w")\
+        .grid(row=0, column=0, sticky="w")
+    volume = nulltk.Frame(frame)
+    volume.grid(row=0, column=1, sticky="e", padx=5)
+    volume_controls = nulltk.Frame(volume)
+    volume_controls.grid(row=0, column=0)
+    device_id = data["ID"] if data else None
+    start_vol = data.get("Volume") if data else None
+
+    if start_vol is None:
+        start_vol = GetAudioDeviceSystemVolume(device_id) if device_id else 100
+
+    vol_var = tk.StringVar(value=str(start_vol))
+    after_id = None
+
+    def ApplyVolume():
+        if not data:
+            return
+
+        volumenumber = data.get("Volume", 100)
+        device_id = data.get("ID")
+
+        if not device_id:
+            device_id = ResolveSinkID(data["Name"])
+
+        if not device_id:
+            return
+
+        data["ID"] = device_id
+
+        try:
+            subprocess.run(["pactl","set-sink-volume",device_id,f"{volumenumber}%"
+            ], check=True)
+
+        except subprocess.CalledProcessError:
+            new_id = ResolveSinkID(data["Name"])
+
+            if not new_id:
+                return
+
+            data["ID"] = new_id
+            SaveConfig("NullWire")
+
+            subprocess.run(["pactl","set-sink-volume",new_id,f"{volumenumber}%"], check=True)
+
+    def ScheduleApply():
+        nonlocal after_id
+
+        if after_id:
+            Root.after_cancel(after_id)
+
+        OnVolumeChange(scale.get())
+
+        after_id = Root.after(100, ApplyVolume)
+
+    def OnVolumeChange(val):
+        volumenumber = int(float(val))
+        vol_var.set(str(volumenumber))
+        data['Volume'] = volumenumber
+
+    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
+    scale.grid(row=0, column=0, sticky="e", padx=5)
+
+    def OnScrollUp(event):
+        scale.set(min(150, scale.get() + 5))
+        ScheduleApply()
+
+    def OnScrollDown(event):
+        scale.set(max(0, scale.get() - 5))
+        ScheduleApply()
+
+    scale.bind("<ButtonRelease-1>", lambda e: ScheduleApply())
+    scale.bind("<Button-4>", OnScrollUp)
+    scale.bind("<Button-5>", OnScrollDown)
+    scale.set(start_vol)
+    override_var = tk.BooleanVar(value=data.get("Dominant", False) if data else False)
+
+    def ToggleOverride():
+        state = override_var.get()
+
+        data["Dominant"] = state
+        SaveConfig("NullWire")
+        if state:
+            volume_controls.grid()
+        else:
+            volume_controls.grid_remove()
+
+    nulltk.Label(volume_controls, textvariable=vol_var, anchor="w", width= 3)\
+        .grid(row=0, column=1, sticky="w")
+
+    nulltk.Checkbutton(volume,text="Override System",width = 15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
+    
+    if override_var.get():
+        volume_controls.grid()
+    else:
+        volume_controls.grid_remove()
+
+    if data:
+        if data["IsSink"]:
+            volume.grid_remove()
+            volume_controls.grid_remove()
+
+    btns = nulltk.Frame(frame)
+    btns.grid(row=0, column=2)
+
+    nulltk.Button(btns, text="SET",
+        command=lambda k=AKey: OpenOutputPopup(k)).pack(side="left")
+
+    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=AKey: ClearOutput(k,ClearButton),width=11)
+    ClearButton.pack(side="left")
+    
+def CreateMBlock(i):
+    frame = nulltk.Frame(RightColumn, bd=1, relief="solid")
+    frame.pack(fill="x", pady=2)
+    frame.columnconfigure(0, weight=1)
+    frame.columnconfigure(1, weight=0)
+    frame.columnconfigure(2, weight=0)
+    MKey = f"M{i}"
+    data = Devices["M"][MKey]
+    name = data["Name"] if data else "-"
+    container = nulltk.Frame(frame)
+    container.grid(row=0, column=0, sticky="nsew", padx=5)
+    container.columnconfigure(0, weight=1)
+    container.grid_propagate(False)
+    nulltk.Label(container, text=f"{MKey}: {name}", anchor="w")\
+        .grid(row=0, column=0, sticky="w")
+    volume = nulltk.Frame(frame)
+    volume.grid(row=0, column=1, sticky="e", padx=5)
+    volume_controls = nulltk.Frame(volume)
+    volume_controls.grid(row=0, column=0)
+    device_id = data["ID"] if data else None
+    start_vol = data.get("Volume") if data else None
+
+    if start_vol is None:
+        start_vol = GetMicrophoneSystemVolume(device_id) if device_id else 100
+
+    vol_var = tk.StringVar(value=str(start_vol))
+    after_id = None
+
+    def ApplyVolume():
+        if not data:
+            return
+
+        volumenumber = scale.get()
+        data["Volume"] = volumenumber
+        SaveConfig("NullWire")
+        device_id = data.get("ID")
+
+        if not device_id:
+            device_id = ResolveSourceID(data["Name"])
+        
+        if not device_id:
+            return
+        
+        data["ID"] = device_id
+
+        try:
+            subprocess.run(["pactl","set-source-volume",device_id,f"{volumenumber}%"], check=True)
+
+        except subprocess.CalledProcessError:
+            new_id = ResolveSourceID(data["Name"])
+
+            if not new_id:
+                return
+
+            data["ID"] = new_id
+            SaveConfig("NullWire")
+
+            subprocess.run(["pactl","set-source-volume",new_id,f"{volumenumber}%"], check=True)
+
+    def ScheduleApply():
+        nonlocal after_id
+        if after_id:
+            Root.after_cancel(after_id)
+        
+        OnVolumeChange(scale.get())
+        after_id = Root.after(150, ApplyVolume)
+
+    def OnVolumeChange(val):
+        volumenumber = int(float(val))
+        data['Volume'] = volumenumber
+        vol_var.set(str(volumenumber))
+
+    scale = nulltk.Scale(volume_controls,from_=0,to=100,orient="horizontal",showvalue=0,length=120,sliderlength=10,command=OnVolumeChange)
+    scale.grid(row=0, column=0, sticky="e", padx=5)
+
+    def OnScrollUp(event):
+        scale.set(min(150, scale.get() + 5))
+        
+        ScheduleApply()
+
+    def OnScrollDown(event):
+        scale.set(max(0, scale.get() - 5))
+        ScheduleApply()
+
+    scale.bind("<ButtonRelease-1>", lambda e: ScheduleApply())
+    scale.bind("<Button-4>", OnScrollUp)
+    scale.bind("<Button-5>", OnScrollDown)
+    scale.set(start_vol)
+    override_var = tk.BooleanVar(value=data.get("Dominant", False) if data else False)
+
+    def ToggleOverride():
+        if not data:
+            return
+
+        state = override_var.get()
+        data["Dominant"] = state
+        SaveConfig("NullWire")
+
+        if state:
+            volume_controls.grid()
+        else:
+            volume_controls.grid_remove()
+
+    nulltk.Label(volume_controls, textvariable=vol_var, width=3)\
+        .grid(row=0, column=1, sticky="w")
+
+    nulltk.Checkbutton(volume,text="Override System",width=15,variable=override_var,command=ToggleOverride,anchor="w").grid(row=0, column=2, sticky="e", padx=1, pady=2)
+
+    if override_var.get():
+        volume_controls.grid()
+    else:
+        volume_controls.grid_remove()
+
+    btns = nulltk.Frame(frame)
+    btns.grid(row=0, column=2)
+
+    nulltk.Button(btns, text="SET",
+        command=lambda k=MKey: OpenInputPopup(k)).pack(side="left")
+
+    ClearButton = nulltk.Button(btns, text="CLEAR",command=lambda k=MKey: ClearInput(k,ClearButton),width=11)
+    ClearButton.pack(side="left")
+    
+def BuildUI():
+    for i in range(1, 21):
+        CreateABlock(i)
+        CreateMBlock(i)
+
+def NullWireRebuildUI():
+    global LeftColumn, RightColumn, Divider
+    for widget in NullWireMainRow.winfo_children():
+        widget.destroy()
+    LeftColumn = nulltk.Frame(NullWireMainRow)
+    LeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
+    Divider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
+    Divider.grid(row=0, column=1, sticky="ns")
+    RightColumn = nulltk.Frame(NullWireMainRow)
+    RightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
+    BuildUI()
+
+def ClearOutput(key, Button, Timeout=4):
+
+    if Devices["A"][key] == None:
+        return
+    else:
+        EndTime = time.time() + (Timeout)
+
+    def Tick(key):
+        if Devices["A"][key]== None:
+            return
+        else:
+            Remaining = int(EndTime - time.time())
+
+            if Remaining <= 0:
+                if not Button.winfo_exists():
+                    return
+                Button.config(text="CLEAR")
+                Devices["A"][key]['DeleteConfirmation'] = False
+                return
+            if not Button.winfo_exists():
+                return
+            else:
+                Button.config(text=f"R U Sure? {Remaining}")
+                Root.after(1000, Tick, key)
+        
+    if Devices["A"][key]['DeleteConfirmation'] == False:
+        Devices["A"][key]['DeleteConfirmation'] = True
+        Tick(key)
+        return 
+    
+
+    Devices["A"][key] = None
+    SaveConfig("NullWire")
+    NullWireRebuildUI()
+    RefreshRoutingUI()
+
+def ClearInput(key,Button, Timeout=4):
+    
+    if Devices["M"][key] == None:
+        return
+    else:
+        EndTime = time.time() + (Timeout)
+
+    def Tick(key):
+        if Devices["M"][key]== None:
+            return
+        else:
+            Remaining = int(EndTime - time.time())
+
+            if Remaining <= 0:
+                if not Button.winfo_exists():
+                    return
+                Button.config(text="CLEAR")
+                Devices["M"][key]['DeleteConfirmation'] = False
+                return
+            if not Button.winfo_exists():
+                return
+            else:
+                Button.config(text=f"R U Sure? {Remaining}")
+                Root.after(1000, Tick, key)
+        
+    if Devices["M"][key]['DeleteConfirmation'] == False:
+        Devices["M"][key]['DeleteConfirmation'] = True
+        Tick(key)
+        return 
+    
+
+
+    Devices["M"][key] = None
+    SaveConfig("NullWire")
+    NullWireRebuildUI()
+    RefreshRoutingUI()
+
+def OpenOutputPopup(targetKey):
+    BuildOutputSelectionList()
+    Popup = nulltk.Toplevel(Root)
+    Popup.title("Select Output Device")
+    Popup.geometry("400x500")
+    Popup.grab_set()
+    
+    for device in OutputDeviceSelection:
+        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectOutputDevice(d, targetKey, Popup)).pack(fill="x")
+
+def SelectOutputDevice(device, key, Popup):
+    Devices["A"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"IsSink": False, "DeleteConfirmation": False}
+    if "_NullWire" in device["SystemID"]:
+        Devices["A"][key]["IsSink"] = True
+    NullWireRebuildUI()
+    RefreshRoutingUI()
+    SaveConfig("NullWire")
+    Popup.destroy()
+
+def OpenInputPopup(targetKey):
+
+    BuildInputSelectionList()
+    Popup = nulltk.Toplevel(Root)
+    Popup.title("Select Input Device")
+    Popup.geometry("400x500")
+    Popup.grab_set()
+    for device in InputDeviceSelection:
+        nulltk.Button(Popup,text=device["UIName"],command=lambda d=device: SelectInputDevice(d, targetKey, Popup)).pack(fill="x")
+
+def SelectInputDevice(device, key, Popup):
+    Devices["M"][key] = {"Name": device["UIName"],"ID": device["SystemID"],"Volume": 100,"Dominant": False,"DeleteConfirmation": False}
+    SaveConfig("NullWire")
+    NullWireRebuildUI()
+    RefreshRoutingUI()
+    Popup.destroy()
+
+def ApplySources():
+    active = GetAudioSources()
+    assigned = set()
+
+    for name, sink in Sinks.items():
+        for src in sink["Sources"]:
+            if src in active:
+                assigned.add(src)
+                SourceConnection(name, src)
+
+    for src in active:
+        if src not in assigned:
+            SourceConnection("@DEFAULT_SINK@", src)
+
+def ApplyOutputs():
+    for name, sink in Sinks.items():
+        for d, enabled in sink["Outputs"].items():
+            if not enabled:
+                continue
+
+            device = Devices["A"].get(d)
+            if not device:
+                Log(f"Audio Device not found for {d}")
+                continue
+
+            device_id = ResolveSinkID(device["Name"])
+            if not device_id:
+                Log(f"Audio Device ID not found for {device['Name']}")
+                continue
+
+            if device["ID"] != device_id:
+                device["ID"] = device_id
+
+            subprocess.run([NWPath,"ConnectSinkToAux",name,device_id,str(int(sink["Mono"]))],capture_output=True,text=True)
+            Log(f"NullWire: Connecting ({name} output ) → ({device['Name']} input)")
+
+def ApplyInputs():
+    for name, sink in Sinks.items():
+        for d, enabled in sink["Inputs"].items():
+            if not enabled:
+                continue
+
+            device = Devices["M"].get(d)
+            if not device:
+                Log(f"NullMidi: Wire {name}, has {d}, but {d} is not set in Devices", "Warning")
+                continue
+
+            device_id = ResolveSourceID(device["Name"])
+            if device["ID"] != device_id:
+                device["ID"] = device_id
+
+            logger = subprocess.run([NWPath,"ConnectMicToSink",name,device_id,])
+            Log(f"NullWire ConnectMicToSink: {logger.stdout}")
+
+def GetSinkSystemVolume(name):
+    device_id = ResolveSinkID(name)
+    if not device_id:
+        return None
+
+    try:
+        out = subprocess.check_output(["pactl", "get-sink-volume", device_id],stderr=subprocess.DEVNULL).decode()
+
+        for part in out.split():
+            if "%" in part:
+                return int(part.replace("%", ""))
+    except:
+        return None
+
+    return None
+
+def ForceSinkVolume():
+    for name, dickt in Sinks.items():
+        if not dickt.get("Dominant"):
+            continue
+        targetvol = int(dickt.get("Volume", 1.0))
+
+        current = GetSinkSystemVolume(name)
+        if current is None:
             continue
 
+        if abs(current - targetvol) > 2:
+            subprocess.run([NWPath,"SetSinkVolume",name,str(targetvol)])
 
-        if ScanForMouse:
-            x, y = GetCursorPos()
-            if x is None:
-                time.sleep(0.1)
-                continue
+def ForceAudioDeviceVolume():
+    for devicenumber in Devices["A"].values():
+        if devicenumber == None:
+            continue
+        
+        if not devicenumber.get("Dominant"):
+            continue
+        
+        target = int(devicenumber.get("Volume", 100))
 
-            Bounds = GetMonitorBounds()
-            CurrentID = GetCurrentMonitor(x, y, Bounds)
+        device_id = ResolveSinkID(devicenumber["Name"])
+        if not device_id:
+            continue
 
-            if not CurrentID:
-                continue
+        current = GetAudioDeviceSystemVolume(device_id)
+        if current is None:
+            continue
 
-            B = Bounds[CurrentID]
-            Corner = DetectEdge(x, y, B)
+        if abs(current - target) > 2:
+            subprocess.run(["pactl","set-sink-volume",device_id,f"{target}%"])
 
-            if Corner not in ["TopLeft", "TopRight", "BottomLeft", "BottomRight", "Left", "Right", "Top", "Bottom"]:
-                continue
+def ForceMicDeviceVolume():
+    for devicenumber in Devices["M"].values():
+        if devicenumber == None:
+            continue
 
-            if not IsEdgeBuffer(Corner, x, y, B):
-                continue
+        if not devicenumber.get("Dominant"):
+            continue
 
-            if ActiveProfile not in Profiles:
-                time.sleep(0.05)
-                continue
+        target = int(devicenumber.get("Volume", 100))
 
-            Warps = Profiles[ActiveProfile]["Warps"]
+        device_id = ResolveSourceID(devicenumber["Name"])
+        if not device_id:
+            continue
 
-            if CurrentID not in Warps:
-                continue
+        current = GetMicrophoneSystemVolume(device_id)
+        if current is None:
+            continue
 
-            for W in Warps[CurrentID]:
-                if W["Edge"] != Corner:
-                    continue
+        if abs(current - target) > 2:
+            subprocess.run(["pactl","set-source-volume",device_id,f"{target}%"])
 
-                TargetID = W["Target"]
-                TargetEdge = W["TargetEdge"]
-
-                if TargetID not in Bounds:
-                    print("target not in bounds")
-                    continue
-
-                SourceB = B
-
-                ratio = 0.5
-
-                if Corner in ["Left", "Right"]:
-                    ratio = (y - SourceB["y1"]) / (SourceB["y2"] - SourceB["y1"])
-                elif Corner in ["Top", "Bottom"]:
-                    ratio = (x - SourceB["x1"]) / (SourceB["x2"] - SourceB["x1"])
-
-                now = time.time()
-                if now - LastWarpTime < WarpCooldown:
-                    continue
-
-                LastWarpTime = now
-                ExecuteWarp(TargetID, TargetEdge, Bounds, ratio)
-                break
-
-        time.sleep(max(ScanTime, WarpCooldown))
+NullWireNotebook = nulltk.Notebook(NullWire)
+NullWireNotebook.pack(fill="both", expand=True)
+NullWireRoutingPage = nulltk.Frame(NullWireNotebook)
+NullWireDevicesPage = nulltk.Frame(NullWireNotebook)
+NullWireNotebook.add(NullWireRoutingPage, text="Wires")
+NullWireNotebook.add(NullWireDevicesPage, text="Devices")
+    #region Routing Page
+NullWireRoutingTop = nulltk.Frame(NullWireRoutingPage)
+NullWireRoutingTop.pack(fill="x")
+NullWireRoutingEntry = nulltk.Entry(NullWireRoutingTop)
+NullWireRoutingEntry.pack(side="left", fill="x", expand=True)
+NullWireAddButton = nulltk.Button(NullWireRoutingTop, text="Add")
+NullWireAddButton.pack(side="left", fill="x", expand=True)
+NullWireScrollArea = ScrollableFrame(NullWireRoutingPage)
+NullWireScrollArea.pack(fill="both", expand=True)
+NullWireRoutingObjects = NullWireScrollArea.Inner
+NullWireAddButton.config(command=AddRoutingObject)
+    #endregion
+    #region Devices Page
+NullWireMainRow = nulltk.Frame(NullWireDevicesPage)
+NullWireMainRow.pack(fill="both", expand=True)
+NullWireMainRow.columnconfigure(0, weight=49, uniform="group")
+NullWireMainRow.columnconfigure(1, weight=2,  uniform="group")
+NullWireMainRow.columnconfigure(2, weight=49, uniform="group")
+NullWireLeftColumn = nulltk.Frame(NullWireMainRow)
+NullWireLeftColumn.grid(row=0, column=0, sticky="nsew", padx=(5, 2))
+NullWireDivider = nulltk.Frame(NullWireMainRow, bg="#555", width=4)
+NullWireDivider.grid(row=0, column=1, sticky="ns")
+NullWireRightColumn = nulltk.Frame(NullWireMainRow)
+NullWireRightColumn.grid(row=0, column=2, sticky="nsew", padx=(2, 5))
+    #endregion
 
 def NullWireLoop():
     global LastOutputs, LastInputs, LastSources, SystemLoading, LoadTimes
@@ -11576,7 +12024,6 @@ def NullWireLoop():
             if tick == 0:
                 RefreshOutputDevices()
                 if OutputDevices != LastOutputs:
-                    print("Outputs changed")
                     ApplyOutputs() 
                     LastOutputs = OutputDevices.copy()
                 ForceAudioDeviceVolume()
@@ -11584,264 +12031,20 @@ def NullWireLoop():
             elif tick == 1:
                 RefreshInputDevices()
                 if InputDevices != LastInputs:
-                    print("Inputs changed")
                     ApplyInputs()
                     LastInputs = InputDevices.copy()
                 ForceMicDeviceVolume()
             elif tick == 2:
                 GetAudioSources()
                 if AudioSources != LastSources:
-                    print("Sources changed")
                     ApplySources()
                     LastSources = AudioSources.copy()
                 ForceSinkVolume()
             tick = (tick + 1) % 3
         time.sleep(1)
 
-def NullMidiLoop():
-    global LoadTimes
-
-    while True:
-        if NullMidiActive.get() == True:
-            Ports = mido.get_input_names()
-            NeededDevices = set()
-            for Row in MidiRows:
-                if not Row.get("Active"):
-                    continue
-                Device = Row.get("Device")
-                if not Device:
-                    continue
-                if Device not in Ports:
-                    continue
-                NeededDevices.add(Device)
-            for Device in NeededDevices:
-                if Device not in MidiDeviceListeners:
-                    StartMidiListener(Device)
-            for Device in list(MidiDeviceListeners.keys()):
-                if Device not in NeededDevices:
-                    StopMidiListener(Device)
-
-        time.sleep(1)
-
-def NullGitLoop():
-    while True:
-        if NullGitActive.get() == False:
-            time.sleep(1)
-            continue
-
-        for _ in range(1800):
-            if NullGitActive.get() == False:
-                break
-            time.sleep(1)
-
-        try:
-            if NullGitActive.get() == True:
-                Root.after(1, BuildRepoList)
-        except Exception as e:
-            print("NullGitLoop Error:", e)
-
-def NullFocusLoop():
-    global LastWriteToDisk, CurrentCycle, FocusStartTime
-
-    while True:
-        if NullFocusActive.get():
-            try:
-                now = time.time()
-                if (now - LastWriteToDisk>= (WriteToDiskSeconds * 60)):
-                    SaveTrackerLog()
-                    LastWriteToDisk = now
-                else:
-                    SpotifyTracker()
-            except Exception as e:
-                print(f"NullFocusLoop Error: {e}")
-        time.sleep(1)
-
-def NullFocusFocusLoop():
-    for WindowID in WatchFocus():
-        FocusedClass = GetWindowClass(WindowID)
-        ChangedWindowFocus(FocusedClass)
-
-def NullFocusClockLoop():
-    global ResetClock, LastClockUpdate, ClockOriginal, ClockLabel, ClockImage, ClockRotation, ClockUpdatedViaCycle
-     
-    while True:
-        if NullFocusActive.get():
-            try:
-                if ResetClock == True:
-                    ResetClock = False
-                    LastClockUpdate = time.time()
-                    if ClockUpdatedViaCycle == False:
-                        ClockRotation = 0
-                        Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
-                        Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
-                        #Width, Height = (100,100)
-                        #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
-                        ClockImage = ImageTk.PhotoImage(Rotated)
-                        Root.after(0,lambda: ClockLabel.config(image=ClockImage))
-                        ClockLabel.image = ClockImage
-                    else:
-                        ClockUpdatedViaCycle = False
-
-                        while WaitForNullFocusLoad == False:
-                            time.sleep(1)
-                            continue
-
-                        time.sleep(1)
-
-                        CycleStart = datetime.strptime(CurrentCycle["StartTime"],"%m/%d/%y - %I:%M%p")
-                        ElapsedSeconds = (datetime.now() - CycleStart).total_seconds()
-                        ElapsedHalfHours = int(ElapsedSeconds // 1800)
-                        ClockRotation = ElapsedHalfHours * 7.5
-
-                        Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
-                        Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
-                        #Width, Height = (100,100)
-                        #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
-                        ClockImage = ImageTk.PhotoImage(Rotated)
-                        Root.after(0,lambda: ClockLabel.config(image=ClockImage))
-                        ClockLabel.image = ClockImage
-                        
-                else:
-                    if LastClockUpdate != None:
-                        if time.time() - LastClockUpdate >= 1800:
-                            LastClockUpdate = time.time()
-                            ClockRotation += 7.5
-                            Rotated = ClockOriginal.rotate(ClockRotation,resample=Image.Resampling.BICUBIC,expand=False)
-                            Rotated = Rotated.resize((750, 750),Image.Resampling.LANCZOS)
-                            #Width, Height = (100,100)
-                            #Rotated = Rotated.crop((0,0,Width,int(Height *0.49)))
-                            ClockImage = ImageTk.PhotoImage(Rotated)
-                            Root.after(0,lambda: ClockLabel.config(image=ClockImage))
-                            ClockLabel.image = ClockImage
-                time.sleep(30)
-                continue
-            except Exception as e:
-                print(f"NullFocusClockLoop Error: {e}")
-        time.sleep(3)
-
-
-    return
-
-def NullFocusClipBoardLoop():
-    global DontCopyToClipBoardData, LastClipBoard
-
-    while True:
-        
-        if NullFocusActive.get():
-            Current = GetClipboard()
-
-            if DontCopyToClipBoardData:
-                DontCopyToClipBoardData = False
-                LastClipBoard = Current['Hash']
-                continue
-
-            if Current:
-                if Current['Hash'] != LastClipBoard:
-
-
-                    LastClipBoard = Current['Hash']
-                    Root.after(0,lambda c=Current: AddClipBoardEntry(c))
-        time.sleep(1.5)
-
-def NullFocusRunOperators():
-    for Operator in NullFocusOperators:
-
-        if Operator['WindowClass'] == CurrentFocus:
-            ExecuteWindowChange(Operator, "Focused")
-
-        if Operator['WindowClass'] == OldFocus:
-            ExecuteWindowChange(Operator, "Unfocused")
-
-
-
-def HideToTray():
-    global HiddenToTray
-    if SystemLoading:
-        return
-    Root.withdraw()
-    HiddenToTray = True
-
-
-
-def Startup():
-    global SystemLoading
-    SystemLoading = True
-    WaitForLoad()
-    
-def WaitForLoad():
-    global ProgramCount, BaseEmoji, NullMojiAllEmojiButtons, CustomEmojis, RecentEmojis
-    threading.Thread(target=StartTray, daemon=True).start()
-    threading.Thread(target=WatchShowSignal, daemon=True).start()
-    threading.Thread(target=NullMonitorLoop, daemon=True).start()
-    threading.Thread(target=NullMidiLoop, daemon=True).start()
-    threading.Thread(target=NullWireLoop, daemon=True).start()
-    threading.Thread(target=SoundPlayer, daemon=True).start()
-    threading.Thread(target=CymbalPlayer, daemon=True).start()
-    threading.Thread(target=DrumPlayer, daemon=True).start()
-    threading.Thread(target=NullGitLoop, daemon=True).start()
-    threading.Thread(target=NullFocusLoop, daemon=True).start()
-    threading.Thread(target=NullFocusFocusLoop, daemon=True).start()
-    threading.Thread(target=NullFocusClockLoop, daemon=True).start()
-    threading.Thread(target=NullFocusClipBoardLoop, daemon=True).start()
-    
-    LoadConfig()
-    ChangeTheme()
-
-    emojis = None
-    if not os.path.isfile(BaseEmojisPath):
-        Butts.set("Emoji File not found???")
-        Root.update_idletasks()
-        return
-    try:
-        with open(BaseEmojisPath, "r") as f:
-            data = json.load(f)
-            emojis = data.get("Emojis", [])
-            ColumnCount = 3
-            BaseEmoji = data.get("Emojis", [])
-            for i, EmojiData in enumerate(emojis):
-                Button = nulltk.Button(NullMojiAllEmojisInner,text=EmojiData["Emoji"],font=("Noto Color Emoji",15),command=lambda E=EmojiData: CopyEmoji(E), width = 4)
-                Button.grid(row=i // ColumnCount,column=i % ColumnCount,padx=2,pady=2)
-                NullMojiAllEmojiButtons.append(Button)
-            NullMojiAllEmojisColumnList.BindMouseWheel(NullMojiMainPage)
-    except Exception as e:
-        Butts.set(f"ERROR LOADING EMOJIS FILE\n\n{e}")
-        Root.update_idletasks()
-        return False
-
-    try:
-        with open(ConfigPath, "r") as f:
-            data = json.load(f)
-            moji = data.get("NullMoji", {})
-            CustomEmojis = moji['CustomEmoji']
-            RecentEmojis = moji['RecentEmoji']
-    except Exception as e:
-        Butts.set(f"ERROR LOADING NULL Moji SAVE\n\n{e}")
-        Root.update_idletasks()
-        return False
-    
-    DoneLoadingCheck()
-
-def DoneLoadingCheck():
-    global SystemLoading
-
-    if ProgramCount != LoadCompleted:
-        Root.after(10, DoneLoadingCheck)
-        return
-
-    SystemLoading = False
-    try:
-        LoadPopup.grab_release()
-    except:
-        pass
-    LoadPopup.destroy()
-    Root.focus_force()
-    
-    
-
-# LoadingMethods
-
 def StartUpNullWire():
-    global Sinks, Devices, LoadCompleted
+    global Sinks, Devices, LoadCompleted, ActualProgramLoadedCount
     
 
     if NullWireActive.get() == True:
@@ -11869,14 +12072,14 @@ def StartUpNullWire():
                     device = Devices["A"].get(d)
                     if not device or not enabled:
                         continue
-                    subprocess.run([NWPath,"ConnectSinkToAux",name,device["ID"],str(int(sink["Mono"]))])
+                    logger = subprocess.run([NWPath,"ConnectSinkToAux",name,device["ID"],str(int(sink["Mono"]))])
                 for d, enabled in sink["Inputs"].items():
                     device = Devices["M"].get(d)
                     if not device or not enabled:
                         continue
-                    subprocess.run([NWPath,"ConnectMicToSink",device["ID"],name])
+                    logger = subprocess.run([NWPath,"ConnectMicToSink",device["ID"],name])
                 for src in sink["Sources"]:
-                    subprocess.run([NWPath,"ConnectSourceToSink",src,name])
+                    logger = subprocess.run([NWPath,"ConnectSourceToSink",src,name])
 
             NullWireRebuildUI()
             RefreshRoutingUI()
@@ -11886,453 +12089,25 @@ def StartUpNullWire():
             Butts.set(f"ERROR LOADING NULL WIRE SAVE\n\n{e}")
             Root.update_idletasks()
             return False
+        ActualProgramLoadedCount+=1
     else:
         Notebook.forget(NullWire)
     
     LoadCompleted += 1
     return
 
-def StartUpNullMidi():
-    global MixerInitialized, MidiRows, LoadCompleted, MidiRowObjects
-    if NullMidiActive.get() == True:
+#endregion
 
-        midi = None
-        if not os.path.isfile(ConfigPath):
-            Butts.set("Save File not found???")
-            Root.update_idletasks()
-            return False
-
-        try:
-            with open(ConfigPath, "r") as f:
-                data = json.load(f)
-                midi = data.get("NullMidi", {})
-
-            for row in MidiRowObjects[:]:
-                row.destroy()
-
-            MidiRows.clear()
-            MidiRowObjects.clear()
-
-            for row in midi.get("MidiRows", []):
-                AddMidiRow(row, True)
-
-        except Exception as e:
-            Butts.set(f"ERROR LOADING NULL MIDI SAVE\n\n{e}")
-            Root.update_idletasks()
-            return False
-
-        if MixerInitialized == False:
-            pygame.mixer.init(buffer=512)
-            pygame.mixer.set_num_channels(256)
-            MixerInitialized = True
-        
-        BuildGlobalUInputDevice()
-
-        Notebook.add(NullMidi, text="NullMidi")
-    else:
-        Notebook.forget(NullMidi)
-
-    LoadCompleted += 1
-    return
-
-def StartUpNullProton():
-    global ProtonGames, LoadCompleted, ProtonGameRows
-   
-    if NullProtonActive.get() == True:
-        proton = None
-        if not os.path.isfile(ConfigPath):
-            Butts.set("Save File not found???")
-            Root.update_idletasks()
-            return False
-        try:
-            with open(ConfigPath, "r") as f:
-                data = json.load(f)
-                proton = data.get("NullProton", {})
-        except Exception as e:
-            Butts.set(f"ERROR LOADING NULL PROTON SAVE\n\n{e}")
-            Root.update_idletasks()
-            return False
-
-        ProtonVars["Default"].set(proton.get("Default", "[ not set ]"))
-        ProtonVars["A"].set(proton.get("A", "[ not set ]"))
-        ProtonVars["B"].set(proton.get("B", "[ not set ]"))
-
-        ProtonGames.clear()
-        ProtonGames.extend(proton.get("Games", []))
-
-        for row in ProtonGameRows[:]:
-            row.destroy()
-
-        ProtonGameRows.clear()
-
-
-        for Game in ProtonGames.copy():
-            AddGameRow(Game, True)
-
-        Notebook.add(NullProton, text="NullProton")
-    else:
-        Notebook.forget(NullProton)
-
-    LoadCompleted += 1
-    return
-
-def StartUpNullGit():
-    global Repos, LoadCompleted, SystemLoading
-    
-    if NullGitActive.get() == True:
-        SystemLoading = True
-        repos = None
-        if not os.path.isfile(ConfigPath):
-            Butts.set("Save File not found???")
-            Root.update_idletasks()
-            return False
-
-        try:
-            with open(ConfigPath, "r") as f:
-                data = json.load(f)
-                repos = data.get("NullGit", {})
-        except Exception as e:
-            Butts.set(f"ERROR LOADING NULL GIT SAVE\n\n{e}")
-            Root.update_idletasks()
-            return False
-        
-        Repos = repos.get("Repos", {})
-        BuildRepoList()
-
-
-        Notebook.add(NullGit, text="NullGit")
-    
-    else:
-        Notebook.forget(NullGit)
-    LoadCompleted += 1
-    SystemLoading = False
-    return
-
-def StartUpNullMonitor():
-    global Profiles, ActiveProfile, ScanForMouse, LoadCompleted, SystemLoading
-    
-    if NullMonitorActive.get() == True:
-        SystemLoading = True
-        cursor = None
-        if not os.path.isfile(ConfigPath):
-            Butts.set("Save File not found???")
-            Root.update_idletasks()
-            return False
-        try:
-            with open(ConfigPath, "r") as f:
-                data = json.load(f)
-                cursor = data.get("NullMonitor", {})
-
-        except Exception as e:
-            Butts.set(f"ERROR LOADING Null MonitorSAVE\n\n{e}")
-            Root.update_idletasks()
-            return False
-
-
-        Profiles.clear()
-        Profiles.update(cursor.get("Profiles", {}))
-        ActiveProfile = cursor.get("ActiveProfile")
-        ScanForMouse = cursor.get("ScanForMouse", False)
-        
-
-        if len(Profiles) == 0:
-            Layout = CaptureLayout()
-            Wallpapers = {}
-
-            for monitor in Layout:
-                Wallpapers[monitor['ID']] = {
-                    "DTPath": "",
-                    "DTMode": "Fill",
-                    "LSPath": "",
-                    "LSMode": "Fill"
-                    }
-
-            Profiles["Default"] = {
-            "Layout": Layout,
-            "EnabledWallPapers": False,
-            "Wallpapers": Wallpapers,
-            "Warps": {},
-            "DeleteConfirmation": False,
-            }
-            ActiveProfile = "Default"
-            SaveConfig("NullMonitor")
-        
-        BuildUIFromProfiles()
-        NullMonitorEnabledVar.set(ScanForMouse)
-        ToggleNullMonitor()
-
-        if ActiveProfile and Profiles[ActiveProfile].get("EnabledWallPapers"):
-            Root.after(1000,lambda:  UpdateLockScreenWallPapers(ActiveProfile))
-
-        Notebook.add(NullMonitor, text="NullMonitor")
-    else:
-        Notebook.forget(NullMonitor)
-
-    SystemLoading = False
-    LoadCompleted += 1
-    return
-
-def StartUpNullFocus():
-    global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted
-    global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
-    global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
-    global NullFocusOperatorRows, NullFocusOperators, ClipBoardHistory
-    
-    if NullFocusActive.get() == True:
-        SystemLoading = True
-        tracker = None
-
-        if not os.path.isdir(ClipboardPath):
-            os.makedirs(ClipboardPath, exist_ok=True)
-
-        if not os.path.isfile(ConfigPath):
-            Butts.set("Save File not found???")
-            Root.update_idletasks()
-            return False
-
-        try:
-            with open(ConfigPath, "r") as f:
-                data = json.load(f)
-                tracker = data.get("NullFocus", {})
-
-        except Exception as e:
-            Butts.set(f"ERROR LOADING Null Focus SAVE\n\n{e}")
-            Root.update_idletasks()
-            return False
-
-        AppClassification = tracker.get("AppClassification", {})
-        WriteToDiskSeconds = tracker.get("WriteToDiskSeconds",60)
-        MinimumWindowTime = tracker.get("MinimumWindowTime",1)
-        NewDayThreshold = tracker.get("NewDayThreshold",1)
-
-        UpdateTrackerQuality()
-
-        def StartTrackerListeners():
-            global MouseListener
-            global KeyboardListener
-            MouseListener = mouse.Listener(on_click=OnMouseClick, on_scroll=OnMouseScroll)
-            KeyboardListener = keyboard.Listener(on_press=OnKeyPress)
-            MouseListener.start()
-            KeyboardListener.start()
-        
-        StartTrackerListeners()
-
-        # -----  Log and Manage Tabs
-
-        YearFiles = [File for File in os.listdir(TrackerPath)if File.endswith(".json")]
-        if len(YearFiles) == 0:
-            Year = datetime.now().strftime("%Y")
-
-            YearPath = os.path.join(TrackerPath,f"{Year}.json")
-
-            with open(YearPath, "w") as f:
-                json.dump({}, f, indent=4)
-
-            YearFiles = [f"{Year}.json"]
-
-            YearMonthPath = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
-
-            os.makedirs(YearMonthPath, exist_ok=True)
-
-            SaveTrackerLog()
-            
-        ExistingYears = [Button.cget("text")for Button in YearButtons]
-
-        FileYears = [os.path.splitext(File)[0]for File in YearFiles]
-
-        if ExistingYears != FileYears:
-            for button in YearButtons:
-                button.destroy()
-
-            YearButtons.clear()
-
-            for Year in sorted(FileYears):
-                Button = nulltk.Button(YearChoicesButtons,text=Year,command=lambda Y=Year: ClickYearButton(Y), width=15)
-                Button.pack(fill="x")
-                YearButtons.append(Button)
-
-        LatestYear = max(os.path.splitext(File)[0]for File in YearFiles)
-        LatestYearPath = os.path.join(TrackerPath,f"{LatestYear}.json")
-        with open(LatestYearPath, "r") as f:
-            Data = json.load(f)
-        if Data:
-            LatestMonth = max(Data.keys(),key=lambda m: datetime.strptime(m, "%b"))
-        
-        if Data[LatestMonth]:
-            LatestCycleName = max(Data[LatestMonth].keys(),key=lambda x: datetime.strptime(x,"%m/%d/%y - %I:%M%p"))
-            LatestCycle = Data[LatestMonth][LatestCycleName]
-            LastCycleTime = LatestCycle.get("LastUpdated", 0)
-
-            if (time.time() - LastCycleTime < (NewDayThreshold * 3600)):
-                CurrentCycle = LatestCycle
-            else:
-                SleepTime = time.time() - LastCycleTime
-                CurrentCycle = {
-                    "StartTime": datetime.now().strftime("%m/%d/%y - %I:%M%p"),
-                    "LastUpdated": time.time(),
-                    "TimeSpent": {
-                        "Sleep": {
-                            "Name": "Sleep",
-                            "FocusedTime": int(SleepTime),
-                            "ActiveTime": 0,
-                            "Classification": "Sleep"
-                            }
-                        }
-                    }
-                SaveTrackerLog()
-        
-        for i in ClassificationRows:
-            i.destroy()
-
-        ClassificationRows.clear()
-
-        for Classifications, app in AppClassification.items():
-            if Classifications == "Ignored" or Classifications == "Sleep":
-                continue
-            AddNewTracker(Classifications,True)
-
-        # --- Operators Stuff
-
-        for rows in NullFocusOperatorRows:
-            rows.destroy()
-
-        NullFocusOperatorRows.clear()
-
-        NullFocusOperators.clear()
-
-
-        for operators in tracker.get("Operators", []):
-            NullFocusOperators.append(operators)
-            CreateOperatorRow(operators)
-
-
-        #---- ClipBoard stuff
-
-
-        ClipBoardHistory.clear()
-
-        for rows in ClipBoardRows:
-            rows.destroy()
-
-        ClipBoardRows.clear()
-
-        MonthFolder = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
-
-        ClipSave = os.path.join(MonthFolder,"000-ClipBoard.json")
-        os.makedirs(MonthFolder, exist_ok=True)
-
-        if not os.path.isfile(ClipSave):
-            with open(ClipSave, "w") as f:
-                json.dump([], f, indent=2)
-
-        try:
-            with open(ClipSave, "r") as f:
-                clippy = json.load(f)
-
-
-        except Exception as e:
-            Butts.set(f"ERROR LOADING ClipBoard Save\n\n{e}")
-            Root.update_idletasks()
-            return False
-        
-        ClipBoardHistory = clippy
-
-        for Row in clippy:
-            Row['Collapsed'] = False
-            BuildClipBoardRow(Row)
-
-        Notebook.add(NullFocus, text="NullFocus")
-        ClickYearButton(LatestYear)
-        ClickMonthButton(LatestYear, LatestMonth)
-        ClickCycleButton(LatestYear,LatestMonth,CurrentCycle["StartTime"])
-        OnCurrentCycle = True
-        CurrentViewedCycle = CurrentCycle["StartTime"]
-        CurrentViewedMonth = LatestMonth
-        CurrentViewedYear = LatestYear
-
-        WaitForNullFocusLoad = True
-
-    else:
-        def StopTrackerListeners():
-            global MouseListener
-            global KeyboardListener
-
-            if MouseListener:
-                MouseListener.stop()
-                MouseListener = None
-
-            if KeyboardListener:
-                KeyboardListener.stop()
-                KeyboardListener = None
-
-        StopTrackerListeners()
-        Notebook.forget(NullFocus)
-
-    SystemLoading = False
-    LoadCompleted += 1
-    return
-
-def StartUpNullMoji():
-    global LoadCompleted, CustomEmojis, RecentEmojis
-   
-    if NullMojiActive.get() == True:
-        RebuildCustomEmojiUI()
-        BuildRecentEmojis()
-        Notebook.add(NullMoji, text="NullMoji")
-    else:
-        Notebook.forget(NullMoji)
-
-    LoadCompleted += 1
-    return
-
-def StartUpChangeLog():
-    if not os.path.isfile(ChangeLogPath):
-        Butts.set("Save File not found???")
-        Root.update_idletasks()
-        return False
-
-    try:
-        with open(ChangeLogPath, "r") as f:
-            Data = json.load(f)
-
-        CurrentRow = 0
-
-        for MajorVersion, MajorData in sorted(Data["ChangeLog"].items(), reverse=True):
-
-            MajorFrame = nulltk.LabelFrame(NullSuiteListInner,text = f"Version {MajorVersion}",font=("TkDefaultFont", 14, "bold"))
-            MajorFrame.grid(row=CurrentRow,column=0,padx=5,pady=5,sticky="ew")
-            MajorFrame.columnconfigure(0, weight=1)
-            MajorFrame.rowconfigure(0, weight=1)
-
-            CurrentRow += 1
-            MajorRow = 1
-
-            for MinorVersion, MinorData in sorted(MajorData.items(), reverse=True):
-
-                MinorFrame = nulltk.Frame(MajorFrame,bd=2,relief="raised")
-                MinorFrame.grid(row=MajorRow,column=0,padx=5,pady=5,sticky="ew")
-                MinorFrame.columnconfigure(0, weight=1)
-                nulltk.Label(MinorFrame,text=f"Version {MajorVersion}.{MinorVersion}",font=("TkDefaultFont", 12, "bold")).grid(row=0,column=0,padx=5,pady=5,sticky="w")
-
-                for ChangeRow, Change in enumerate(MinorData, start=1):
-                    nulltk.Label(MinorFrame,text=f"    {Change}",justify="left",anchor="w", wraplength=1500).grid(row=ChangeRow * 2,column=0,padx=15,pady=1,sticky="w")
-                MajorRow += 1
-
-            NullSuiteList.BindMouseWheel(NullSuiteChangeLogPage)
-    except Exception as e:
-        Butts.set(f"The... Changelog broke?\n\n{e}")
-        Root.update_idletasks()
-        return False
-
-
-    BlackLevel.bind("<Button-4>", lambda e: (BlackLevel.set(min(100, BlackLevel.get()+5)), ChangeTheme()))
-    BlackLevel.bind("<Button-5>", lambda e: (BlackLevel.set(max(0, BlackLevel.get()-5)), ChangeTheme()))
-    WhiteLevel.bind("<Button-4>", lambda e: (WhiteLevel.set(min(100, WhiteLevel.get()+5)), ChangeTheme()))
-    WhiteLevel.bind("<Button-5>", lambda e: (WhiteLevel.set(max(0, WhiteLevel.get()-5)), ChangeTheme()))
-    return True
-
-StartUpChangeLog()
+#region Start
 
 Root.protocol("WM_DELETE_WINDOW", HideToTray)
 Root.after(100, Startup)
 Root.mainloop()
+
+#endregion
+
+
+
+
+
+
