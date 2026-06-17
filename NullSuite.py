@@ -611,7 +611,7 @@ class NullMessageBox(nulltk.Toplevel):
 
         self.title(title)
         self.resizable(False, False)
-        self.self.geometry("1000x100")
+        self.geometry("1000x100")
 
         self.transient(parent)
         self.grab_set()
