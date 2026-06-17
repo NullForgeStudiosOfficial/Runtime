@@ -603,15 +603,15 @@ class HoriScrollableFrame(tk.Frame):
         elif event.num == 5:
             self.Canvas.xview_scroll(1, "units")
 
-class NullMessageBox(tk.Toplevel):
+class NullMessageBox(nulltk.Toplevel):
     def __init__(self, parent, title="", message="", buttons=("OK",)):
         super().__init__(parent)
 
         self.Result = None
 
         self.title(title)
-        self.resizable(True, True)
-        self.size(1000,100)
+        self.resizable(False, False)
+        self.self.geometry("1000x100")
 
         self.transient(parent)
         self.grab_set()
@@ -619,11 +619,13 @@ class NullMessageBox(tk.Toplevel):
         MainFrame = nulltk.Frame(self)
         MainFrame.pack(fill="both", expand=True, padx=10, pady=10)
 
+        print(repr(message))
+
         MessageLabel = nulltk.Label(
             MainFrame,
             text=message,
             justify="left",
-            wraplength=400
+            wraplength=800
         )
         MessageLabel.pack(fill="x", pady=(0,10))
 
