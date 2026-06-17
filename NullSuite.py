@@ -630,7 +630,7 @@ class NullMessageBox(nulltk.Toplevel):
         MessageLabel.pack(fill="x", pady=(0,10))
 
         ButtonFrame = nulltk.Frame(MainFrame)
-        ButtonFrame.pack(fill="x")
+        ButtonFrame.pack(pady=5)
 
         DefaultButton = None
 
@@ -640,7 +640,7 @@ class NullMessageBox(nulltk.Toplevel):
                 text=ButtonName,
                 command=lambda value=ButtonName: self.ButtonPressed(value)
             )
-            TheButton.pack(side="right", padx=5, anchor="center")
+            TheButton.pack(side="left", padx=5)
             if DefaultButton is None:
                 DefaultButton = TheButton
 
