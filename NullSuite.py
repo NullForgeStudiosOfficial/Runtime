@@ -610,7 +610,7 @@ class NullMessageBox(tk.Toplevel):
         self.Result = None
 
         self.title(title)
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.size(1000,100)
 
         self.transient(parent)
