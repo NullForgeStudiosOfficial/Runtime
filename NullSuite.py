@@ -276,12 +276,12 @@ def LoadConfig():
         nullsuite = data.get("NullSuite", {})
 
         Modules = {
-        #"NullWire": {
-        #    "Config": "NullWireActive",
-        #    "Toggle": NullWireActive,
-        #    "Start": StartUpNullWire,
-        #    "Tab": NullWire,
-        #},
+        "NullWire": {
+            "Config": "NullWireActive",
+            "Toggle": NullWireActive,
+            "Start": StartUpNullWire,
+            "Tab": NullWire,
+        },
 
         "NullMonitor": {
             "Config": "NullMonitorActive",
@@ -951,6 +951,7 @@ def MyExceptionLogger(exc_type, exc_value, exc_traceback):
         )
     )
 
+    print(f"ERROR: {ErrorText}", "Error")
     Log(f"ERROR: {ErrorText}", "Error")
 
 sys.excepthook = MyExceptionLogger
@@ -995,8 +996,8 @@ NullSuiteTogglesOptions.rowconfigure(0,weight=0)
 NullSuiteTogglesOptions.columnconfigure(0,weight=0)
 NullSuiteTogglesOptions.columnconfigure(1,weight=0)
 NullSuiteTogglesOptions.columnconfigure(2,weight=0)
-#NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
-#NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
+NullWireActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullWire?", variable=NullWireActive, command=lambda: UpdateStartUpToggles("Wire"))
+NullWireActivator.grid(row=0,column=0, padx=1,pady=1, sticky="w" )
 NullMonitorActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMonitor?", variable=NullMonitorActive,command=lambda: UpdateStartUpToggles("Cursor"))
 NullMonitorActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
 NullMidiActivator = nulltk.Checkbutton(NullSuiteToggles, text="NullMidi?", variable=NullMidiActive,command=lambda: UpdateStartUpToggles("Midi"))
@@ -10992,11 +10993,9 @@ def StartUpNullMoji():
 #region NullWire
 OutputWires = {}
 InputWires = {}
-AudioSources = {}
 
 OutputRows = {}
 InputRows = {}
-SourceRows = {}
 
 LastOutputs = set()
 LastInputs = set()
@@ -11031,7 +11030,6 @@ def GetAllAudioSources():
                 CurrentSources.append(name)
     return
 
-
 def AddOutputWire():
 
     return
@@ -11040,17 +11038,17 @@ def AddInputWire():
 
     return
 
-
-def SpawnOutputToSourcePopUp(source, Adding=True):
+def SpawnOutputToSourcePopUp(source, sourcerow, Adding=True):
 
     AvailableWires = []
 
-    for WireName in OutputWires.keys():
+    for Wire in OutputWires.values():
+        WireName = Wire["WireName"]
         Attached = (WireName in AudioSources[source]["OutputWiresAttached"])
         if Adding and not Attached:
-            AvailableWires.append(WireName)
+            AvailableWires.append(Wire)
         elif not Adding and Attached:
-            AvailableWires.append(WireName)
+            AvailableWires.append(Wire)
 
     Popup = nulltk.Toplevel(Root)
     if Adding:
@@ -11063,255 +11061,173 @@ def SpawnOutputToSourcePopUp(source, Adding=True):
 
     for available in AvailableWires:
         if Adding:
-            nulltk.Button(Popup,text=available,command=lambda a=available:AttachOutputToSource(source,a,Popup)).pack(fill="x")
+            nulltk.Button(Popup,text=available['WireName'],command=lambda a=available, s=sourcerow:AttachOutputToSource(source,a,s,Popup)).pack(fill="x")
         else:
-            nulltk.Button(Popup,text=available,command=lambda a=available:RemoveOutputFromSource(source,a,Popup)).pack(fill="x")
+            nulltk.Button(Popup,text=available['WireName'],command=lambda a=available, s=sourcerow:RemoveOutputFromSource(source,a,s,Popup)).pack(fill="x")
 
     return
 
-
-
-def AttachOutputToSource(source, wire, popup=None):
+def AttachOutputToSource(source, wire, sourcerow, popup=None):
+    global AudioSources,SourceRows
     if popup != None:
         popup.destroy()
 
+    if wire['WireName'] not in AudioSources[source]["OutputWiresAttached"]:
+        AudioSources[source]["OutputWiresAttached"].append(wire['WireName'])
+        PactlAttach(AudioSources[source], wire, "SourceToSink")
+        SaveConfig("NullWire")
+
+        for i, wire in enumerate(AudioSources[source]["OutputWiresAttached"]):
+            for label in sourcerow["Wires"]:
+                label.destroy()
+            sourcerow["Wires"].clear()
+
+            WireLabel = nulltk.Label(sourcerow['Hori'], text=f"{wire} | ")
+            WireLabel.grid(row=0, column=i)
+            sourcerow['Wires'].append(WireLabel)
+
+
     return
 
-def RemoveOutputFromSource(source,wire, popup=None):
+def RemoveOutputFromSource(source,wire,sourcerow, popup=None):
     if popup != None:
         popup.destroy()
 
+    if wire['WireName'] in AudioSources[source]["OutputWiresAttached"]:
+        AudioSources[source]["OutputWiresAttached"].remove(wire['WireName'])
+        PactlRemove(AudioSources[source], wire, "SourceFromSink")
+        SaveConfig("NullWire")
+
     return
 
-def CreateSourceRow(source):
-    global SourceRows
-    NameVariable = tk.StringVar()
-    TimeVariable = tk.StringVar()
-    IgnoreVar = tk.BooleanVar(value=False)
-    SetToIgnore = tk.BooleanVar()
-    CollapsedBool = tk.BooleanVar(value=True)
-    SetToIgnore.set(AudioSources[source]["Ignored"] or False)
-    NameVariable.set(AudioSources[source]["DisplayName"] or source)
-    CurrentTime = time.time()
-    TimeAgo = int(CurrentTime -AudioSources[source]["LastPlayed"])
-    if TimeAgo < 60:
-        DisplayText = f"{TimeAgo}s ago"
-    elif TimeAgo < 3600:
-        DisplayText = f"{TimeAgo // 60}m ago"
-    else:
-        DisplayText = f"{TimeAgo // 3600}h ago"
+def PactlAttach(Source,Wire, AttachmentType):
 
-    TimeVariable.set(DisplayText)
+    
 
-    def CollapseSource():
-
-        if CollapsedBool.get() == True:
-            CollapsedBool.set(False)
-            InnerFrame.grid(row=1,column=1,sticky="nesw", columnspan=99)
-            CollapseButton.config(text="▼")
-        else:
-            CollapsedBool.set(True)
-            InnerFrame.grid_forget()
-            CollapseButton.config(text="▶")
-
-        return
-
-    def IgnoreSource(Button, Timeout=4):
-        EndTime = time.time() + Timeout
-
-        def Tick():
-            Remaining = int(EndTime - time.time())
-            if Remaining <= 0:
-                if not Button.winfo_exists():
-                    return
-                Button.config(text="Ignore?")
-                IgnoreVar.set(False)
-                return
-            if not Button.winfo_exists():
-                return
-            Button.config(text=f"R U Sure? {Remaining}")
-            Root.after(1000, Tick)
-
-        if IgnoreVar.get() == False:
-            IgnoreVar.set(True)
-            Remaining = int(EndTime - time.time())
-            Button.config(text=f"R U Sure? {Remaining}")
-            Tick()
-            return
+    if AttachmentType == "SourceToSink":
+        Log(f"Attaching {Source['SourceName']} To {Wire['WireName']}")
+        subprocess.call([
+        NWPath,
+        "ConnectSourceToSink",
+        Source['SourceName'],
+        Wire['WireName'],
+        ])
         
-        IgnoreVar.set(False)
-        SetToIgnore.set(True)
-        MainFrame.pack_forget()
-        AudioSources[source]['Ignored'] = True
-        SaveConfig("NullWire")
         return
-    
-    def UnignoreSource():
-        MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
-        SetToIgnore.set(False)
-        AudioSources[source]['Ignored'] = False
-        SaveConfig("NullWire")
+    elif AttachmentType == "SinkToOutput":
+        Log(f"Attaching {Wire['WireName']} to {Source['SourceName']}")
+        subprocess.call([
+        NWPath,
+        "ConnectSinkToAux",
+        Wire['WireName'],
+        Source['SourceName'],
+        str(Wire['Mono'])
+        ])
         return
-
-    def UpdateName():
-        AudioSources[source]["DisplayName"] = NameVariable.get()
-        MainFrame.config(text=NameVariable.get())
-        SaveConfig("NullWire")
+    elif AttachmentType == "SinkToInput":
+        Log(f"Attaching {Wire['WireName']} to {Source['SourceName']}")
+        subprocess.call([
+        NWPath,
+        "ConnectMicToSink",
+        Source['SourceName'],
+        Wire['WireName'],
+        ])
         return
-
-    MainFrame = nulltk.LabelFrame(NullWireAudiosSourcesListInner, text=NameVariable.get())
-    MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
-
-    TopRow = nulltk.Frame(MainFrame)
-    TopRow.grid(row=0,column=0,sticky="nesw")
-
-    CollapseButton = nulltk.Button(TopRow, text="▶", command=lambda: CollapseSource())
-    CollapseButton.grid(row=0,column=0,sticky="ew")
-
-    RenameEntry = nulltk.Entry(TopRow, textvariable=NameVariable)
-    RenameEntry.grid(row=0,column=1,sticky="ew")
-    NameVariable.trace_add("write",lambda *args: UpdateName())
-
-
-    if SetToIgnore.get() == True:
-        Unignorebutton = nulltk.Button(TopRow, text="Un-Ignore", command=lambda:UnignoreSource())
-        Unignorebutton.grid(row=0,column=2,sticky="ew")
-    else:
-        Ignorebutton = nulltk.Button(TopRow, text="Ignore", command=lambda:IgnoreSource(Ignorebutton))
-        Ignorebutton.grid(row=0,column=2,sticky="ew")
-
-    InnerFrame = nulltk.Frame(MainFrame)
-    InnerFrame.grid(row=1,column=1,sticky="nesw", columnspan=99)
-    InnerFrame.columnconfigure(0,weight=1)
-    InnerFrame.columnconfigure(1,weight=1)
-    InnerFrame.grid_forget()
-
-    LastPlayedShow= nulltk.Label(InnerFrame, text="Last Played: ", width= 14)
-    LastPlayedShow.grid(row=0, column=0, sticky="e")
-
-    TimeLabel = nulltk.Label(InnerFrame,textvariable=TimeVariable)
-    TimeLabel.grid(row=0, column=1, sticky="w")
-
-    RemoveOutputWireButton = nulltk.Button(InnerFrame,text="Remove Wire", command=lambda: SpawnOutputToSourcePopUp(source, False))
-    RemoveOutputWireButton.grid(row=1, column=0, pady=(0,5))
-
-    AddOutputWireButton = nulltk.Button(InnerFrame, text="Add Wire", command=lambda: SpawnOutputToSourcePopUp(source))
-    AddOutputWireButton.grid(row=1, column=1, pady=(0,5))
-
-    DeviceContainmentBox = nulltk.LabelFrame(InnerFrame, text="Play Audio On These Wires")
-    DeviceContainmentBox.grid(row=2, column=0, columnspan=99)
-
-    HoriOutputList = HoriScrollableFrame(DeviceContainmentBox)
-    HoriOutputList.pack(fill="x", expand=True)
-
-
 
     
-
-
-
-    if SetToIgnore.get():
-        MainFrame.pack_forget()
-
-    SourceRows[source] = {
-        "Frame": MainFrame,
-        "NameVariable": NameVariable,
-        "TimeVariable": TimeVariable,
-        "TimeLabel": TimeLabel
-    }
-
     return
 
-def UpdateSourceTimes():
-    CurrentTime = time.time()
-    for SourceName, RowData in SourceRows.items():
-        if SourceName not in AudioSources:
-            continue
+def PactlRemove(Source,Wire, DetachmentType):
+    
+    if DetachmentType == "SourceFromSink":
+        Log(f"Removing {Source['SourceName']} From {Wire['WireName']}")
 
-        TimeAgo = int(CurrentTime -AudioSources[SourceName]["LastPlayed"])
+        subprocess.call([
+        NWPath,
+        "RemoveSourceFromSink",
+        Source['SourceName']
+        ])
+        
+        return
+    elif DetachmentType == "SinkFromOutput":
+        Log(f"Removing {Wire['WireName']} from {Source['SourceName']}")
+        subprocess.call([
+        NWPath,
+        "RemoveSinkFromAux",
+        Wire['WireName'],
+        Source['SourceName']
+        ])
+        return
+    elif DetachmentType == "SinkFromInput":
+        Log(f"Removing {Wire['WireName']} from {Source['SourceName']}")
 
-        if TimeAgo < 60:
-            DisplayText = f"{TimeAgo}s ago"
-        elif TimeAgo < 3600:
-            DisplayText = f"{TimeAgo // 60}m ago"
-        else:
-            DisplayText = f"{TimeAgo // 3600}h ago"
-        RowData["TimeVariable"].set(DisplayText)
+        subprocess.call([
+        NWPath,
+        "RemoveMicFromSink",
+        Source['SourceName'],
+        Wire['WireName']
+        ])
+        return
 
     return
 
 
 NullWireNotebook = nulltk.Notebook(NullWire)
 #REMOVEWHENDONE
-Notebook.forget(NullWire)
+#Notebook.forget(NullWire)
 
 NullWireNotebook.pack(fill="both", expand=True)
 NullWireOutputWires = nulltk.Frame(NullWireNotebook)
 NullWireInputWires = nulltk.Frame(NullWireNotebook)
-NullWireAudios = nulltk.Frame(NullWireNotebook)
 NullWireNotebook.add(NullWireOutputWires, text="Output Wires")
 NullWireNotebook.add(NullWireInputWires, text="Input Wires")
-NullWireNotebook.add(NullWireAudios, text="Audio")
     #region OutputWires
 NullWireOutputPage = nulltk.Frame(NullWireOutputWires)
 NullWireOutputPage.pack(fill="both", expand=True)
+NullWireOutputPage.rowconfigure(1, weight=1)
+NullWireOutputPage.columnconfigure(0, weight=1)
 
-NullWireOutputEntry = nulltk.Entry(NullWireOutputPage)
-NullWireOutputEntry.pack(side="left", fill="x", expand=True)
+NullWireOutputTop = nulltk.Frame(NullWireOutputPage)
+NullWireOutputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=5)
+NullWireOutputTop.rowconfigure(1, weight=1)
+NullWireOutputTop.columnconfigure(1, weight=1)
 
-NullWireAddOutputWireButton = nulltk.Button(NullWireOutputPage, text="Add Output Wire", command=lambda: AddOutputWire)
-NullWireAddOutputWireButton.pack(side="right", fill="x", expand=True)
+NullWireOutputEntry = nulltk.Entry(NullWireOutputTop)
+NullWireOutputEntry.grid(row=0,column=1,sticky="ew")
+
+NullWireAddOutputWireButton = nulltk.Button(NullWireOutputTop, text="Add Output Wire", command=lambda: AddOutputWire(), width = 16)
+NullWireAddOutputWireButton.grid(row=0,column=0,sticky="ew")
 
 NullWireOutputList = ScrollableFrame(NullWireOutputPage)
-NullWireOutputList.pack(fill="both", expand=True)
+NullWireOutputList.grid(row=1,column=0,sticky="nsew", columnspan=99)
 
 NullWireOutputListInner = NullWireOutputList.Inner
-NullWireOutputListInner.pack(fill="both", expand=True)
+NullWireOutputListInner.grid(row=0,column=0,sticky="nsew", columnspan=99)
 
     #endregion
 
     #region InputWires
 NullWireInputPage = nulltk.Frame(NullWireInputWires)
 NullWireInputPage.pack(fill="both", expand=True)
+NullWireInputPage.rowconfigure(1, weight=1)
+NullWireInputPage.columnconfigure(0, weight=1)
 
-NullWireInputEntry = nulltk.Entry(NullWireInputPage)
-NullWireInputEntry.pack(side="left", fill="x", expand=True)
+NullWireInputTop = nulltk.Frame(NullWireInputPage)
+NullWireInputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=5)
+NullWireInputTop.rowconfigure(1, weight=1)
+NullWireInputTop.columnconfigure(0, weight=1)
 
-NullWireAddInputWireButton = nulltk.Button(NullWireInputPage, text="Add Input Wire", command=lambda: AddInputWire)
-NullWireAddInputWireButton.pack(side="right", fill="x", expand=True)
+NullWireInputEntry = nulltk.Entry(NullWireInputTop)
+NullWireInputEntry.grid(row=0,column=0,sticky="ew")
+
+NullWireAddInputWireButton = nulltk.Button(NullWireInputTop, text="Add Input Wire", command=lambda: AddInputWire(), width = 16)
+NullWireAddInputWireButton.grid(row=0,column=1,sticky="ew")
 
 NullWireInputList = ScrollableFrame(NullWireInputPage)
-NullWireInputList.pack(fill="both", expand=True)
+NullWireInputList.grid(row=1,column=0,sticky="nsew", columnspan=99)
 
 NullWireInputListInner = NullWireInputList.Inner
-NullWireInputListInner.pack(fill="both", expand=True)
-
-    #endregion
-
-    #region Audio
-NullWireAudioPage = nulltk.Frame(NullWireAudios)
-NullWireAudioPage.pack(fill="both", expand=True)
-
-NullWireAudiosTopFrame = nulltk.LabelFrame(NullWireAudioPage, text="Options")
-NullWireAudiosTopFrame.pack(fill="x", expand=True)
-NullWireAudiosTopFrame.grid_columnconfigure(0, weight=1)
-
-NullWireAudiosSearchEntry = nulltk.Entry(NullWireAudiosTopFrame)
-NullWireAudiosSearchEntry.grid(row=0,column=0,sticky="ew")
-
-NullWireAudiosPlaying = nulltk.Checkbutton(NullWireAudiosTopFrame, text="Only Playing")
-NullWireAudiosPlaying.grid(row=1,column=0,sticky="ew")
-
-NullWireAudiosRecentlyPlayed= nulltk.Checkbutton(NullWireAudiosTopFrame, text="Recently Played")
-NullWireAudiosRecentlyPlayed.grid(row=1,column=1,sticky="ew")
-
-NullWireAudiosIgnored = nulltk.Checkbutton(NullWireAudiosTopFrame, text="Ignored")
-NullWireAudiosIgnored.grid(row=1,column=2,sticky="ew")
-
-NullWireAudiosSourcesList = ScrollableFrame(NullWireAudioPage)
-NullWireAudiosSourcesList.pack(fill="both", expand=True)
-
-NullWireAudiosSourcesListInner = NullWireAudiosSourcesList.Inner
+NullWireInputListInner.grid(row=0,column=0,sticky="nsew", columnspan=99)
 
     #endregion
 
@@ -11322,27 +11238,13 @@ def NullWireLoop():
     tick = 0
     while True:
         if NullWireActive.get() == True:
-            CurrentTime = time.time()
             if tick == 0:
                 GetAllAudioSources()
                 if CurrentSources != LastSources:
                     LastSources = CurrentSources
                     
                     for source in CurrentSources:
-                        if source not in AudioSources.keys():
-                            AudioSources[source] = {
-                                "DisplayName": "",
-                                "Ignored": False,
-                                "OutputWiresAttached": {},
-                                "LastPlayed": CurrentTime
-                            }
-
-                            Root.after(1, lambda s=source: CreateSourceRow(s))
-
-                            pass
-                        
-                        AudioSources[source]["LastPlayed"] = CurrentTime
-                    Root.after(1000, UpdateSourceTimes)
+                        pass
                 pass
 
             elif tick == 1:
@@ -11379,8 +11281,7 @@ def StartUpNullWire():
         
         ActualProgramLoadedCount+=1
     else:
-        print("lol dontdothat")
-        #Notebook.forget(NullWire)
+        Notebook.forget(NullWire)
     
     LoadCompleted += 1
     return

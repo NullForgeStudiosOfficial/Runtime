@@ -65,7 +65,7 @@ case "$Action" in
             pw-link "$Sink:monitor_FL" "$Device:playback_MONO" 2>/dev/null || true
             pw-link "$Sink:monitor_FR" "$Device:playback_MONO" 2>/dev/null || true
 
-        elif [[ "$Mono" == "1" ]]; then
+        elif [[ "$Mono" == "True" ]]; then
 
             pw-link "$Sink:monitor_FL" "$Device:playback_FL" 2>/dev/null || true
             pw-link "$Sink:monitor_FL" "$Device:playback_FR" 2>/dev/null || true
