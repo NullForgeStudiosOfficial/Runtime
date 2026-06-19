@@ -418,8 +418,6 @@ def SaveConfig(Which, FirstTimeSetup=False):
             "NullWire": {
                 "OutputWires": OutputWires,
                 "InputWires":  InputWires,
-                "AudioSources": AudioSources
-
             }
         })
 
@@ -11010,6 +11008,286 @@ IgnoreSources = [
     "speech-dispatcher-dummy",
 ]
 
+def ResolveID(WireForLater, Target, Attach, TypeOfAttachment):
+    FoundSources = []
+
+    if TypeOfAttachment == "SourceToSink":
+        FoundSources = FindAudioSourceByName(Target)
+
+    elif TypeOfAttachment == "SinkToOutput":
+        FoundSources = FindOutputByName(Target)
+
+    elif TypeOfAttachment == "SinkToInput":
+        FoundSources = FindInputByName(Target)
+
+    if FoundSources is None:
+        return
+
+
+    for Source in FoundSources:
+
+        if Attach:
+            PactlAttach(Source,WireForLater,TypeOfAttachment)
+        else:
+            PactlRemove(Source,WireForLater,TypeOfAttachment)
+
+def FindOutputByName(Name):
+    FoundOutputs = []
+
+    try:
+        out = subprocess.check_output(
+            ["pactl", "list", "sinks"]
+        ).decode()
+    except:
+        return FoundOutputs
+
+    CurrentID = None
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if line.startswith("Name:"):
+            CurrentID = line.split(":", 1)[1].strip()
+
+        elif line.startswith("Description:"):
+            Description = line.split(":", 1)[1].strip()
+
+            if Description == Name and CurrentID is not None:
+                FoundOutputs.append(CurrentID)
+
+    return FoundOutputs
+
+def FindInputByName(Name):
+    FoundInputs = []
+
+    try:
+        out = subprocess.check_output(
+            ["pactl", "list", "sources"]
+        ).decode()
+    except:
+        return FoundInputs
+
+    CurrentID = None
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if line.startswith("Name:"):
+            CurrentID = line.split(":", 1)[1].strip()
+
+        elif line.startswith("Description:"):
+            Description = line.split(":", 1)[1].strip()
+
+            if Description == Name and CurrentID is not None:
+                FoundInputs.append(CurrentID)
+
+    return FoundInputs
+
+def FindAudioSourceByName(Name):
+    FoundSources = []
+
+    try:
+        out = subprocess.check_output(
+            ["pactl", "list", "sink-inputs"]
+        ).decode()
+    except:
+        return FoundSources
+
+    CurrentID = None
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if line.startswith("Sink Input #"):
+            CurrentID = line.replace("Sink Input #", "").strip()
+
+        elif "application.name" in line:
+            AppName = line.split("=", 1)[1].strip().strip('"')
+
+            if AppName == Name and CurrentID is not None:
+                FoundSources.append(CurrentID)
+
+    return FoundSources
+
+def PactlAttach(Source,Wire, AttachmentType):
+    if AttachmentType == "SourceToSink":
+        Log(f"Attaching {Source['Name']} To {Wire['Name']}")
+        subprocess.call([
+        NWPath,
+        "ConnectSourceToSink",
+        Source['Name'],
+        Wire['Name'],
+        str(Wire['Mono'])
+        ])
+        
+        return
+    elif AttachmentType == "SinkToOutput":
+        Log(f"Attaching {Wire['Name']} to {Source['Name']}")
+        subprocess.call([
+        NWPath,
+        "ConnectSinkToAux",
+        Wire['Name'],
+        Source['Name'],
+        str(Wire['Mono'])
+        ])
+        return
+    elif AttachmentType == "SinkToInput":
+        Log(f"Attaching {Wire['Name']} to {Source['Name']}")
+        subprocess.call([
+        NWPath,
+        "ConnectMicToSink",
+        Source['Name'],
+        Wire['Name'],
+        ])
+        return
+
+    
+    return
+
+def PactlRemove(Source,Wire, DetachmentType):
+    if DetachmentType == "SourceFromSink":
+        Log(f"Removing {Source['Name']} From {Wire['Name']}")
+
+        subprocess.call([
+        NWPath,
+        "RemoveSourceFromSink",
+        Source['Name']
+        ])
+        
+        return
+    elif DetachmentType == "SinkFromOutput":
+        Log(f"Removing {Wire['Name']} from {Source['Name']}")
+        subprocess.call([
+        NWPath,
+        "RemoveSinkFromAux",
+        Wire['Name'],
+        Source['Name']
+        ])
+        return
+    elif DetachmentType == "SinkFromInput":
+        Log(f"Removing {Wire['Name']} from {Source['Name']}")
+
+        subprocess.call([
+        NWPath,
+        "RemoveMicFromSink",
+        Source['Name'],
+        Wire['Name']
+        ])
+        return
+
+    return
+
+def PactlSetVolume(Source, VolumeType):
+
+    if VolumeType == "Sink":
+        subprocess.call([
+        NWPath,
+        "SetSinkVolume",
+        Source['Name'],
+        Source['Volume'],
+        ])
+    elif VolumeType == "Aux":
+        subprocess.call([
+        NWPath,
+        "SetAuxVolume",
+        Source['Name'],
+        Source['Volume'],
+        Source['Muted']
+        ])
+    elif VolumeType == "Mic":
+        subprocess.call([
+        NWPath,
+        "SetMicVolume",
+        Source['Name'],
+        Source['Volume'],
+        ])
+
+    return
+
+def NullWireCreatePopupWindow(ThisType, ExcludeThis):
+
+    Result = {"Value": None}
+
+    Popup = tk.Toplevel(Root)
+    Popup.title(f"Select {ThisType}")
+    Popup.geometry("600x800")
+    Popup.grab_set()
+
+    ListFrame = ScrollableFrame(Popup)
+    ListFrame.pack(fill="both", expand=True)
+
+    Inner = ListFrame.Inner
+
+    if ThisType == "Output":
+        GetAllOutputDevices()
+        Items = CurrentOutputs
+
+    elif ThisType == "Input":
+        GetAllInputDevices()
+        Items = CurrentInputs
+
+    elif ThisType == "Source":
+        GetAllAudioSources()
+        Items = CurrentSources
+
+    def SelectItem(Name):
+        Result["Value"] = Name
+        Popup.destroy()
+
+    for Item in Items:
+        if Item == ExcludeThis:
+            continue
+
+        Button = nulltk.Button(
+            Inner,
+            text=Item,
+            command=lambda value=Item: SelectItem(value)
+        )
+        Button.pack(fill="x", padx=5, pady=2)
+
+    Popup.wait_window()
+
+    return Result["Value"]
+
+def GetAllOutputDevices():
+    global CurrentOutputs
+    try:
+        out = subprocess.check_output(["pactl", "list", "sinks"]).decode()
+    except:
+        return
+
+    CurrentOutputs = []
+
+    for line in out.splitlines():
+        line = line.strip()
+        if "Description:" in line:
+            name = line.split(":", 1)[1].strip()
+            if name not in CurrentOutputs:
+                CurrentOutputs.append(name)
+
+    return
+
+def GetAllInputDevices():
+    global CurrentInputs
+
+    try:
+        out = subprocess.check_output(["pactl", "list", "sources"]).decode()
+    except:
+        return
+
+    CurrentInputs = []
+
+    for line in out.splitlines():
+        line = line.strip()
+
+        if "Description:" in line:
+            name = line.split(":", 1)[1].strip()
+
+            if name not in CurrentInputs:
+                CurrentInputs.append(name)
+
+    return
+
 def GetAllAudioSources():
     global CurrentSources
 
@@ -11030,144 +11308,339 @@ def GetAllAudioSources():
                 CurrentSources.append(name)
     return
 
+
 def AddOutputWire():
+    global OutputWires
+
+    ThisOutputWire = OutputWires[NullWireOutputName.get()] = {
+        "Name": NullWireOutputName.get(),
+        "Muted": False,
+        "Volume": 100,
+        "Delete": False,
+        "LimiterToggle": False,
+        "Limiter": 50,
+        "SteamAppAuto": False,
+        "AttachedOutputs": [],
+        "AudioSourcesIn": []
+    }
+
+    NullWireOutputName.set("")
+
+    CreateOutputWire(ThisOutputWire)
 
     return
+
+def CreateOutputWire(OutputWire):
+    global OutputRows, OutputWires
+
+    MainFrame = nulltk.LabelFrame(NullWireOutputListInner)
+    MainFrame.pack(fill="both", expand=True)
+    MainFrame.columnconfigure(1,weight=1)
+    MainFrame.rowconfigure(0,weight=1)
+
+    WireIsCollapsed = tk.BooleanVar(value=True)
+
+    def CollapseWire(Button):
+        if WireIsCollapsed.get() == True:
+            WireIsCollapsed.set(False)
+            Button.config(text="▼")
+            WireAddativesFrame.grid(row=1,column=1,sticky="nsew")
+        else:
+            WireIsCollapsed.set(True)
+            Button.config(text="▶")
+            WireAddativesFrame.grid_forget()
+
+        return
+
+    CollapseButton = nulltk.Button(MainFrame, text = "▶", command=lambda: CollapseWire(CollapseButton))
+    CollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+
+    # ---- Top Frame
+
+    WireTopFrame = nulltk.Frame(MainFrame)
+    WireTopFrame.grid(row=0,column=1,pady=(10,5), padx=(5,10), sticky="nsew")
+
+    def SetMute():
+        OutputWire['Muted'] = Muted.get()
+        PactlSetVolume(OutputWire,"Sink")
+        return
+
+    Muted = tk.BooleanVar(value=OutputWire['Muted'])
+    WireMute = nulltk.Checkbutton(WireTopFrame, variable=Muted, command=SetMute, text="Mute")
+    WireMute.grid(row=0,column=1, sticky="we")
+
+    def SwitchLimited():
+        OutputWire['LimiterToggle'] = Limited.get()
+        if Limited.get() == False:
+            
+            LimitedScale.grid(row=0,column=3, sticky="e")
+            LimitedAmountShow.grid(row=0,column=4, sticky="w")
+        else:
+            LimitedScale.grid_forget()
+            LimitedAmountShow.grid_forget()
+
+    def SetLimiter():   
+        OutputWire['Limiter'] = LimitedAmount.get()
+        return
+        
+    Limited = tk.BooleanVar(value=OutputWire['LimiterToggle'])
+    LimitedToggle = nulltk.Checkbutton(WireTopFrame, variable=Limited, command=SwitchLimited, text="Limiter")
+    LimitedToggle.grid(row=0,column=2, sticky="we")
+    LimitedAmount = tk.IntVar(value=OutputWire['Limiter'])
+    LimitedScale = nulltk.Scale(WireTopFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=LimitedAmount)
+    LimitedAmountShow = nulltk.Label(WireTopFrame, textvariable=LimitedAmount)
+    SwitchLimited()
+
+    def SetVolume():
+        OutputWire['Volume'] = Volume.get()
+        PactlSetVolume(OutputWire,"Sink")
+        return
+
+    Volume = tk.IntVar(value=OutputWire['Volume'])
+    VolumeScale = nulltk.Scale(WireTopFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=Volume)
+    VolumeScale.grid(row=0,column=5, sticky="w")
+    VolumeAmountShow = nulltk.Label(WireTopFrame, textvariable=Volume)
+    VolumeAmountShow.grid(row=0,column=6, sticky="w")
+
+    def DeleteWire(Button, Timeout=4):
+        EndTime = time.time() + Timeout
+
+        def tick():
+            Remaining = int(EndTime - time.time())
+            if Remaining <= 0:
+                if not Button.winfo_exists():
+                    return
+
+                Button.config(text="Delete")
+                OutputWire['Delete'] = False
+                return
+
+            if not Button.winfo_exists():
+                return
+            Button.config(text=f"R U Sure? {Remaining}")
+            Root.after(1000, tick)
+            return
+        
+        if OutputWire['Delete'] == False:
+            OutputWire['Delete'] = True
+            tick()
+            return
+
+        del OutputWires[OutputWire['Name']]
+        del OutputRows[MainFrame]
+
+        MainFrame.destroy()
+        return
+    
+    DeleteButton = nulltk.Button(WireTopFrame, text="Delete", command=lambda: DeleteWire(DeleteButton))
+    DeleteButton.grid(row=0,column=7,sticky="ew")
+    
+    #------------- the bullshit part
+
+    WireAddativesFrame = nulltk.Frame(MainFrame)
+    WireAddativesFrame.grid(row=1,column=1,sticky="nsew",padx=10, pady=10, columnspan=99)
+    WireAddativesFrame.grid_forget()
+
+    WireOutputList = tk.LabelFrame(WireAddativesFrame, text="Play Audio On These Devices")
+    WireOutputList.grid(row=0,column=0, sticky="nsew", pady=10)
+    WireOutputList.columnconfigure(2,weight=1)
+
+    def CollapseWireOutputList(Button):
+        if WireOutputListIsCollapsed.get() == True:
+            WireOutputListIsCollapsed.set(False)
+            Button.config(text="▼")
+            WireOutputListList.grid(row=0, column=1,sticky="nsew")
+        else:
+            WireOutputListIsCollapsed.set(True)
+            Button.config(text="▶")
+            WireOutputListList.grid_forget()
+
+        return
+    
+    WireOutputListIsCollapsed = tk.BooleanVar(value=True)
+    WireOutputListCollapseButton = nulltk.Button(WireOutputList, text = "▶", command=lambda: CollapseWireOutputList(WireOutputListCollapseButton))
+    WireOutputListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+
+    def AddDeviceToWire():
+        DeviceFound = NullWireCreatePopupWindow("Output",OutputWire['Name'])
+
+        if DeviceFound == None:
+            return
+
+        Device = {
+            "Name": DeviceFound,
+            "Muted": False,
+            "Volume": 100,
+            "Delete": False
+            }
+        OutputWire['AttachedOutputs'].append(Device)
+
+        CreateDeviceOnWire(Device)
+        return
+
+    def CreateDeviceOnWire(DeviceSent):
+        DeviceFrame = nulltk.Frame(WireOutputListListInner)
+        DeviceFrame.pack(fill="both", expand=True)
+        DeviceFrame.rowconfigure(0,weight=1)
+        DeviceFrame.columnconfigure(2,weight=1)
+
+        DeviceName = nulltk.Label(DeviceFrame, text=DeviceSent['Name'])
+        DeviceName.grid(row=0,column=0, sticky="ew")
+
+        def SetDeviceMute():
+            DeviceSent['Muted'] = DeviceMuted.get()
+
+            return
+
+        DeviceMuted = tk.BooleanVar(value=DeviceSent['Muted'])
+        DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
+        DeviceMute.grid(row=0,column=1, sticky="we")
+
+        def SetDeviceVolume():
+            DeviceSent['Volume'] = DeviceVolume.get()
+            return
+
+
+        DeviceVolume = tk.IntVar(value=DeviceSent['Volume'])
+        DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
+        DeviceVolumeScale.grid(row=0,column=2, sticky="w")
+        DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
+        DeviceVolumeAmountShow.grid(row=0,column=3, sticky="w")
+
+        DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
+        DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
+        DeviceVolumeScale.bind("<Button-5>",lambda e: (DeviceVolumeScale.set(max(0, DeviceVolumeScale.get() - 5)),SetDeviceVolume()))
+
+        def DeleteDevice(Button, Timeout=4):
+            EndTime = time.time() + Timeout
+
+            def tick():
+                Remaining = int(EndTime - time.time())
+                if Remaining <= 0:
+                    if not Button.winfo_exists():
+                        return
+
+                    Button.config(text="Remove")
+                    DeviceSent['Delete'] = False
+                    return
+
+                if not Button.winfo_exists():
+                    return
+                Button.config(text=f"R U Sure? {Remaining}")
+                Root.after(1000, tick)
+                return
+
+            if DeviceSent['Delete'] == False:
+                DeviceSent['Delete'] = True
+                tick()
+                return
+
+
+            PactlRemove(OutputWire, DeviceSent,"SinkFromOutput")
+            OutputWire['AttachedOutputs'].remove(DeviceSent)
+            OutputRows[MainFrame]['DeviceRows'].remove(DeviceFrame)
+            DeviceFrame.destroy()
+            return
+    
+        DeviceDeleteButton = nulltk.Button(DeviceFrame, text="Remove", command=lambda: DeleteDevice(DeviceDeleteButton))
+        DeviceDeleteButton.grid(row=0,column=4,sticky="ew")
+
+        
+        OutputRows[MainFrame]['DeviceRows'].append(DeviceFrame)
+        return
+
+    WireOutputListAddDevice = nulltk.Button(WireOutputList, text = "+", command=lambda: AddDeviceToWire())
+    WireOutputListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="ew")
+
+    WireOutputListList = ScrollableFrame(WireOutputList)
+    WireOutputListList.grid(row=0, column=2,sticky="nsew")
+    WireOutputListList.config(height=200)
+
+    WireOutputListListInner = WireOutputListList.Inner
+
+    #########----------------------------------------------------------------------------------------------------------------------------------------------------- sources list
+
+    SourcesOutputList = tk.LabelFrame(WireAddativesFrame, text="Capture These Programs")
+    SourcesOutputList.grid(row=1,column=0, sticky="nsew", pady=10)
+
+    def CollapseWireSourceList(Button):
+        if WireSourceListIsCollapsed.get() == True:
+            WireSourceListIsCollapsed.set(False)
+            Button.config(text="▼")
+            WireSourceListList.grid(row=0, column=1,sticky="nsew")
+        else:
+            WireSourceListIsCollapsed.set(True)
+            Button.config(text="▶")
+            WireSourceListList.grid_forget()
+
+        return
+
+    def AddSourceToWire():
+        DeviceFound = NullWireCreatePopupWindow("Source",OutputWire['Name'])
+
+        if DeviceFound == None:
+            return
+
+        Device = {
+            "Name": DeviceFound,
+            "Muted": False,
+            "Volume": 100,
+            "Delete": False
+            }
+        
+        OutputWire['AudioSourcesIn'].append(Device)
+
+        CreateDeviceOnWire(Device)
+        return
+
+    def CreateSourceOnWire(SourceSent):
+
+        return
+
+    WireSourceListIsCollapsed = tk.BooleanVar(value=True)
+    WireSourceListCollapseButton = nulltk.Button(SourcesOutputList, text = "▶", command=lambda: CollapseWireSourceList(WireSourceListCollapseButton))
+    WireSourceListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+
+    WireSourceListAddDevice = nulltk.Button(SourcesOutputList, text = "+", command=lambda: AddSourceToWire())
+    WireSourceListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="ew")
+
+    WireSourceListList = ScrollableFrame(SourcesOutputList)
+    WireSourceListList.grid(row=0, column=2,sticky="nsew")
+    WireSourceListList.config(height=200)
+
+    WireSourceListListInner = WireSourceListList.Inner
+
+    #--- append
+
+    OutputRows[MainFrame] = {
+        "DeviceRows": [],
+        "SourceRows": []
+
+    }
+
+    #------ binding
+
+    NullWireOutputListInner.BindMouseWheel(MainFrame)
+
+    VolumeScale.bind("<ButtonRelease-1>", SetVolume)
+    VolumeScale.bind("<Button-4>",lambda e: (VolumeScale.set(min(200, VolumeScale.get() + 5)),SetVolume()))
+    VolumeScale.bind("<Button-5>",lambda e: (VolumeScale.set(max(0, VolumeScale.get() - 5)),SetVolume()))
+
+    LimitedScale.bind("<ButtonRelease-1>", SetLimiter)
+    LimitedScale.bind("<Button-4>",lambda e: (LimitedScale.set(min(100, LimitedScale.get() + 5)),SetLimiter()))
+    LimitedScale.bind("<Button-5>",lambda e: (LimitedScale.set(max(0, LimitedScale.get() - 5)),SetLimiter()))
+
+    #------ LoadingBullshit
+
+    for item in OutputWire['AttachedOutputs']:
+        CreateDeviceOnWire(item)
+    for item in OutputWire['AudioSourcesIn']:
+        CreateSourceOnWire(item)
+
+    return    
+
 
 def AddInputWire():
-
-    return
-
-def SpawnOutputToSourcePopUp(source, sourcerow, Adding=True):
-
-    AvailableWires = []
-
-    for Wire in OutputWires.values():
-        WireName = Wire["WireName"]
-        Attached = (WireName in AudioSources[source]["OutputWiresAttached"])
-        if Adding and not Attached:
-            AvailableWires.append(Wire)
-        elif not Adding and Attached:
-            AvailableWires.append(Wire)
-
-    Popup = nulltk.Toplevel(Root)
-    if Adding:
-        Popup.title("Select Wire to Attach to the Audio Source")
-    else:
-        Popup.title("Select Wire to Remove From the Audio Source")
-
-    Popup.geometry("400x500")
-    Popup.grab_set()
-
-    for available in AvailableWires:
-        if Adding:
-            nulltk.Button(Popup,text=available['WireName'],command=lambda a=available, s=sourcerow:AttachOutputToSource(source,a,s,Popup)).pack(fill="x")
-        else:
-            nulltk.Button(Popup,text=available['WireName'],command=lambda a=available, s=sourcerow:RemoveOutputFromSource(source,a,s,Popup)).pack(fill="x")
-
-    return
-
-def AttachOutputToSource(source, wire, sourcerow, popup=None):
-    global AudioSources,SourceRows
-    if popup != None:
-        popup.destroy()
-
-    if wire['WireName'] not in AudioSources[source]["OutputWiresAttached"]:
-        AudioSources[source]["OutputWiresAttached"].append(wire['WireName'])
-        PactlAttach(AudioSources[source], wire, "SourceToSink")
-        SaveConfig("NullWire")
-
-        for i, wire in enumerate(AudioSources[source]["OutputWiresAttached"]):
-            for label in sourcerow["Wires"]:
-                label.destroy()
-            sourcerow["Wires"].clear()
-
-            WireLabel = nulltk.Label(sourcerow['Hori'], text=f"{wire} | ")
-            WireLabel.grid(row=0, column=i)
-            sourcerow['Wires'].append(WireLabel)
-
-
-    return
-
-def RemoveOutputFromSource(source,wire,sourcerow, popup=None):
-    if popup != None:
-        popup.destroy()
-
-    if wire['WireName'] in AudioSources[source]["OutputWiresAttached"]:
-        AudioSources[source]["OutputWiresAttached"].remove(wire['WireName'])
-        PactlRemove(AudioSources[source], wire, "SourceFromSink")
-        SaveConfig("NullWire")
-
-    return
-
-def PactlAttach(Source,Wire, AttachmentType):
-
-    
-
-    if AttachmentType == "SourceToSink":
-        Log(f"Attaching {Source['SourceName']} To {Wire['WireName']}")
-        subprocess.call([
-        NWPath,
-        "ConnectSourceToSink",
-        Source['SourceName'],
-        Wire['WireName'],
-        ])
-        
-        return
-    elif AttachmentType == "SinkToOutput":
-        Log(f"Attaching {Wire['WireName']} to {Source['SourceName']}")
-        subprocess.call([
-        NWPath,
-        "ConnectSinkToAux",
-        Wire['WireName'],
-        Source['SourceName'],
-        str(Wire['Mono'])
-        ])
-        return
-    elif AttachmentType == "SinkToInput":
-        Log(f"Attaching {Wire['WireName']} to {Source['SourceName']}")
-        subprocess.call([
-        NWPath,
-        "ConnectMicToSink",
-        Source['SourceName'],
-        Wire['WireName'],
-        ])
-        return
-
-    
-    return
-
-def PactlRemove(Source,Wire, DetachmentType):
-    
-    if DetachmentType == "SourceFromSink":
-        Log(f"Removing {Source['SourceName']} From {Wire['WireName']}")
-
-        subprocess.call([
-        NWPath,
-        "RemoveSourceFromSink",
-        Source['SourceName']
-        ])
-        
-        return
-    elif DetachmentType == "SinkFromOutput":
-        Log(f"Removing {Wire['WireName']} from {Source['SourceName']}")
-        subprocess.call([
-        NWPath,
-        "RemoveSinkFromAux",
-        Wire['WireName'],
-        Source['SourceName']
-        ])
-        return
-    elif DetachmentType == "SinkFromInput":
-        Log(f"Removing {Wire['WireName']} from {Source['SourceName']}")
-
-        subprocess.call([
-        NWPath,
-        "RemoveMicFromSink",
-        Source['SourceName'],
-        Wire['WireName']
-        ])
-        return
 
     return
 
@@ -11192,7 +11665,9 @@ NullWireOutputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=5)
 NullWireOutputTop.rowconfigure(1, weight=1)
 NullWireOutputTop.columnconfigure(1, weight=1)
 
-NullWireOutputEntry = nulltk.Entry(NullWireOutputTop)
+NullWireOutputName = tk.StringVar(value="")
+
+NullWireOutputEntry = nulltk.Entry(NullWireOutputTop, textvariable=NullWireOutputName)
 NullWireOutputEntry.grid(row=0,column=1,sticky="ew")
 
 NullWireAddOutputWireButton = nulltk.Button(NullWireOutputTop, text="Add Output Wire", command=lambda: AddOutputWire(), width = 16)
