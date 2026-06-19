@@ -49,7 +49,16 @@ case "$Action" in
     ;;
 
     SetSinkVolume)
-    pactl set-sink-volume "$2" "$3%"
+        Sink="$Arg1"
+        Volume="$Arg2%"
+        Muted="$Arg3"
+
+        if [[ "$Muted" == "1" || "$Muted" == "True" || "$Muted" == "true" ]]; then
+            Volume="0%"
+        fi
+
+        pactl set-sink-volume "$Sink" "$Volume"
+        exit 0
     ;;
 
     #------------------------------------------ Aux 
@@ -209,19 +218,24 @@ case "$Action" in
     
     #---------------------------------------------Sources
     ConnectSourceToSink)
+        echo "testing"
         InputName="$Arg1"
         TargetSink="$Arg2"
         Mono="$Arg3"
 
         echo "Attach $InputName → $TargetSink"
 
+
         pactl list sink-inputs | while read -r line; do
+
+
 
             if [[ "$line" == *"Sink Input #"* ]]; then
                 Id=$(echo "$line" | awk '{print $3}' | tr -d '#')
             fi
 
             if [[ "$line" == *"application.name"* && "$line" == *"$InputName"* ]]; then
+
 
                 echo "Moving input $Id → $TargetSink"
                 pactl move-sink-input "$Id" "$TargetSink"
@@ -259,6 +273,31 @@ case "$Action" in
             if [[ "$line" == *"application.name"* && "$line" == *"$InputName"* ]]; then
                 echo "Moving input $Id → $DefaultSink"
                 pactl move-sink-input "$Id" "$DefaultSink"
+            fi
+
+        done
+
+        exit 0
+    ;;
+
+
+    SetSourceVolume)
+        Source="$Arg1"
+        Volume="$Arg2%"
+        Muted="$Arg3"
+
+        if [[ "$Muted" == "1" || "$Muted" == "True" || "$Muted" == "true" ]]; then
+            Volume="0%"
+        fi
+
+        pactl list sink-inputs | while read -r line; do
+
+            if [[ "$line" == *"Sink Input #"* ]]; then
+                Id=$(echo "$line" | awk '{print $3}' | tr -d '#')
+            fi
+
+            if [[ "$line" == *"application.name"* && "$line" == *"$Source"* ]]; then
+                pactl set-sink-input-volume "$Id" "$Volume"
             fi
 
         done

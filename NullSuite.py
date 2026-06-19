@@ -11008,28 +11008,23 @@ IgnoreSources = [
     "speech-dispatcher-dummy",
 ]
 
-def ResolveID(WireForLater, Target, Attach, TypeOfAttachment):
+def ResolveID(WhatWeIdentifying, CallType):
     FoundSources = []
 
-    if TypeOfAttachment == "SourceToSink":
-        FoundSources = FindAudioSourceByName(Target)
+    if CallType == "AudioSource":
+        FoundSources = FindAudioSourceByName(WhatWeIdentifying)
 
-    elif TypeOfAttachment == "SinkToOutput":
-        FoundSources = FindOutputByName(Target)
+    elif CallType == "Output":
+        FoundSources = FindOutputByName(WhatWeIdentifying)
 
-    elif TypeOfAttachment == "SinkToInput":
-        FoundSources = FindInputByName(Target)
+    elif CallType == "Input":
+        FoundSources = FindInputByName(WhatWeIdentifying)
 
     if FoundSources is None:
-        return
+        return None
+    else:
+        return FoundSources
 
-
-    for Source in FoundSources:
-
-        if Attach:
-            PactlAttach(Source,WireForLater,TypeOfAttachment)
-        else:
-            PactlRemove(Source,WireForLater,TypeOfAttachment)
 
 def FindOutputByName(Name):
     FoundOutputs = []
@@ -11109,44 +11104,42 @@ def FindAudioSourceByName(Name):
 
     return FoundSources
 
-def PactlAttach(Source,Wire, AttachmentType):
+def PactlAttach(Source,Wire, AttachmentType, IDIndex):
     if AttachmentType == "SourceToSink":
-        Log(f"Attaching {Source['Name']} To {Wire['Name']}")
         subprocess.call([
         NWPath,
         "ConnectSourceToSink",
         Source['Name'],
-        Wire['Name'],
-        str(Wire['Mono'])
+        Wire['InternalName'],
+        str(Source['Mono'])
         ])
+        print("made it past")
         
         return
     elif AttachmentType == "SinkToOutput":
-        Log(f"Attaching {Wire['Name']} to {Source['Name']}")
         subprocess.call([
         NWPath,
         "ConnectSinkToAux",
-        Wire['Name'],
-        Source['Name'],
-        str(Wire['Mono'])
+        Wire['InternalName'],
+        Source['IDs'][IDIndex],
+        str(Source['Mono'])
         ])
         return
     elif AttachmentType == "SinkToInput":
-        Log(f"Attaching {Wire['Name']} to {Source['Name']}")
         subprocess.call([
         NWPath,
         "ConnectMicToSink",
-        Source['Name'],
-        Wire['Name'],
+        Source['IDs'][IDIndex],
+        Wire['InternalName'],
         ])
         return
 
     
     return
 
-def PactlRemove(Source,Wire, DetachmentType):
+def PactlRemove(Source,Wire, DetachmentType, IDIndex):
+
     if DetachmentType == "SourceFromSink":
-        Log(f"Removing {Source['Name']} From {Wire['Name']}")
 
         subprocess.call([
         NWPath,
@@ -11156,22 +11149,20 @@ def PactlRemove(Source,Wire, DetachmentType):
         
         return
     elif DetachmentType == "SinkFromOutput":
-        Log(f"Removing {Wire['Name']} from {Source['Name']}")
         subprocess.call([
         NWPath,
         "RemoveSinkFromAux",
-        Wire['Name'],
-        Source['Name']
+        Wire['InternalName'],
+        Source['IDs'][IDIndex]
         ])
         return
     elif DetachmentType == "SinkFromInput":
-        Log(f"Removing {Wire['Name']} from {Source['Name']}")
 
         subprocess.call([
         NWPath,
         "RemoveMicFromSink",
-        Source['Name'],
-        Wire['Name']
+        Source['IDs'][IDIndex],
+        Wire['InternalName']
         ])
         return
 
@@ -11179,27 +11170,31 @@ def PactlRemove(Source,Wire, DetachmentType):
 
 def PactlSetVolume(Source, VolumeType):
 
+    Call = None
+    Name = Source['Name']
     if VolumeType == "Sink":
-        subprocess.call([
-        NWPath,
-        "SetSinkVolume",
-        Source['Name'],
-        Source['Volume'],
-        ])
+        Call = "SetSinkVolume"
+        name = Source['InternalName']
+
     elif VolumeType == "Aux":
-        subprocess.call([
-        NWPath,
-        "SetAuxVolume",
-        Source['Name'],
-        Source['Volume'],
-        Source['Muted']
-        ])
+        Call = "SetAuxVolume"
+
     elif VolumeType == "Mic":
-        subprocess.call([
+        Call = "SetMicVolume"
+
+    elif VolumeType == "Source":
+        Call = "SetSourceVolume"
+
+    if Call is None:
+        Log(f"NullWire: Idk wtf you're tryna do. error setting volume", "Error")
+        return
+
+    subprocess.call([
         NWPath,
-        "SetMicVolume",
-        Source['Name'],
-        Source['Volume'],
+        Call,
+        Name,
+        str(Source['Volume']),
+        str(Source['Muted'])
         ])
 
     return
@@ -11235,7 +11230,7 @@ def NullWireCreatePopupWindow(ThisType, ExcludeThis):
         Popup.destroy()
 
     for Item in Items:
-        if Item == ExcludeThis:
+        if Item == ExcludeThis or Item == f"{ExcludeThis}_NullWire":
             continue
 
         Button = nulltk.Button(
@@ -11315,9 +11310,11 @@ def AddOutputWire():
     if NullWireOutputName.get() == "" or NullWireOutputName.get() in OutputWires:
         return
     
+    InternalName = NullWireOutputName.get() + "_NullWire"
 
     ThisOutputWire = OutputWires[NullWireOutputName.get()] = {
         "Name": NullWireOutputName.get(),
+        "InternalName": InternalName,
         "Muted": False,
         "Volume": 100,
         "Delete": False,
@@ -11336,6 +11333,14 @@ def AddOutputWire():
 
 def CreateOutputWire(OutputWire):
     global OutputRows, OutputWires
+
+    subprocess.call([
+        NWPath,
+        "CreateSink",
+        OutputWire['InternalName'],
+        ])
+
+
 
     MainFrame = nulltk.LabelFrame(NullWireOutputListInner, text= OutputWire['Name'])
     MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
@@ -11411,7 +11416,7 @@ def CreateOutputWire(OutputWire):
     LimitedAmountShow = nulltk.Label(WireTopFrame, textvariable=LimitedAmount, width=4)
     
 
-    def SetVolume():
+    def SetVolume(event=None):
         OutputWire['Volume'] = Volume.get()
         PactlSetVolume(OutputWire,"Sink")
         return
@@ -11449,6 +11454,12 @@ def CreateOutputWire(OutputWire):
             OutputWire['Delete'] = True
             tick()
             return
+
+        subprocess.call([
+        NWPath,
+        "DeleteSink",
+        OutputWire['InternalName'],
+        ])
 
         del OutputWires[OutputWire['Name']]
         del OutputRows[MainFrame]
@@ -11496,6 +11507,8 @@ def CreateOutputWire(OutputWire):
 
         Device = {
             "Name": DeviceFound,
+            "Connected": True,
+            "IDs": [],
             "Muted": False,
             "Mono": False,
             "Volume": 100,
@@ -11507,10 +11520,37 @@ def CreateOutputWire(OutputWire):
         return
 
     def CreateDeviceOnWire(DeviceSent):
+        if WireOutputListIsCollapsed.get():
+            CollapseWireOutputList(WireOutputListCollapseButton)
+
         DeviceFrame = nulltk.LabelFrame(WireOutputListListInner, text= DeviceSent['Name'], bd=4)
         DeviceFrame.pack(fill="both", expand=True, padx=10, pady=10)
         DeviceFrame.rowconfigure(0,weight=1)
-        DeviceFrame.columnconfigure(3,weight=1)
+        DeviceFrame.columnconfigure(4,weight=1)
+
+        def ConnectDevice():
+            DeviceSent['Connected'] = DeviceConnected.get()
+
+            AllIDs = ResolveID(DeviceSent['Name'], "Output")
+
+            if not AllIDs:
+                Log(f"No Ids Found for {DeviceSent['Name']}", "Error")
+                return
+            
+            else:
+                DeviceSent['IDs'] = AllIDs
+                for i in range(len(AllIDs)):
+                    if DeviceConnected.get() == True:
+                        PactlAttach(DeviceSent,OutputWire,"SinkToOutput", i)
+                    else:
+                        PactlRemove(DeviceSent,OutputWire,"SinkFromOutput", i)
+
+            return
+
+        DeviceConnected = tk.BooleanVar(value=DeviceSent['Connected'])
+        DeviceConnectedToggle = nulltk.Checkbutton(DeviceFrame, variable=DeviceConnected, command=ConnectDevice, text="Connected |")
+        DeviceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=5)
+
 
         def SetDeviceMono():
             DeviceSent['Mono'] = DeviceMono.get()
@@ -11518,30 +11558,32 @@ def CreateOutputWire(OutputWire):
         
         DeviceMono = tk.BooleanVar(value=DeviceSent['Mono'])
         DeviceMonoCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceMono, command=SetDeviceMono, text="Mono")
-        DeviceMonoCheck.grid(row=0,column=0, sticky="we", padx=(10,0), pady=5)
+        DeviceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=5)
 
 
         def SetDeviceMute():
             DeviceSent['Muted'] = DeviceMuted.get()
+            PactlSetVolume(DeviceSent,"Source")
 
             return
 
         DeviceMuted = tk.BooleanVar(value=DeviceSent['Muted'])
         DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
-        DeviceMute.grid(row=0,column=1, sticky="we", padx=10, pady=5)
+        DeviceMute.grid(row=0,column=2, sticky="we", padx=10, pady=5)
 
-        def SetDeviceVolume():
+        def SetDeviceVolume(Event=None):
             DeviceSent['Volume'] = DeviceVolume.get()
+            PactlSetVolume(DeviceSent,"Source")
             return
 
 
         DeviceVolume = tk.IntVar(value=DeviceSent['Volume'])
         DeviceVolumeLabel = nulltk.Label(DeviceFrame, text="Volume:")
-        DeviceVolumeLabel.grid(row=0,column=2, sticky="w", pady=5)
+        DeviceVolumeLabel.grid(row=0,column=3, sticky="w", pady=5)
         DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
-        DeviceVolumeScale.grid(row=0,column=3, sticky="ew", pady=5)
+        DeviceVolumeScale.grid(row=0,column=4, sticky="ew", pady=5)
         DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
-        DeviceVolumeAmountShow.grid(row=0,column=4, sticky="w", padx=(0,10), pady=5)
+        DeviceVolumeAmountShow.grid(row=0,column=5, sticky="w", padx=(0,10), pady=5)
 
         DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
         DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
@@ -11579,9 +11621,9 @@ def CreateOutputWire(OutputWire):
             return
     
         DeviceDeleteButton = nulltk.Button(DeviceFrame, text="Remove", command=lambda: DeleteDevice(DeviceDeleteButton))
-        DeviceDeleteButton.grid(row=0,column=5,sticky="ew", padx=10, pady=5)
+        DeviceDeleteButton.grid(row=0,column=6,sticky="ew", padx=10, pady=5)
 
-        
+        ConnectDevice()
         OutputRows[MainFrame]['DeviceRows'].append(DeviceFrame)
         return
 
@@ -11629,6 +11671,8 @@ def CreateOutputWire(OutputWire):
 
         Device = {
             "Name": DeviceFound,
+            "Connected": True,
+            "ID": None,
             "Mono": False,
             "Muted": False,
             "Volume": 100,
@@ -11641,40 +11685,63 @@ def CreateOutputWire(OutputWire):
         return
 
     def CreateSourceOnWire(SourceSent):
+        if WireSourceListIsCollapsed.get():
+            CollapseWireSourceList(WireSourceListCollapseButton)
+
         SourceFrame = nulltk.LabelFrame(WireSourceListListInner, text=SourceSent['Name'], bd=4)
         SourceFrame.pack(fill="both", expand=True, padx=10, pady=10)
         SourceFrame.rowconfigure(0,weight=1)
-        SourceFrame.columnconfigure(3,weight=1)
+        SourceFrame.columnconfigure(4,weight=1)
+
+        def ConnectSource():
+            SourceSent['Connected'] = SourceConnected.get()
+
+            if SourceConnected.get() == True:
+                PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
+            else:
+                PactlRemove(SourceSent,OutputWire,"SourceFromSink", 0)
+
+            return
+
+        SourceConnected = tk.BooleanVar(value=SourceSent['Connected'])
+        SourceConnectedToggle = nulltk.Checkbutton(SourceFrame, variable=SourceConnected, command=ConnectSource, text="Connected |")
+        SourceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=5)
 
         def SetSourceMono():
             SourceSent['Mono'] = SourceMono.get()
+            if SourceConnected.get() == True:
+                PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
+            else:
+                PactlRemove(SourceSent,OutputWire,"SourceFromSink", 0)
             return
         
         SourceMono = tk.BooleanVar(value=SourceSent['Mono'])
         SourceMonoCheck = nulltk.Checkbutton(SourceFrame, variable=SourceMono, command=SetSourceMono, text="Mono")
-        SourceMonoCheck.grid(row=0,column=0, sticky="we", padx=(10,0), pady=5)
+        SourceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=5)
 
         def SetSourceMute():
             SourceSent['Muted'] = SourceMuted.get()
+            PactlSetVolume(SourceSent,"Source")
 
             return
 
         SourceMuted = tk.BooleanVar(value=SourceSent['Muted'])
         SourceMute = nulltk.Checkbutton(SourceFrame, variable=SourceMuted, command=SetSourceMute, text="Mute")
-        SourceMute.grid(row=0,column=1, sticky="we",padx=10, pady=5)
+        SourceMute.grid(row=0,column=2, sticky="we",padx=10, pady=5)
 
-        def SetSourceVolume():
+        def SetSourceVolume(Event=None):
             SourceSent['Volume'] = SourceVolume.get()
+            PactlSetVolume(SourceSent,"Source")
             return
 
 
         SourceVolume = tk.IntVar(value=SourceSent['Volume'])
         SourceVolumeLabel = nulltk.Label(SourceFrame, text="Volume:")
-        SourceVolumeLabel.grid(row=0,column=2, sticky="w", pady=10)
+        SourceVolumeLabel.grid(row=0,column=3, sticky="w", pady=10)
         SourceVolumeScale = nulltk.Scale(SourceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=SourceVolume)
-        SourceVolumeScale.grid(row=0,column=3, sticky="we", pady=5)
+        SourceVolumeScale.grid(row=0,column=4, sticky="we", pady=5)
         SourceVolumeAmountShow = nulltk.Label(SourceFrame, textvariable=SourceVolume)
-        SourceVolumeAmountShow.grid(row=0,column=4, sticky="w")
+        SourceVolumeAmountShow.grid(row=0,column=5, sticky="w")
 
         SourceVolumeScale.bind("<ButtonRelease-1>", SetSourceVolume)
         SourceVolumeScale.bind("<Button-4>",lambda e: (SourceVolumeScale.set(min(100, SourceVolumeScale.get() + 5)),SetSourceVolume()))
@@ -11712,9 +11779,9 @@ def CreateOutputWire(OutputWire):
             return
     
         SourceDeleteButton = nulltk.Button(SourceFrame, text="Remove", command=lambda: DeleteSource(SourceDeleteButton))
-        SourceDeleteButton.grid(row=0,column=5,sticky="ew",padx=10)
+        SourceDeleteButton.grid(row=0,column=6,sticky="ew",padx=10)
 
-        
+        ConnectSource
         OutputRows[MainFrame]['SourceRows'].append(SourceFrame)
         return
 
