@@ -65,7 +65,7 @@ case "$Action" in
             pw-link "$Sink:monitor_FL" "$Device:playback_MONO" 2>/dev/null || true
             pw-link "$Sink:monitor_FR" "$Device:playback_MONO" 2>/dev/null || true
 
-        elif [[ "$Mono" == "True" ]]; then
+        elif [[ "$Mono" == "1" ]]; then
 
             pw-link "$Sink:monitor_FL" "$Device:playback_FL" 2>/dev/null || true
             pw-link "$Sink:monitor_FL" "$Device:playback_FR" 2>/dev/null || true
@@ -110,6 +110,26 @@ case "$Action" in
             Source=$(echo "$line" | awk '{print $1}')
             Target=$(echo "$line" | awk '{print $3}')
             pw-link -d "$Source" "$Target" 2>/dev/null
+        done
+        exit 0
+    ;;
+
+    SetAuxVolume)
+        Device="$Arg1"
+        Volume="$Arg2%"
+        Muted="$Arg3"
+
+        if [[ "$Muted" == "1" || "$Muted" == "True" || "$Muted" == "true" ]]; then
+            Volume="0%"
+        fi
+
+        pactl list short sinks | while read -r Id SinkName Rest; do
+
+            if [[ "$SinkName" == "$Device" ]]; then
+                pactl set-sink-volume "$SinkName" "$Volume"
+                exit 0
+            fi
+
         done
         exit 0
     ;;
@@ -169,6 +189,21 @@ case "$Action" in
 
         exit 0
     ;;
+
+    SetMicVolume)
+        Mic="$Arg1"
+        Volume="$Arg2%"
+
+        pactl list short sources | while read -r Id SourceName Rest; do
+
+            if [[ "$SourceName" == "$Mic" ]]; then
+                pactl set-source-volume "$SourceName" "$Volume"
+                exit 0
+            fi
+
+        done
+        exit 0
+    ;;
     
 
     
@@ -176,6 +211,7 @@ case "$Action" in
     ConnectSourceToSink)
         InputName="$Arg1"
         TargetSink="$Arg2"
+        Mono="$Arg3"
 
         echo "Attach $InputName → $TargetSink"
 
@@ -186,8 +222,20 @@ case "$Action" in
             fi
 
             if [[ "$line" == *"application.name"* && "$line" == *"$InputName"* ]]; then
+
                 echo "Moving input $Id → $TargetSink"
                 pactl move-sink-input "$Id" "$TargetSink"
+
+                if [[ "$Mono" == "1" || "$Mono" == "True" || "$Mono" == "true" ]]; then
+
+                    sleep 0.1
+
+                    pw-link "$InputName:output_FL" "$TargetSink:playback_FL" 2>/dev/null || true
+                    pw-link "$InputName:output_FL" "$TargetSink:playback_FR" 2>/dev/null || true
+                    pw-link "$InputName:output_FR" "$TargetSink:playback_FL" 2>/dev/null || true
+                    pw-link "$InputName:output_FR" "$TargetSink:playback_FR" 2>/dev/null || true
+
+                fi
             fi
 
         done
