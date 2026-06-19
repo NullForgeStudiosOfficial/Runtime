@@ -11312,6 +11312,10 @@ def GetAllAudioSources():
 def AddOutputWire():
     global OutputWires
 
+    if NullWireOutputName.get() == "" or NullWireOutputName.get() in OutputWires:
+        return
+    
+
     ThisOutputWire = OutputWires[NullWireOutputName.get()] = {
         "Name": NullWireOutputName.get(),
         "Muted": False,
@@ -11333,10 +11337,9 @@ def AddOutputWire():
 def CreateOutputWire(OutputWire):
     global OutputRows, OutputWires
 
-    MainFrame = nulltk.LabelFrame(NullWireOutputListInner)
-    MainFrame.pack(fill="both", expand=True)
+    MainFrame = nulltk.LabelFrame(NullWireOutputListInner, text= OutputWire['Name'])
+    MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
     MainFrame.columnconfigure(1,weight=1)
-    MainFrame.rowconfigure(0,weight=1)
 
     WireIsCollapsed = tk.BooleanVar(value=True)
 
@@ -11358,7 +11361,8 @@ def CreateOutputWire(OutputWire):
     # ---- Top Frame
 
     WireTopFrame = nulltk.Frame(MainFrame)
-    WireTopFrame.grid(row=0,column=1,pady=(10,5), padx=(5,10), sticky="nsew")
+    WireTopFrame.grid(row=0,column=1,pady=(10,5), padx=(5,10), sticky="nsew", columnspan=99)
+    
 
     def SetMute():
         OutputWire['Muted'] = Muted.get()
@@ -11367,17 +11371,33 @@ def CreateOutputWire(OutputWire):
 
     Muted = tk.BooleanVar(value=OutputWire['Muted'])
     WireMute = nulltk.Checkbutton(WireTopFrame, variable=Muted, command=SetMute, text="Mute")
-    WireMute.grid(row=0,column=1, sticky="we")
+    WireMute.grid(row=0,column=0, sticky="we", padx=(0,10))
 
     def SwitchLimited():
         OutputWire['LimiterToggle'] = Limited.get()
-        if Limited.get() == False:
+        LimitedToggle.grid(row=0,column=1, sticky="e")
+
+        if Limited.get() == True:
+            WireTopFrame.columnconfigure(2,weight=1)
+            WireTopFrame.columnconfigure(3,weight=0)
+            WireTopFrame.columnconfigure(5,weight=1)
             
-            LimitedScale.grid(row=0,column=3, sticky="e")
-            LimitedAmountShow.grid(row=0,column=4, sticky="w")
+            LimitedScale.grid(row=0,column=2, sticky="ew")
+            LimitedAmountShow.grid(row=0,column=3, sticky="w", padx=(0,10))
+
+            VolumeLabel.grid(row=0,column=4, sticky="e", padx=(10,0))
+            VolumeScale.grid(row=0,column=5, sticky="ew")
+            VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
         else:
             LimitedScale.grid_forget()
             LimitedAmountShow.grid_forget()
+            WireTopFrame.columnconfigure(2,weight=0)
+            WireTopFrame.columnconfigure(3,weight=1)
+            WireTopFrame.columnconfigure(5,weight=0)
+
+            VolumeLabel.grid(row=0,column=2, sticky="e", padx=(10,0))
+            VolumeScale.grid(row=0,column=3, sticky="ew", columnspan=1)
+            VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
 
     def SetLimiter():   
         OutputWire['Limiter'] = LimitedAmount.get()
@@ -11385,11 +11405,11 @@ def CreateOutputWire(OutputWire):
         
     Limited = tk.BooleanVar(value=OutputWire['LimiterToggle'])
     LimitedToggle = nulltk.Checkbutton(WireTopFrame, variable=Limited, command=SwitchLimited, text="Limiter")
-    LimitedToggle.grid(row=0,column=2, sticky="we")
+
     LimitedAmount = tk.IntVar(value=OutputWire['Limiter'])
     LimitedScale = nulltk.Scale(WireTopFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=LimitedAmount)
-    LimitedAmountShow = nulltk.Label(WireTopFrame, textvariable=LimitedAmount)
-    SwitchLimited()
+    LimitedAmountShow = nulltk.Label(WireTopFrame, textvariable=LimitedAmount, width=4)
+    
 
     def SetVolume():
         OutputWire['Volume'] = Volume.get()
@@ -11397,10 +11417,14 @@ def CreateOutputWire(OutputWire):
         return
 
     Volume = tk.IntVar(value=OutputWire['Volume'])
-    VolumeScale = nulltk.Scale(WireTopFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=Volume)
-    VolumeScale.grid(row=0,column=5, sticky="w")
-    VolumeAmountShow = nulltk.Label(WireTopFrame, textvariable=Volume)
-    VolumeAmountShow.grid(row=0,column=6, sticky="w")
+    VolumeLabel = nulltk.Label(WireTopFrame, text="Volume")
+    VolumeLabel.grid(row=0,column=4, sticky="e", padx=(10,0))
+    VolumeScale = nulltk.Scale(WireTopFrame,from_=0,to=200,orient="horizontal",showvalue=0,variable=Volume)
+    VolumeScale.grid(row=0,column=5, sticky="ew")
+    VolumeAmountShow = nulltk.Label(WireTopFrame, textvariable=Volume, width=4)
+    VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
+
+    SwitchLimited()
 
     def DeleteWire(Button, Timeout=4):
         EndTime = time.time() + Timeout
@@ -11434,32 +11458,35 @@ def CreateOutputWire(OutputWire):
     
     DeleteButton = nulltk.Button(WireTopFrame, text="Delete", command=lambda: DeleteWire(DeleteButton))
     DeleteButton.grid(row=0,column=7,sticky="ew")
-    
-    #------------- the bullshit part
 
     WireAddativesFrame = nulltk.Frame(MainFrame)
     WireAddativesFrame.grid(row=1,column=1,sticky="nsew",padx=10, pady=10, columnspan=99)
+    WireAddativesFrame.columnconfigure(0,weight=1)
     WireAddativesFrame.grid_forget()
+    
+    #----------------------------------------------------------------------------------------------------------------------------------------------------------------------- the bullshit part
 
-    WireOutputList = tk.LabelFrame(WireAddativesFrame, text="Play Audio On These Devices")
-    WireOutputList.grid(row=0,column=0, sticky="nsew", pady=10)
+    
+
+    WireOutputList = nulltk.LabelFrame(WireAddativesFrame, text="Play Audio On These Devices")
+    WireOutputList.grid(row=0,column=0, sticky="nsew", pady=10, columnspan=99, padx=10,)
     WireOutputList.columnconfigure(2,weight=1)
 
     def CollapseWireOutputList(Button):
         if WireOutputListIsCollapsed.get() == True:
             WireOutputListIsCollapsed.set(False)
             Button.config(text="▼")
-            WireOutputListList.grid(row=0, column=1,sticky="nsew")
+            WireOutputListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=9)
         else:
             WireOutputListIsCollapsed.set(True)
             Button.config(text="▶")
-            WireOutputListList.grid_forget()
+            WireOutputListFrame.grid_forget()
 
         return
     
-    WireOutputListIsCollapsed = tk.BooleanVar(value=True)
+    WireOutputListIsCollapsed = tk.BooleanVar(value=False)
     WireOutputListCollapseButton = nulltk.Button(WireOutputList, text = "▶", command=lambda: CollapseWireOutputList(WireOutputListCollapseButton))
-    WireOutputListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+    WireOutputListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="new")
 
     def AddDeviceToWire():
         DeviceFound = NullWireCreatePopupWindow("Output",OutputWire['Name'])
@@ -11470,6 +11497,7 @@ def CreateOutputWire(OutputWire):
         Device = {
             "Name": DeviceFound,
             "Muted": False,
+            "Mono": False,
             "Volume": 100,
             "Delete": False
             }
@@ -11479,13 +11507,19 @@ def CreateOutputWire(OutputWire):
         return
 
     def CreateDeviceOnWire(DeviceSent):
-        DeviceFrame = nulltk.Frame(WireOutputListListInner)
-        DeviceFrame.pack(fill="both", expand=True)
+        DeviceFrame = nulltk.LabelFrame(WireOutputListListInner, text= DeviceSent['Name'], bd=4)
+        DeviceFrame.pack(fill="both", expand=True, padx=10, pady=10)
         DeviceFrame.rowconfigure(0,weight=1)
-        DeviceFrame.columnconfigure(2,weight=1)
+        DeviceFrame.columnconfigure(3,weight=1)
 
-        DeviceName = nulltk.Label(DeviceFrame, text=DeviceSent['Name'])
-        DeviceName.grid(row=0,column=0, sticky="ew")
+        def SetDeviceMono():
+            DeviceSent['Mono'] = DeviceMono.get()
+            return
+        
+        DeviceMono = tk.BooleanVar(value=DeviceSent['Mono'])
+        DeviceMonoCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceMono, command=SetDeviceMono, text="Mono")
+        DeviceMonoCheck.grid(row=0,column=0, sticky="we", padx=(10,0), pady=5)
+
 
         def SetDeviceMute():
             DeviceSent['Muted'] = DeviceMuted.get()
@@ -11494,7 +11528,7 @@ def CreateOutputWire(OutputWire):
 
         DeviceMuted = tk.BooleanVar(value=DeviceSent['Muted'])
         DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
-        DeviceMute.grid(row=0,column=1, sticky="we")
+        DeviceMute.grid(row=0,column=1, sticky="we", padx=10, pady=5)
 
         def SetDeviceVolume():
             DeviceSent['Volume'] = DeviceVolume.get()
@@ -11502,10 +11536,12 @@ def CreateOutputWire(OutputWire):
 
 
         DeviceVolume = tk.IntVar(value=DeviceSent['Volume'])
+        DeviceVolumeLabel = nulltk.Label(DeviceFrame, text="Volume:")
+        DeviceVolumeLabel.grid(row=0,column=2, sticky="w", pady=5)
         DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
-        DeviceVolumeScale.grid(row=0,column=2, sticky="w")
+        DeviceVolumeScale.grid(row=0,column=3, sticky="ew", pady=5)
         DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
-        DeviceVolumeAmountShow.grid(row=0,column=3, sticky="w")
+        DeviceVolumeAmountShow.grid(row=0,column=4, sticky="w", padx=(0,10), pady=5)
 
         DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
         DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
@@ -11543,35 +11579,45 @@ def CreateOutputWire(OutputWire):
             return
     
         DeviceDeleteButton = nulltk.Button(DeviceFrame, text="Remove", command=lambda: DeleteDevice(DeviceDeleteButton))
-        DeviceDeleteButton.grid(row=0,column=4,sticky="ew")
+        DeviceDeleteButton.grid(row=0,column=5,sticky="ew", padx=10, pady=5)
 
         
         OutputRows[MainFrame]['DeviceRows'].append(DeviceFrame)
         return
 
     WireOutputListAddDevice = nulltk.Button(WireOutputList, text = "+", command=lambda: AddDeviceToWire())
-    WireOutputListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="ew")
+    WireOutputListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="new")
 
-    WireOutputListList = ScrollableFrame(WireOutputList)
-    WireOutputListList.grid(row=0, column=2,sticky="nsew")
-    WireOutputListList.config(height=200)
+    WireOutputListFrame = nulltk.LabelFrame(WireOutputList)
+    WireOutputListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=8)
+    WireOutputListFrame.config(height=200)
+    WireOutputListFrame.columnconfigure(0,weight=1)
+
+    CollapseWireOutputList(WireOutputListCollapseButton)
+
+
+    WireOutputListList = ScrollableFrame(WireOutputListFrame)
+    WireOutputListList.grid(row=0, column=0,sticky="nsew")
+    WireOutputListList.columnconfigure(0,weight=1)
+
 
     WireOutputListListInner = WireOutputListList.Inner
 
     #########----------------------------------------------------------------------------------------------------------------------------------------------------- sources list
 
-    SourcesOutputList = tk.LabelFrame(WireAddativesFrame, text="Capture These Programs")
-    SourcesOutputList.grid(row=1,column=0, sticky="nsew", pady=10)
+    SourcesOutputList = nulltk.LabelFrame(WireAddativesFrame, text="Capture These Programs")
+    SourcesOutputList.grid(row=1,column=0, sticky="nsew", pady=10, columnspan=99, padx=10)
+    SourcesOutputList.columnconfigure(2,weight=1)
 
     def CollapseWireSourceList(Button):
         if WireSourceListIsCollapsed.get() == True:
             WireSourceListIsCollapsed.set(False)
             Button.config(text="▼")
-            WireSourceListList.grid(row=0, column=1,sticky="nsew")
+            WireSourcesListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=9)
         else:
             WireSourceListIsCollapsed.set(True)
             Button.config(text="▶")
-            WireSourceListList.grid_forget()
+            WireSourcesListFrame.grid_forget()
 
         return
 
@@ -11583,6 +11629,7 @@ def CreateOutputWire(OutputWire):
 
         Device = {
             "Name": DeviceFound,
+            "Mono": False,
             "Muted": False,
             "Volume": 100,
             "Delete": False
@@ -11590,23 +11637,105 @@ def CreateOutputWire(OutputWire):
         
         OutputWire['AudioSourcesIn'].append(Device)
 
-        CreateDeviceOnWire(Device)
+        CreateSourceOnWire(Device)
         return
 
     def CreateSourceOnWire(SourceSent):
+        SourceFrame = nulltk.LabelFrame(WireSourceListListInner, text=SourceSent['Name'], bd=4)
+        SourceFrame.pack(fill="both", expand=True, padx=10, pady=10)
+        SourceFrame.rowconfigure(0,weight=1)
+        SourceFrame.columnconfigure(3,weight=1)
 
+        def SetSourceMono():
+            SourceSent['Mono'] = SourceMono.get()
+            return
+        
+        SourceMono = tk.BooleanVar(value=SourceSent['Mono'])
+        SourceMonoCheck = nulltk.Checkbutton(SourceFrame, variable=SourceMono, command=SetSourceMono, text="Mono")
+        SourceMonoCheck.grid(row=0,column=0, sticky="we", padx=(10,0), pady=5)
+
+        def SetSourceMute():
+            SourceSent['Muted'] = SourceMuted.get()
+
+            return
+
+        SourceMuted = tk.BooleanVar(value=SourceSent['Muted'])
+        SourceMute = nulltk.Checkbutton(SourceFrame, variable=SourceMuted, command=SetSourceMute, text="Mute")
+        SourceMute.grid(row=0,column=1, sticky="we",padx=10, pady=5)
+
+        def SetSourceVolume():
+            SourceSent['Volume'] = SourceVolume.get()
+            return
+
+
+        SourceVolume = tk.IntVar(value=SourceSent['Volume'])
+        SourceVolumeLabel = nulltk.Label(SourceFrame, text="Volume:")
+        SourceVolumeLabel.grid(row=0,column=2, sticky="w", pady=10)
+        SourceVolumeScale = nulltk.Scale(SourceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=SourceVolume)
+        SourceVolumeScale.grid(row=0,column=3, sticky="we", pady=5)
+        SourceVolumeAmountShow = nulltk.Label(SourceFrame, textvariable=SourceVolume)
+        SourceVolumeAmountShow.grid(row=0,column=4, sticky="w")
+
+        SourceVolumeScale.bind("<ButtonRelease-1>", SetSourceVolume)
+        SourceVolumeScale.bind("<Button-4>",lambda e: (SourceVolumeScale.set(min(100, SourceVolumeScale.get() + 5)),SetSourceVolume()))
+        SourceVolumeScale.bind("<Button-5>",lambda e: (SourceVolumeScale.set(max(0, SourceVolumeScale.get() - 5)),SetSourceVolume()))
+
+        def DeleteSource(Button, Timeout=4):
+            EndTime = time.time() + Timeout
+
+            def tick():
+                Remaining = int(EndTime - time.time())
+                if Remaining <= 0:
+                    if not Button.winfo_exists():
+                        return
+
+                    Button.config(text="Remove")
+                    SourceSent['Delete'] = False
+                    return
+
+                if not Button.winfo_exists():
+                    return
+                Button.config(text=f"R U Sure? {Remaining}")
+                Root.after(1000, tick)
+                return
+
+            if SourceSent['Delete'] == False:
+                SourceSent['Delete'] = True
+                tick()
+                return
+
+
+            PactlRemove(OutputWire, SourceSent,"SinkFromOutput")
+            OutputWire['AudioSourcesIn'].remove(SourceSent)
+            OutputRows[MainFrame]['SourceRows'].remove(SourceFrame)
+            SourceFrame.destroy()
+            return
+    
+        SourceDeleteButton = nulltk.Button(SourceFrame, text="Remove", command=lambda: DeleteSource(SourceDeleteButton))
+        SourceDeleteButton.grid(row=0,column=5,sticky="ew",padx=10)
+
+        
+        OutputRows[MainFrame]['SourceRows'].append(SourceFrame)
         return
 
-    WireSourceListIsCollapsed = tk.BooleanVar(value=True)
+    WireSourceListIsCollapsed = tk.BooleanVar(value=False)
     WireSourceListCollapseButton = nulltk.Button(SourcesOutputList, text = "▶", command=lambda: CollapseWireSourceList(WireSourceListCollapseButton))
-    WireSourceListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+    WireSourceListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="new")
 
     WireSourceListAddDevice = nulltk.Button(SourcesOutputList, text = "+", command=lambda: AddSourceToWire())
-    WireSourceListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="ew")
+    WireSourceListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="new")
 
-    WireSourceListList = ScrollableFrame(SourcesOutputList)
-    WireSourceListList.grid(row=0, column=2,sticky="nsew")
-    WireSourceListList.config(height=200)
+    WireSourcesListFrame = nulltk.LabelFrame(SourcesOutputList)
+    WireSourcesListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=9)
+    WireSourcesListFrame.config(height=200)
+    WireSourcesListFrame.columnconfigure(0,weight=1)
+
+    CollapseWireSourceList(WireSourceListCollapseButton)
+
+    WireSourceListList = ScrollableFrame(WireSourcesListFrame)
+    WireSourceListList.grid(row=0, column=0,sticky="nsew")
+    WireSourceListList.columnconfigure(0,weight=1)
+    
 
     WireSourceListListInner = WireSourceListList.Inner
 
@@ -11620,7 +11749,7 @@ def CreateOutputWire(OutputWire):
 
     #------ binding
 
-    NullWireOutputListInner.BindMouseWheel(MainFrame)
+    NullWireOutputList.BindMouseWheel(MainFrame)
 
     VolumeScale.bind("<ButtonRelease-1>", SetVolume)
     VolumeScale.bind("<Button-4>",lambda e: (VolumeScale.set(min(200, VolumeScale.get() + 5)),SetVolume()))
@@ -11675,9 +11804,9 @@ NullWireAddOutputWireButton.grid(row=0,column=0,sticky="ew")
 
 NullWireOutputList = ScrollableFrame(NullWireOutputPage)
 NullWireOutputList.grid(row=1,column=0,sticky="nsew", columnspan=99)
+NullWireOutputList.columnconfigure(0,weight=1)
 
 NullWireOutputListInner = NullWireOutputList.Inner
-NullWireOutputListInner.grid(row=0,column=0,sticky="nsew", columnspan=99)
 
     #endregion
 
