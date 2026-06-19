@@ -11171,19 +11171,24 @@ def PactlRemove(Source,Wire, DetachmentType, IDIndex):
 def PactlSetVolume(Source, VolumeType):
 
     Call = None
-    Name = Source['Name']
+    
+
     if VolumeType == "Sink":
         Call = "SetSinkVolume"
-        name = Source['InternalName']
+        Name = Source['InternalName']
 
     elif VolumeType == "Aux":
         Call = "SetAuxVolume"
+        Name = Source['IDs'][0]
+        print(Name)
 
     elif VolumeType == "Mic":
         Call = "SetMicVolume"
+        Name = Source['IDs'][0]
 
     elif VolumeType == "Source":
         Call = "SetSourceVolume"
+        Name = Source['Name']
 
     if Call is None:
         Log(f"NullWire: Idk wtf you're tryna do. error setting volume", "Error")
@@ -11563,7 +11568,7 @@ def CreateOutputWire(OutputWire):
 
         def SetDeviceMute():
             DeviceSent['Muted'] = DeviceMuted.get()
-            PactlSetVolume(DeviceSent,"Source")
+            PactlSetVolume(DeviceSent,"Aux")
 
             return
 
@@ -11573,7 +11578,7 @@ def CreateOutputWire(OutputWire):
 
         def SetDeviceVolume(Event=None):
             DeviceSent['Volume'] = DeviceVolume.get()
-            PactlSetVolume(DeviceSent,"Source")
+            PactlSetVolume(DeviceSent,"Aux")
             return
 
 
@@ -11614,7 +11619,7 @@ def CreateOutputWire(OutputWire):
                 return
 
 
-            PactlRemove(OutputWire, DeviceSent,"SinkFromOutput")
+            PactlRemove(DeviceSent, OutputWire,"SinkFromOutput",0)
             OutputWire['AttachedOutputs'].remove(DeviceSent)
             OutputRows[MainFrame]['DeviceRows'].remove(DeviceFrame)
             DeviceFrame.destroy()
@@ -11772,7 +11777,7 @@ def CreateOutputWire(OutputWire):
                 return
 
 
-            PactlRemove(OutputWire, SourceSent,"SinkFromOutput")
+            PactlRemove(SourceSent,OutputWire,"SourceFromSink",0)
             OutputWire['AudioSourcesIn'].remove(SourceSent)
             OutputRows[MainFrame]['SourceRows'].remove(SourceFrame)
             SourceFrame.destroy()
