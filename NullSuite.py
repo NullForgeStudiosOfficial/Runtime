@@ -6493,7 +6493,7 @@ def InstallGitLoginThings():
     ("SureWhyNot", "No Thanks")
     ).Show()
 
-    if Result != "Yes":
+    if Result != "SureWhyNot":
         return
 
     try:
@@ -11002,11 +11002,7 @@ LastSources = set()
 CurrentOutputs = []
 CurrentInputs = []
 CurrentSources = []
-
-IgnoreSources = [
-    "speech-dispatcher",
-    "speech-dispatcher-dummy",
-]
+SourceWindowClass = {}
 
 def ResolveID(WhatWeIdentifying, CallType):
     FoundSources = []
@@ -11024,7 +11020,6 @@ def ResolveID(WhatWeIdentifying, CallType):
         return None
     else:
         return FoundSources
-
 
 def FindOutputByName(Name):
     FoundOutputs = []
@@ -11204,7 +11199,9 @@ def PactlSetVolume(Source, VolumeType):
 
     return
 
-def NullWireCreatePopupWindow(ThisType, ExcludeThis):
+def NullWireCreatePopupWindow(ThisType, Wire):
+
+    ExcludeThis = Wire['Name']
 
     Result = {"Value": None}
 
@@ -11228,20 +11225,48 @@ def NullWireCreatePopupWindow(ThisType, ExcludeThis):
 
     elif ThisType == "Source":
         GetAllAudioSources()
+
         Items = CurrentSources
 
-    def SelectItem(Name):
+    def SelectItem(Name, IsSteam):
         Result["Value"] = Name
+        if IsSteam:
+            if Wire['SteamAsk'] == False:
+                Answer = NullMessageBox(Root,
+                    "Audo Add Steam Games To This Wire?",
+                    "Upon clicking yes... Anytime you start a game on Steam. It will auto connect to this Wire. \n Do you want this to happen?",
+                    ("Yes Please", "No Thanks")
+                    ).Show()
+                
+                if Answer == "Yes Please":
+                    Wire['SteamAppAuto'] = True
+
+                Wire['SteamAsk'] = True
         Popup.destroy()
 
     for Item in Items:
         if Item == ExcludeThis or Item == f"{ExcludeThis}_NullWire":
             continue
 
+        if ThisType == "Output" and any(Device["Name"] == Item for Device in Wire["AttachedOutputs"]):
+            continue
+
+        if ThisType == "Input" and any(Device["Name"] == Item for Device in Wire["AttachedInputs"]):
+            continue
+
+        if ThisType == "Source" and any(Source["Name"] == Item for Source in Wire["AudioSourcesIn"]):
+            continue
+
+        if ThisType == "Source":
+            WindowClass = SourceWindowClass.get(Item) or ""
+            issteamapp = "steam_app" in WindowClass.lower()
+        else:
+            issteamapp = False
+
         Button = nulltk.Button(
             Inner,
             text=Item,
-            command=lambda value=Item: SelectItem(value)
+            command=lambda value=Item, steam=issteamapp: SelectItem(value,steam)
         )
         Button.pack(fill="x", padx=5, pady=2)
 
@@ -11289,23 +11314,92 @@ def GetAllInputDevices():
     return
 
 def GetAllAudioSources():
-    global CurrentSources
+    global CurrentSources, SourceWindowClass
 
     try:
-        out = subprocess.check_output(["pactl", "list", "sink-inputs"]).decode()
+        out = subprocess.check_output(
+            ["pactl", "list", "sink-inputs"]
+        ).decode()
     except:
         return []
-    
+
     CurrentSources = []
+    SourceWindowClass = {}
+
+    CurrentName = None
+    CurrentPID = None
+
+    try:
+        WindowList = subprocess.check_output(
+            ["wmctrl", "-lp"]
+        ).decode().splitlines()
+    except:
+        WindowList = []
 
     for line in out.splitlines():
         line = line.strip()
 
         if "application.name" in line:
-            name = line.split("=", 1)[1].strip().strip('"')
+            CurrentName = line.split("=", 1)[1].strip().strip('"')
 
-            if name not in CurrentSources:
-                CurrentSources.append(name)
+        elif "application.process.id" in line:
+            CurrentPID = line.split("=", 1)[1].strip().strip('"')
+
+            if CurrentName is None:
+                continue
+
+            if CurrentName not in CurrentSources:
+                CurrentSources.append(CurrentName)
+
+            WMClass = None
+
+            for Window in WindowList:
+                Parts = Window.split(None, 4)
+
+                if len(Parts) < 3:
+                    continue
+
+                WindowPID = Parts[2]
+
+                if WindowPID == CurrentPID:
+                    WindowID = Parts[0]
+
+                    try:
+                        ClassInfo = subprocess.check_output(
+                            ["xprop", "-id", WindowID, "WM_CLASS"],
+                            stderr=subprocess.DEVNULL
+                        ).decode()
+
+                        WMClass = ClassInfo.strip().split('"')[-2].lower()
+                        break
+
+                    except:
+                        pass
+
+            SourceWindowClass[CurrentName] = WMClass
+
+    return
+
+def NormalizeDeviceVolumesInSinks(DeviceName, NewVolume,NewMute,NewMono, Outputs):
+    global OutputRows, InputRows
+    Rows = OutputRows if Outputs else InputRows
+    for MainFrame, RowData in Rows.items():
+        if DeviceName in RowData["DeviceRows"]:
+            RowData["DeviceRows"][DeviceName]["Volume"].set(NewVolume)
+            RowData["DeviceRows"][DeviceName]["Mute"].set(NewMute)
+            RowData["DeviceRows"][DeviceName]["Mono"].set(NewMono)
+
+    return
+
+def NormalizeSourceVolumesInSinks(SourceName, NewVolume,NewMute,NewMono):
+    global OutputRows
+    Rows = OutputRows
+    for MainFrame, RowData in Rows.items():
+        if SourceName in RowData["SourceRows"]:
+            RowData["SourceRows"][SourceName]["Volume"].set(NewVolume)
+            RowData["SourceRows"][SourceName]["Mute"].set(NewMute)
+            RowData["SourceRows"][SourceName]["Mono"].set(NewMono)
+
     return
 
 
@@ -11315,10 +11409,11 @@ def AddOutputWire():
     if NullWireOutputName.get() == "" or NullWireOutputName.get() in OutputWires:
         return
     
-    InternalName = NullWireOutputName.get() + "_NullWire"
+    WireName = NullWireOutputName.get().strip()
+    InternalName = WireName.replace(" ", "_") + "_NullWire"
 
     ThisOutputWire = OutputWires[NullWireOutputName.get()] = {
-        "Name": NullWireOutputName.get(),
+        "Name": WireName,
         "InternalName": InternalName,
         "Muted": False,
         "Volume": 100,
@@ -11326,6 +11421,7 @@ def AddOutputWire():
         "LimiterToggle": False,
         "Limiter": 50,
         "SteamAppAuto": False,
+        "SteamAsk": False,
         "AttachedOutputs": [],
         "AudioSourcesIn": []
     }
@@ -11505,7 +11601,7 @@ def CreateOutputWire(OutputWire):
     WireOutputListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="new")
 
     def AddDeviceToWire():
-        DeviceFound = NullWireCreatePopupWindow("Output",OutputWire['Name'])
+        DeviceFound = NullWireCreatePopupWindow("Output",OutputWire)
 
         if DeviceFound == None:
             return
@@ -11559,6 +11655,8 @@ def CreateOutputWire(OutputWire):
 
         def SetDeviceMono():
             DeviceSent['Mono'] = DeviceMono.get()
+            PactlSetVolume(DeviceSent,"Aux")
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], True )
             return
         
         DeviceMono = tk.BooleanVar(value=DeviceSent['Mono'])
@@ -11569,6 +11667,7 @@ def CreateOutputWire(OutputWire):
         def SetDeviceMute():
             DeviceSent['Muted'] = DeviceMuted.get()
             PactlSetVolume(DeviceSent,"Aux")
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], True )
 
             return
 
@@ -11579,6 +11678,7 @@ def CreateOutputWire(OutputWire):
         def SetDeviceVolume(Event=None):
             DeviceSent['Volume'] = DeviceVolume.get()
             PactlSetVolume(DeviceSent,"Aux")
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], True )
             return
 
 
@@ -11621,7 +11721,7 @@ def CreateOutputWire(OutputWire):
 
             PactlRemove(DeviceSent, OutputWire,"SinkFromOutput",0)
             OutputWire['AttachedOutputs'].remove(DeviceSent)
-            OutputRows[MainFrame]['DeviceRows'].remove(DeviceFrame)
+            del OutputRows[MainFrame]['DeviceRows'][DeviceSent['Name']]
             DeviceFrame.destroy()
             return
     
@@ -11629,7 +11729,12 @@ def CreateOutputWire(OutputWire):
         DeviceDeleteButton.grid(row=0,column=6,sticky="ew", padx=10, pady=5)
 
         ConnectDevice()
-        OutputRows[MainFrame]['DeviceRows'].append(DeviceFrame)
+        OutputRows[MainFrame]['DeviceRows'][DeviceSent['Name']] = {
+            "Frame": DeviceFrame,
+            "Volume": DeviceVolume,
+            "Mute": DeviceMuted,
+            "Mono": DeviceMono
+        }
         return
 
     WireOutputListAddDevice = nulltk.Button(WireOutputList, text = "+", command=lambda: AddDeviceToWire())
@@ -11669,7 +11774,7 @@ def CreateOutputWire(OutputWire):
         return
 
     def AddSourceToWire():
-        DeviceFound = NullWireCreatePopupWindow("Source",OutputWire['Name'])
+        DeviceFound = NullWireCreatePopupWindow("Source",OutputWire)
 
         if DeviceFound == None:
             return
@@ -11718,6 +11823,8 @@ def CreateOutputWire(OutputWire):
                 PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
             else:
                 PactlRemove(SourceSent,OutputWire,"SourceFromSink", 0)
+
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'])
             return
         
         SourceMono = tk.BooleanVar(value=SourceSent['Mono'])
@@ -11727,6 +11834,7 @@ def CreateOutputWire(OutputWire):
         def SetSourceMute():
             SourceSent['Muted'] = SourceMuted.get()
             PactlSetVolume(SourceSent,"Source")
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'])
 
             return
 
@@ -11737,6 +11845,7 @@ def CreateOutputWire(OutputWire):
         def SetSourceVolume(Event=None):
             SourceSent['Volume'] = SourceVolume.get()
             PactlSetVolume(SourceSent,"Source")
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'])
             return
 
 
@@ -11779,7 +11888,7 @@ def CreateOutputWire(OutputWire):
 
             PactlRemove(SourceSent,OutputWire,"SourceFromSink",0)
             OutputWire['AudioSourcesIn'].remove(SourceSent)
-            OutputRows[MainFrame]['SourceRows'].remove(SourceFrame)
+            del OutputRows[MainFrame]['SourceRows'][SourceSent['Name']]
             SourceFrame.destroy()
             return
     
@@ -11787,7 +11896,12 @@ def CreateOutputWire(OutputWire):
         SourceDeleteButton.grid(row=0,column=6,sticky="ew",padx=10)
 
         ConnectSource
-        OutputRows[MainFrame]['SourceRows'].append(SourceFrame)
+        OutputRows[MainFrame]['SourceRows'][SourceSent['Name']] = {
+            "Frame": SourceFrame,
+            "Volume": SourceVolume,
+            "Mute": SourceMuted,
+            "Mono": SourceMono
+        }
         return
 
     WireSourceListIsCollapsed = tk.BooleanVar(value=False)
@@ -11814,8 +11928,8 @@ def CreateOutputWire(OutputWire):
     #--- append
 
     OutputRows[MainFrame] = {
-        "DeviceRows": [],
-        "SourceRows": []
+        "DeviceRows": {},
+        "SourceRows": {}
 
     }
 
@@ -11870,9 +11984,11 @@ NullWireOutputName = tk.StringVar(value="")
 
 NullWireOutputEntry = nulltk.Entry(NullWireOutputTop, textvariable=NullWireOutputName)
 NullWireOutputEntry.grid(row=0,column=1,sticky="ew")
+NullWireOutputEntry.bind("<Return>",lambda event: AddOutputWire())
 
 NullWireAddOutputWireButton = nulltk.Button(NullWireOutputTop, text="Add Output Wire", command=lambda: AddOutputWire(), width = 16)
 NullWireAddOutputWireButton.grid(row=0,column=0,sticky="ew")
+
 
 NullWireOutputList = ScrollableFrame(NullWireOutputPage)
 NullWireOutputList.grid(row=1,column=0,sticky="nsew", columnspan=99)
@@ -11895,6 +12011,7 @@ NullWireInputTop.columnconfigure(0, weight=1)
 
 NullWireInputEntry = nulltk.Entry(NullWireInputTop)
 NullWireInputEntry.grid(row=0,column=0,sticky="ew")
+NullWireInputEntry.bind("<Return>",lambda event: AddInputWire())
 
 NullWireAddInputWireButton = nulltk.Button(NullWireInputTop, text="Add Input Wire", command=lambda: AddInputWire(), width = 16)
 NullWireAddInputWireButton.grid(row=0,column=1,sticky="ew")
