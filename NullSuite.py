@@ -11108,7 +11108,6 @@ def PactlAttach(Source,Wire, AttachmentType, IDIndex):
         Wire['InternalName'],
         str(Source['Mono'])
         ])
-        print("made it past")
         
         return
     elif AttachmentType == "SinkToOutput":
@@ -11175,7 +11174,6 @@ def PactlSetVolume(Source, VolumeType):
     elif VolumeType == "Aux":
         Call = "SetAuxVolume"
         Name = Source['IDs'][0]
-        print(Name)
 
     elif VolumeType == "Mic":
         Call = "SetMicVolume"
@@ -11258,7 +11256,7 @@ def NullWireCreatePopupWindow(ThisType, Wire):
             continue
 
         if ThisType == "Source":
-            WindowClass = SourceWindowClass.get(Item) or ""
+            WindowClass = SourceWindowClass.get(Item, {}).get("WMClass") or ""
             issteamapp = "steam_app" in WindowClass.lower()
         else:
             issteamapp = False
@@ -11384,18 +11382,31 @@ def GetAllAudioSources():
 
     return
 
-def NormalizeDeviceVolumesInSinks(DeviceName, NewVolume,NewMute,NewMono, Outputs):
+def NormalizeDeviceVolumesInSinks(DeviceName, NewVolume,NewMute,NewMono,NewOverride, Outputs):
     global OutputRows, InputRows
     Rows = OutputRows if Outputs else InputRows
+    Data = OutputWires if Outputs else InputWires
+
     for MainFrame, RowData in Rows.items():
         if DeviceName in RowData["DeviceRows"]:
             RowData["DeviceRows"][DeviceName]["Volume"].set(NewVolume)
             RowData["DeviceRows"][DeviceName]["Mute"].set(NewMute)
             RowData["DeviceRows"][DeviceName]["Mono"].set(NewMono)
+            RowData["DeviceRows"][DeviceName]["Override"].set(NewOverride)
+
+    for Wire in Data.values():
+        for AttachedOutput in Wire["AttachedOutputs"]:
+            if AttachedOutput["Name"] == DeviceName:
+                AttachedOutput["Volume"] = NewVolume
+                AttachedOutput["Muted"] = NewMute
+                AttachedOutput["Mono"] = NewMono
+                AttachedOutput["Override"] = NewOverride
+
+    SaveConfig("NullWire")
 
     return
 
-def NormalizeSourceVolumesInSinks(SourceName, NewVolume,NewMute,NewMono):
+def NormalizeSourceVolumesInSinks(SourceName, NewVolume,NewMute,NewMono, NewOverride):
     global OutputRows
     Rows = OutputRows
     for MainFrame, RowData in Rows.items():
@@ -11403,7 +11414,17 @@ def NormalizeSourceVolumesInSinks(SourceName, NewVolume,NewMute,NewMono):
             RowData["SourceRows"][SourceName]["Volume"].set(NewVolume)
             RowData["SourceRows"][SourceName]["Mute"].set(NewMute)
             RowData["SourceRows"][SourceName]["Mono"].set(NewMono)
+            RowData["SourceRows"][SourceName]["Override"].set(NewOverride)
 
+    for Wire in OutputWires.values():
+        for AttachedOutput in Wire["AudioSourcesIn"]:
+            if AttachedOutput["Name"] == SourceName:
+                AttachedOutput["Volume"] = NewVolume
+                AttachedOutput["Muted"] = NewMute
+                AttachedOutput["Mono"] = NewMono
+                AttachedOutput["Override"] = NewOverride
+
+    SaveConfig("NullWire")
     return
 
 
@@ -11616,15 +11637,30 @@ def CreateOutputWire(OutputWire):
         if DeviceFound == None:
             return
 
-        Device = {
-            "Name": DeviceFound,
-            "Connected": True,
-            "IDs": [],
-            "Muted": False,
-            "Mono": False,
-            "Volume": 100,
-            "Delete": False
-            }
+        ExistingDevice = None
+
+        for Wire in OutputWires.values():
+            for AttachedOutput in Wire["AttachedOutputs"]:
+                if AttachedOutput["Name"] == DeviceFound:
+                    ExistingDevice = AttachedOutput
+                    break
+
+            if ExistingDevice:
+                break
+
+        if ExistingDevice:
+            Device = ExistingDevice.copy()
+        else:
+            Device = {
+                "Name": DeviceFound,
+                "Connected": True,
+                "Override": True,
+                "IDs": [],
+                "Muted": False,
+                "Mono": False,
+                "Volume": 100,
+                "Delete": False
+                }
         OutputWire['AttachedOutputs'].append(Device)
 
         CreateDeviceOnWire(Device)
@@ -11667,8 +11703,17 @@ def CreateOutputWire(OutputWire):
 
         def SetDeviceMono():
             DeviceSent['Mono'] = DeviceMono.get()
-            PactlSetVolume(DeviceSent,"Aux")
-            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], True )
+            AllIDs = ResolveID(DeviceSent['Name'], "Output")
+
+            if not AllIDs:
+                Log(f"No Ids Found for {DeviceSent['Name']}", "Error")
+                return
+            
+            else:
+                DeviceSent['IDs'] = AllIDs
+                for i in range(len(AllIDs)):
+                    PactlAttach(DeviceSent,OutputWire,"SinkToOutput", i)
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], DeviceSent['Override'], True)
             SaveConfig("NullWire")
             return
         
@@ -11680,7 +11725,7 @@ def CreateOutputWire(OutputWire):
         def SetDeviceMute():
             DeviceSent['Muted'] = DeviceMuted.get()
             PactlSetVolume(DeviceSent,"Aux")
-            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], True )
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], DeviceSent['Override'], True)
             SaveConfig("NullWire")
 
             return
@@ -11692,7 +11737,7 @@ def CreateOutputWire(OutputWire):
         def SetDeviceVolume(Event=None):
             DeviceSent['Volume'] = DeviceVolume.get()
             PactlSetVolume(DeviceSent,"Aux")
-            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], True )
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], DeviceSent['Override'], True)
             SaveConfig("NullWire")
             return
 
@@ -11708,6 +11753,18 @@ def CreateOutputWire(OutputWire):
         DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
         DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
         DeviceVolumeScale.bind("<Button-5>",lambda e: (DeviceVolumeScale.set(max(0, DeviceVolumeScale.get() - 5)),SetDeviceVolume()))
+
+        def SetDeviceOverride():
+            DeviceSent['Override'] = DeviceOverride.get()
+            NormalizeDeviceVolumesInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Mono'], DeviceSent['Override'], True)
+            SaveConfig("NullWire")
+
+            return
+
+        DeviceOverride = tk.BooleanVar(value=DeviceSent['Override'])
+        DeviceOverrideCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceOverride, command=SetDeviceOverride, text="Override")
+        DeviceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=5)
+        ToolTip(DeviceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
 
         def DeleteDevice(Button, Timeout=4):
             EndTime = time.time() + Timeout
@@ -11742,14 +11799,15 @@ def CreateOutputWire(OutputWire):
             return
     
         DeviceDeleteButton = nulltk.Button(DeviceFrame, text="Remove", command=lambda: DeleteDevice(DeviceDeleteButton))
-        DeviceDeleteButton.grid(row=0,column=6,sticky="ew", padx=10, pady=5)
+        DeviceDeleteButton.grid(row=0,column=7,sticky="ew", padx=10, pady=5)
 
         ConnectDevice()
         OutputRows[MainFrame]['DeviceRows'][DeviceSent['Name']] = {
             "Frame": DeviceFrame,
             "Volume": DeviceVolume,
             "Mute": DeviceMuted,
-            "Mono": DeviceMono
+            "Mono": DeviceMono,
+            "Override": DeviceOverride
         }
         return
 
@@ -11795,15 +11853,30 @@ def CreateOutputWire(OutputWire):
         if SourceFound == None:
             return
 
-        Source = {
-            "Name": SourceFound,
-            "Connected": True,
-            "ID": None,
-            "Mono": False,
-            "Muted": False,
-            "Volume": 100,
-            "Delete": False
-            }
+        ExistingSource = None
+
+        for Wire in OutputWires.values():
+            for AttachedSource in Wire["AudioSourcesIn"]:
+                if AttachedSource["Name"] == SourceFound:
+                    ExistingSource = AttachedSource
+                    break
+
+            if ExistingSource:
+                break
+
+        if ExistingSource:
+            Source = ExistingSource.copy()
+        else:
+            Source = {
+                "Name": SourceFound,
+                "Connected": True,
+                "Override": True,
+                "ID": None,
+                "Mono": False,
+                "Muted": False,
+                "Volume": 100,
+                "Delete": False
+                }
         
         OutputWire['AudioSourcesIn'].append(Source)
 
@@ -11843,7 +11916,7 @@ def CreateOutputWire(OutputWire):
             else:
                 PactlRemove(SourceSent,OutputWire,"SourceFromSink", 0)
 
-            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'])
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'], SourceSent['Override'])
             return
         
         SourceMono = tk.BooleanVar(value=SourceSent['Mono'])
@@ -11853,7 +11926,7 @@ def CreateOutputWire(OutputWire):
         def SetSourceMute():
             SourceSent['Muted'] = SourceMuted.get()
             PactlSetVolume(SourceSent,"Source")
-            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'])
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'], SourceSent['Override'])
             SaveConfig("NullWire")
 
             return
@@ -11865,7 +11938,7 @@ def CreateOutputWire(OutputWire):
         def SetSourceVolume(Event=None):
             SourceSent['Volume'] = SourceVolume.get()
             PactlSetVolume(SourceSent,"Source")
-            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'])
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'], SourceSent['Override'])
             SaveConfig("NullWire")
             return
 
@@ -11881,6 +11954,20 @@ def CreateOutputWire(OutputWire):
         SourceVolumeScale.bind("<ButtonRelease-1>", SetSourceVolume)
         SourceVolumeScale.bind("<Button-4>",lambda e: (SourceVolumeScale.set(min(100, SourceVolumeScale.get() + 5)),SetSourceVolume()))
         SourceVolumeScale.bind("<Button-5>",lambda e: (SourceVolumeScale.set(max(0, SourceVolumeScale.get() - 5)),SetSourceVolume()))
+
+        def SetSourceOverride():
+            SourceSent['Override'] = SourceOverride.get()
+            NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'], SourceSent['Override'])
+            SaveConfig("NullWire")
+
+            return
+
+        SourceOverride = tk.BooleanVar(value=SourceSent['Override'])
+        SourceOverrideCheck = nulltk.Checkbutton(SourceFrame, variable=SourceOverride, command=SetSourceOverride, text="Override")
+        SourceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=5)
+
+        ToolTip(SourceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
+
 
         def DeleteSource(Button, Timeout=4):
             EndTime = time.time() + Timeout
@@ -11915,14 +12002,15 @@ def CreateOutputWire(OutputWire):
             return
     
         SourceDeleteButton = nulltk.Button(SourceFrame, text="Remove", command=lambda: DeleteSource(SourceDeleteButton))
-        SourceDeleteButton.grid(row=0,column=6,sticky="ew",padx=10)
+        SourceDeleteButton.grid(row=0,column=7,sticky="ew",padx=10)
 
         ConnectSource()
         OutputRows[MainFrame]['SourceRows'][SourceSent['Name']] = {
             "Frame": SourceFrame,
             "Volume": SourceVolume,
             "Mute": SourceMuted,
-            "Mono": SourceMono
+            "Mono": SourceMono,
+            "Override": SourceOverride
         }
         return
 
@@ -11988,8 +12076,6 @@ def CreateInputWire(InputWire):
     return
 
 NullWireNotebook = nulltk.Notebook(NullWire)
-#REMOVEWHENDONE
-#Notebook.forget(NullWire)
 
 NullWireNotebook.pack(fill="both", expand=True)
 NullWireOutputWires = nulltk.Frame(NullWireNotebook)
@@ -12135,17 +12221,19 @@ def NullWireLoop():
                 for Wire in OutputWires.values():
                     PactlSetVolume(Wire,"Sink")
                     for AttachedOutput in Wire["AttachedOutputs"]:
-                        PactlSetVolume(AttachedOutput,"Aux")
+                        if AttachedOutput['Override']:
+                            PactlSetVolume(AttachedOutput,"Aux")
                     for AttachedSource in Wire["AudioSourcesIn"]:
-                        PactlSetVolume(AttachedSource,"Source")
+                        if AttachedSource['Override']:
+                            PactlSetVolume(AttachedSource,"Source")
                 for Wire in InputWires.values():
                     for AttachedInput in Wire["AttachedInputs"]:
-                        PactlSetVolume(AttachedInput,"Mic")
+                        if AttachedInput['Override']:
+                            PactlSetVolume(AttachedInput,"Mic")
 
 
             tick = (tick + 1) % 4
         time.sleep(1)
-
 
 def StartUpNullWire():
     global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows

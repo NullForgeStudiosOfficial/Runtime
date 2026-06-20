@@ -74,15 +74,16 @@ case "$Action" in
             pw-link "$Sink:monitor_FL" "$Device:playback_MONO" 2>/dev/null || true
             pw-link "$Sink:monitor_FR" "$Device:playback_MONO" 2>/dev/null || true
 
-        elif [[ "$Mono" == "1" ]]; then
-
+        elif [[ "$Mono" == "1" || "$Mono" == "True" || "$Mono" == "true" ]]; then
+            
             pw-link "$Sink:monitor_FL" "$Device:playback_FL" 2>/dev/null || true
             pw-link "$Sink:monitor_FL" "$Device:playback_FR" 2>/dev/null || true
             pw-link "$Sink:monitor_FR" "$Device:playback_FL" 2>/dev/null || true
             pw-link "$Sink:monitor_FR" "$Device:playback_FR" 2>/dev/null || true
 
         else
-
+            pw-link -d "$Sink:monitor_FL" "$Device:playback_FR" 2>/dev/null || true 
+            pw-link -d "$Sink:monitor_FR" "$Device:playback_FL" 2>/dev/null || true 
             pw-link "$Sink:monitor_FL" "$Device:playback_FL" 2>/dev/null || true
             pw-link "$Sink:monitor_FR" "$Device:playback_FR" 2>/dev/null || true
 
@@ -249,6 +250,12 @@ case "$Action" in
                     pw-link "$InputName:output_FR" "$TargetSink:playback_FL" 2>/dev/null || true
                     pw-link "$InputName:output_FR" "$TargetSink:playback_FR" 2>/dev/null || true
 
+                
+                else
+                    pw-link -d "$InputName:output_FL" "$TargetSink:playback_FR" 2>/dev/null || true 
+                    pw-link -d "$InputName:output_FR" "$TargetSink:playback_FL" 2>/dev/null || true 
+                    pw-link "$InputName:output_FL" "$TargetSink:playback_FL" 2>/dev/null || true
+                    pw-link "$InputName:output_FR" "$TargetSink:playback_FR" 2>/dev/null || true
                 fi
             fi
 
