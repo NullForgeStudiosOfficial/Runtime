@@ -12214,13 +12214,16 @@ def NullWireLoop():
                                     
                                     if not AlreadyAttached and SourceInfo:
                                         SteamSource = {
-                                        "Name": SourceInfo.get("Name"),
-                                        "Connected": True,
-                                        "ID": None,
-                                        "Mono": False,
-                                        "Muted": False,
-                                        "Volume": 100,
-                                        "Delete": False
+                                            "Name": SourceInfo.get("Name"),
+                                            "Connected": True,
+                                            "Override": True,
+                                            "IDs": [],
+                                            "Muted": False,
+                                            "Mono": False,
+                                            "Volume": 100,
+                                            "Delete": False,
+                                            "Wire": False,
+                                            "InternalName": None
                                         }
         
                                         Wire['AudioSourcesIn'].append(SteamSource)
@@ -12283,7 +12286,7 @@ def NullWireLoop():
 
 
             tick = (tick + 1) % 4
-        time.sleep(1)
+        time.sleep(0.5)
 
 def StartUpNullWire():
     global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows
