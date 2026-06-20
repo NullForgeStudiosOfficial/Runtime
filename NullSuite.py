@@ -11470,20 +11470,19 @@ def AddOutputWire():
 
     NullWireOutputName.set("")
 
+    subprocess.call([
+        NWPath,
+        "CreateSink",
+        ThisOutputWire['InternalName'],
+        ])
+
+
     CreateOutputWire(ThisOutputWire)
 
     return
 
 def CreateOutputWire(OutputWire):
     global OutputRows, OutputWires
-
-    subprocess.call([
-        NWPath,
-        "CreateSink",
-        OutputWire['InternalName'],
-        ])
-
-
 
     MainFrame = nulltk.LabelFrame(NullWireOutputListInner, text= OutputWire['Name'])
     MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
@@ -12305,6 +12304,13 @@ def StartUpNullWire():
                 MainFrame.destroy()
 
             OutputRows.clear()
+
+            for Wire in OutputWires.values():
+                subprocess.call([
+                NWPath,
+                "CreateSink",
+                Wire['InternalName'],
+                ])
 
             for Wire in OutputWires.values():
                 CreateOutputWire(Wire)
