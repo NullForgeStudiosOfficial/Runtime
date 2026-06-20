@@ -11099,7 +11099,7 @@ def FindAudioSourceByName(Name):
 
     return FoundSources
 
-def PactlAttach(Source,Wire, AttachmentType, IDIndex):
+def PactlAttach(Source,Wire, AttachmentType, IDIndex, BypassMono=False):
     if AttachmentType == "SourceToSink":
         subprocess.call([
         NWPath,
@@ -11111,14 +11111,24 @@ def PactlAttach(Source,Wire, AttachmentType, IDIndex):
         
         return
     elif AttachmentType == "SinkToOutput":
-        subprocess.call([
-        NWPath,
-        "ConnectSinkToAux",
-        Wire['InternalName'],
-        Source['IDs'][IDIndex],
-        str(Source['Mono'])
-        ])
-        return
+        if BypassMono == False:
+            subprocess.call([
+            NWPath,
+            "ConnectSinkToAux",
+            Wire['InternalName'],
+            Source['IDs'][IDIndex],
+            str(Source['Mono'])
+            ])
+            return
+        else:
+            subprocess.call([
+            NWPath,
+            "ConnectSinkToAux",
+            Wire['InternalName'],
+            Source['InternalName'],
+            "False"
+            ])
+            return
     elif AttachmentType == "SinkToInput":
         subprocess.call([
         NWPath,
@@ -11131,7 +11141,7 @@ def PactlAttach(Source,Wire, AttachmentType, IDIndex):
     
     return
 
-def PactlRemove(Source,Wire, DetachmentType, IDIndex):
+def PactlRemove(Source,Wire, DetachmentType, IDIndex, BypassMono=False):
 
     if DetachmentType == "SourceFromSink":
 
@@ -11143,13 +11153,21 @@ def PactlRemove(Source,Wire, DetachmentType, IDIndex):
         
         return
     elif DetachmentType == "SinkFromOutput":
-        subprocess.call([
-        NWPath,
-        "RemoveSinkFromAux",
-        Wire['InternalName'],
-        Source['IDs'][IDIndex]
-        ])
-        return
+        if BypassMono == False:
+            subprocess.call([
+            NWPath,
+            "RemoveSinkFromAux",
+            Wire['InternalName'],
+            Source['IDs'][IDIndex]
+            ])
+            return
+        else:
+            subprocess.call([
+            NWPath,
+            "RemoveSinkFromAux",
+            Wire['InternalName'],
+            Source['InternalName']
+            ])
     elif DetachmentType == "SinkFromInput":
 
         subprocess.call([
@@ -11427,7 +11445,6 @@ def NormalizeSourceVolumesInSinks(SourceName, NewVolume,NewMute,NewMono, NewOver
     SaveConfig("NullWire")
     return
 
-
 def AddOutputWire():
     global OutputWires
 
@@ -11648,19 +11665,42 @@ def CreateOutputWire(OutputWire):
             if ExistingDevice:
                 break
 
+        if ExistingDevice == None:
+            ThisWire = None
+            for Wire in OutputWires.values():
+                if DeviceFound == Wire['InternalName']:
+                    ThisWire = Wire
+                    break
+
         if ExistingDevice:
             Device = ExistingDevice.copy()
         else:
-            Device = {
-                "Name": DeviceFound,
-                "Connected": True,
-                "Override": True,
-                "IDs": [],
-                "Muted": False,
-                "Mono": False,
-                "Volume": 100,
-                "Delete": False
-                }
+            if ThisWire is not None:
+                Device = {
+                    "Name": ThisWire['Name'],
+                    "Connected": True,
+                    "Override": False,
+                    "IDs": [],
+                    "Muted": ThisWire['Muted'],
+                    "Mono": False,
+                    "Volume": ThisWire['Volume'],
+                    "Delete": False,
+                    "Wire": True,
+                    "InternalName": ThisWire['InternalName']
+                    }
+            else:
+                Device = {
+                    "Name": DeviceFound,
+                    "Connected": True,
+                    "Override": True,
+                    "IDs": [],
+                    "Muted": False,
+                    "Mono": False,
+                    "Volume": 100,
+                    "Delete": False,
+                    "Wire": False,
+                    "InternalName": None
+                    }
         OutputWire['AttachedOutputs'].append(Device)
 
         CreateDeviceOnWire(Device)
@@ -11680,19 +11720,23 @@ def CreateOutputWire(OutputWire):
             DeviceSent['Connected'] = DeviceConnected.get()
             SaveConfig("NullWire")
 
-            AllIDs = ResolveID(DeviceSent['Name'], "Output")
-
-            if not AllIDs:
-                Log(f"No Ids Found for {DeviceSent['Name']}", "Error")
-                return
-            
+            if DeviceSent['Wire'] == False:
+                AllIDs = ResolveID(DeviceSent['Name'], "Output")
+                if not AllIDs:
+                    Log(f"No Ids Found for {DeviceSent['Name']}", "Error")
+                    return
+                else:
+                    DeviceSent['IDs'] = AllIDs
+                    for i in range(len(AllIDs)):
+                        if DeviceConnected.get() == True:
+                            PactlAttach(DeviceSent,OutputWire,"SinkToOutput", i)
+                        else:
+                            PactlRemove(DeviceSent,OutputWire,"SinkFromOutput", i)
             else:
-                DeviceSent['IDs'] = AllIDs
-                for i in range(len(AllIDs)):
-                    if DeviceConnected.get() == True:
-                        PactlAttach(DeviceSent,OutputWire,"SinkToOutput", i)
-                    else:
-                        PactlRemove(DeviceSent,OutputWire,"SinkFromOutput", i)
+                if DeviceConnected.get() == True:
+                    PactlAttach(DeviceSent,OutputWire,"SinkToOutput", 0, True)
+                else:
+                    PactlRemove(DeviceSent,OutputWire,"SinkFromOutput", 0, True)
 
             return
 
@@ -11718,8 +11762,10 @@ def CreateOutputWire(OutputWire):
             return
         
         DeviceMono = tk.BooleanVar(value=DeviceSent['Mono'])
-        DeviceMonoCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceMono, command=SetDeviceMono, text="Mono")
-        DeviceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=5)
+        if DeviceSent['Wire'] == False:
+            
+            DeviceMonoCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceMono, command=SetDeviceMono, text="Mono")
+            DeviceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=5)
 
 
         def SetDeviceMute():
@@ -11731,8 +11777,10 @@ def CreateOutputWire(OutputWire):
             return
 
         DeviceMuted = tk.BooleanVar(value=DeviceSent['Muted'])
-        DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
-        DeviceMute.grid(row=0,column=2, sticky="we", padx=10, pady=5)
+        if DeviceSent['Wire'] == False:
+            
+            DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
+            DeviceMute.grid(row=0,column=2, sticky="we", padx=10, pady=5)
 
         def SetDeviceVolume(Event=None):
             DeviceSent['Volume'] = DeviceVolume.get()
@@ -11741,18 +11789,19 @@ def CreateOutputWire(OutputWire):
             SaveConfig("NullWire")
             return
 
-
         DeviceVolume = tk.IntVar(value=DeviceSent['Volume'])
-        DeviceVolumeLabel = nulltk.Label(DeviceFrame, text="Volume:")
-        DeviceVolumeLabel.grid(row=0,column=3, sticky="w", pady=5)
-        DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
-        DeviceVolumeScale.grid(row=0,column=4, sticky="ew", pady=5)
-        DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
-        DeviceVolumeAmountShow.grid(row=0,column=5, sticky="w", padx=(0,10), pady=5)
+        if DeviceSent['Wire'] == False:
+            
+            DeviceVolumeLabel = nulltk.Label(DeviceFrame, text="Volume:")
+            DeviceVolumeLabel.grid(row=0,column=3, sticky="w", pady=5)
+            DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
+            DeviceVolumeScale.grid(row=0,column=4, sticky="ew", pady=5)
+            DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
+            DeviceVolumeAmountShow.grid(row=0,column=5, sticky="w", padx=(0,10), pady=5)
 
-        DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
-        DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
-        DeviceVolumeScale.bind("<Button-5>",lambda e: (DeviceVolumeScale.set(max(0, DeviceVolumeScale.get() - 5)),SetDeviceVolume()))
+            DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
+            DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
+            DeviceVolumeScale.bind("<Button-5>",lambda e: (DeviceVolumeScale.set(max(0, DeviceVolumeScale.get() - 5)),SetDeviceVolume()))
 
         def SetDeviceOverride():
             DeviceSent['Override'] = DeviceOverride.get()
@@ -11760,11 +11809,11 @@ def CreateOutputWire(OutputWire):
             SaveConfig("NullWire")
 
             return
-
         DeviceOverride = tk.BooleanVar(value=DeviceSent['Override'])
-        DeviceOverrideCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceOverride, command=SetDeviceOverride, text="Override")
-        DeviceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=5)
-        ToolTip(DeviceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
+        if DeviceSent['Wire'] == False:
+            DeviceOverrideCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceOverride, command=SetDeviceOverride, text="Override")
+            DeviceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=5)
+            ToolTip(DeviceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
 
         def DeleteDevice(Button, Timeout=4):
             EndTime = time.time() + Timeout
@@ -11791,7 +11840,10 @@ def CreateOutputWire(OutputWire):
                 return
 
 
-            PactlRemove(DeviceSent, OutputWire,"SinkFromOutput",0)
+            if DeviceSent['Wire'] == False:
+                PactlRemove(DeviceSent, OutputWire,"SinkFromOutput",0)
+            else:
+                PactlRemove(DeviceSent, OutputWire,"SinkFromOutput",0, True)
             OutputWire['AttachedOutputs'].remove(DeviceSent)
             del OutputRows[MainFrame]['DeviceRows'][DeviceSent['Name']]
             SaveConfig("NullWire")
@@ -12065,7 +12117,6 @@ def CreateOutputWire(OutputWire):
         CreateSourceOnWire(item)
 
     return    
-
 
 def AddInputWire():
 
