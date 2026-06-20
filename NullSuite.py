@@ -12092,11 +12092,58 @@ def NullWireLoop():
                                             if RowData["Wire"] is Wire:
                                                 RowData["CreateSource"](SteamSource)
                                                 break
+                        
             elif tick == 1:
-                pass
+                GetAllOutputDevices()
+                if CurrentOutputs != LastOutputs:
+                    CurrentSet = set(CurrentOutputs)
+                    NewOutputs = CurrentSet - LastOutputs
+                    LastOutputs = CurrentSet
+
+                    for Outputs in NewOutputs:
+                        for Wire in OutputWires.values():
+                            for AttachedOutput in Wire["AttachedOutputs"]:
+                                if AttachedOutput["Name"] == Outputs:
+                                    AllIDs = ResolveID(AttachedOutput['Name'], "Output")
+                                    if not AllIDs:
+                                        Log(f"No Ids Found for {AttachedOutput['Name']}", "Error")
+                                        continue
+                                    else:
+                                        AttachedOutput['IDs'] = AllIDs
+                                        for i in range(len(AllIDs)):
+                                            PactlAttach(AttachedOutput,Wire,"SinkToOutput", i)
             elif tick == 2:
-                pass
-            tick = (tick + 1) % 3
+                GetAllInputDevices()
+                if CurrentInputs != LastInputs:
+                    CurrentSet = set(CurrentInputs)
+                    NewInputs = CurrentSet - LastInputs
+                    LastInputs = CurrentSet
+
+                    for Inputs in NewInputs:
+                        for Wire in InputWires.values():
+                            for AttachedInput in Wire["AttachedInputs"]:
+                                if AttachedInput["Name"] == Inputs:
+                                    AllIDs = ResolveID(AttachedInput['Name'], "Input")
+                                    if not AllIDs:
+                                        Log(f"No Ids Found for {AttachedInput['Name']}", "Error")
+                                        continue
+                                    else:
+                                        AttachedInput['IDs'] = AllIDs
+                                        for i in range(len(AllIDs)):
+                                            PactlAttach(AttachedInput,Wire,"SinkToInput", i)
+            elif tick == 3:
+                for Wire in OutputWires.values():
+                    PactlSetVolume(Wire,"Sink")
+                    for AttachedOutput in Wire["AttachedOutputs"]:
+                        PactlSetVolume(AttachedOutput,"Aux")
+                    for AttachedSource in Wire["AudioSourcesIn"]:
+                        PactlSetVolume(AttachedSource,"Source")
+                for Wire in InputWires.values():
+                    for AttachedInput in Wire["AttachedInputs"]:
+                        PactlSetVolume(AttachedInput,"Mic")
+
+
+            tick = (tick + 1) % 4
         time.sleep(1)
 
 
