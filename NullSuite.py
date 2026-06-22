@@ -8311,9 +8311,9 @@ def BuildGitPage(Repo=None):
             threading.Thread(target=UpdateReleaseOption,args=(Repo,RepoOptions,BranchBox),daemon=True).start()
         except Exception as e:
             Log(f"NullGit: Release Detection Error {e}", "Error")
-        nulltk.Label(AllBox, text="Last Commit Title:").grid(row=1,column=0,sticky="ew", pady=10,columnspan=99, padx=10)
+        nulltk.Label(AllBox, text="Last Commit Title:").grid(row=1,column=0,sticky="w", pady=(10,2),columnspan=99, padx=10)
         CommitLabel = nulltk.Entry(AllBox,textvariable=CommitVar, state="readonly")
-        CommitLabel.grid(row=2, column=0,columnspan=3,sticky="ew",padx=10,pady=10)
+        CommitLabel.grid(row=2, column=0,columnspan=3,sticky="ew",padx=10,pady=(2,10))
         nulltk.Button(AllBox, text="Pull Repo", command=lambda: PullRepo(Repo, StatusVar)).grid(row=3, column=0, sticky="ew",pady=10, padx=10,columnspan=99)
         
         
@@ -8485,7 +8485,13 @@ def CheckAllRepos():
         ).Show()
 
     if Answer == "Yes":
-        pass
+        for Repo in Repos.values():
+            ButtonInfo = NullGitButtonsList.get(Repo["Path"])
+            if not ButtonInfo:
+                continue
+            StatusVar = ButtonInfo["TextVar"]
+            StatusVar.set(f"{Repo['Name']} (🔄)")
+            threading.Thread(target=UpdateRepoStatus,args=(Repo, StatusVar),daemon=True).start()
     return
 
 def BuildRepoButtons(Repo=None, Title = None):
