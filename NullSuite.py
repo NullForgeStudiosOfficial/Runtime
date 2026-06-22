@@ -6746,7 +6746,7 @@ def ChangeBranch(Repo, Branch, StatusVar):
             text=True
         )
 
-        StatusVar.set(f"{Repo['Name']} {GetRepoStatus(Repo)}")
+        StatusVar.set(f"{GetRepoStatus(Repo)}")
     except Exception as e:
         NullMessageBox(Root,"Branch Change Failed",f"{str(e)}", ("Ok...",)).Show()
 
@@ -6834,12 +6834,12 @@ def GetRepoStatus(Repo):
         Status = Result.stdout.lower()
 
         if "behind" in Status:
-            return f"{Repo['Name']} 📛"
+            return f" 📛"
 
         if "ahead" in Status:
-            return f"{Repo['Name']} ⏩"
+            return f" ⏩"
 
-        return f"{Repo['Name']} 💚"
+        return f" 💚"
 
     except Exception as e:
 
@@ -6957,7 +6957,7 @@ def PullRepo(Repo, StatusVar):
                 text=True
             )
             StatusVar.set(
-                f"{Repo['Name']} {GetRepoStatus(Repo)}"
+                f"{GetRepoStatus(Repo)}"
             )
         except subprocess.CalledProcessError as e:
             StatusVar.set(
@@ -8299,7 +8299,7 @@ def BuildGitPage(Repo=None):
                 CommitVar.set(GetCurrentCommit(Repo["Path"]))
             elif Match["Type"] == "Release":
                 CommitVar.set(GetReleaseDisplay(Repo))
-            StatusVar.set(f"{Repo['Name']} {GetRepoStatus(Repo)}")
+            StatusVar.set(f"{GetRepoStatus(Repo)}")
             SaveConfig("NullGit")
             MainFrame.focus_set()
         BranchBox = nulltk.Combobox(AllBox, values=DisplayValues, textvariable=CurrentBranch, state="readonly")
