@@ -622,7 +622,7 @@ class NullMessageBox(nulltk.Toplevel):
         MessageLabel.pack(fill="x", pady=(0,10))
 
         ButtonFrame = nulltk.Frame(MainFrame)
-        ButtonFrame.pack(pady=5)
+        ButtonFrame.pack(pady=10)
 
         DefaultButton = None
 
@@ -632,7 +632,7 @@ class NullMessageBox(nulltk.Toplevel):
                 text=ButtonName,
                 command=lambda value=ButtonName: self.ButtonPressed(value)
             )
-            TheButton.pack(side="left", padx=5)
+            TheButton.pack(side="left", padx=10)
             if DefaultButton is None:
                 DefaultButton = TheButton
 
@@ -859,8 +859,8 @@ def OpenImagePopUp(Path, ThumbnailSize=256):
         Cell.grid(
             row=Row,
             column=Column,
-            padx=5,
-            pady=5,
+            padx=10,
+            pady=10,
             sticky="n"
         )
 
@@ -1019,7 +1019,7 @@ StartInTrayActivator = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Start I
 StartInTrayActivator.grid(row=0,column=1, padx=1,pady=1, sticky="w")
 NullSuiteDarkModeToggle = nulltk.Checkbutton(NullSuiteTogglesOptions, text="Dark Mode", variable= DarkTheme, command=lambda: ChangeTheme())
 NullSuiteDarkModeToggle.grid(row=0,column=2, padx=1,pady=1, sticky="we")
-ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=3,sticky="ns",padx=5)
+ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=3,sticky="ns",padx=10)
 BlackVar = tk.IntVar(value=100)
 BlackValueText = nulltk.Label(NullSuiteTogglesOptions, text="Blackness")
 BlackValueText.grid(row=0, column=4, sticky="ew")
@@ -1028,8 +1028,8 @@ BlackLevel.grid(row=0, column=5, sticky="ew")
 BlackLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
 BlackLevel.set(BlackVar.get())
 BlackLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=BlackVar, width=4)
-BlackLevelValue.grid(row=0, column=6, padx=5, sticky="w")
-ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=7,sticky="ns",padx=5)
+BlackLevelValue.grid(row=0, column=6, padx=10, sticky="w")
+ttk.Separator(NullSuiteTogglesOptions,orient="vertical").grid(row=0,column=7,sticky="ns",padx=10)
 WhiteVar = tk.IntVar(value=100)
 WhiteValueText = nulltk.Label(NullSuiteTogglesOptions, text="Whiteness")
 WhiteValueText.grid(row=0, column=8, sticky="ew")
@@ -1038,7 +1038,7 @@ WhiteLevel.grid(row=0, column=9, sticky="ew")
 WhiteLevel.bind("<ButtonRelease-1>", lambda e: ChangeTheme())
 WhiteLevel.set(WhiteVar.get())
 WhiteLevelValue = nulltk.Label(NullSuiteTogglesOptions, textvariable=WhiteVar, width=4)
-WhiteLevelValue.grid(row=0, column=10, padx=5, sticky="w")
+WhiteLevelValue.grid(row=0, column=10, padx=10, sticky="w")
 NullSuiteList = ScrollableFrame(NullSuiteChangeLogPage)
 NullSuiteList.grid(row=2,column=0, sticky="ensw", columnspan=99)
 NullSuiteList.rowconfigure(0,weight=1)
@@ -1053,7 +1053,7 @@ AboutNullWire = nulltk.Label(
     NullSuiteChangeLogPage,
     text="Welcome to NullSuite! A collective trashpile of applications from NullForgeStudios, for ease of use with LinuxMint!  Enjoy, This will ALWAYS be free, buuuuuuuut if you wanna donate to help it along... "
 )
-AboutNullWire.grid(row=3, column=0, sticky="ew", padx=5, pady=(5,0))
+AboutNullWire.grid(row=3, column=0, sticky="ew", padx=10, pady=(5,0))
 link = nulltk.Label(
     NullSuiteChangeLogPage,
     text="Our Ko-fi",
@@ -1061,7 +1061,7 @@ link = nulltk.Label(
     cursor="hand2",
     ThemeFG = False
 )
-link.grid(row=4, column=0, sticky="ew", padx=5, pady=(0,10))
+link.grid(row=4, column=0, sticky="ew", padx=10, pady=(0,10))
 link.bind("<Button-1>", lambda e: webbrowser.open_new("https://ko-fi.com/nullforgestudios"))
 
 
@@ -1231,13 +1231,13 @@ def AddGameRow(State=None, Loading=False):
 
     nulltk.Button(Frame,text="Remove",width=8,command=RemoveSelf).grid(row=0,column=0,padx=3)
 
-    ttk.Separator(Frame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+    ttk.Separator(Frame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=10)
 
     nulltk.Entry(Frame,textvariable=PathVar,state="readonly").grid(row=0,column=2,padx=3,sticky="ew")
 
     nulltk.Button(Frame,text="Browse",width=8,command=Browse).grid(row=0,column=3,padx=3)
 
-    ttk.Separator(Frame,orient="vertical").grid(row=0,column=4,sticky="ns",padx=5)
+    ttk.Separator(Frame,orient="vertical").grid(row=0,column=4,sticky="ns",padx=10)
 
     Buttons = {}
 
@@ -1253,7 +1253,7 @@ def AddGameRow(State=None, Loading=False):
     Buttons["B"].grid(row=0,column=7,padx=2)
     Buttons["B"].DefaultBg = Buttons["Default"].cget("bg")
 
-    ttk.Separator(Frame,orient="vertical").grid(row=0,column=8,sticky="ns",padx=5)
+    ttk.Separator(Frame,orient="vertical").grid(row=0,column=8,sticky="ns",padx=10)
 
     Buttons["Linux"] = nulltk.Button(Frame,text="Linux",width=12,command=lambda: LaunchGame(State,"Linux",RowIndex))
     Buttons["Linux"].grid(row=0,column=9,padx=2)
@@ -1414,10 +1414,10 @@ def BuildEnv(State):
     return Env
 
 def MakeProtonRow(row, key, label):
-    nulltk.Label(ProtonTop, text=label, anchor="w").grid(row=row, column=0, padx=3, pady=5, sticky="w")
+    nulltk.Label(ProtonTop, text=label, anchor="w").grid(row=row, column=0, padx=3, pady=10, sticky="w")
 
     entry = nulltk.Entry(ProtonTop, textvariable=ProtonVars[key], state="readonly")
-    entry.grid(row=row, column=1, padx=3, pady=5, sticky="ew")
+    entry.grid(row=row, column=1, padx=3, pady=10, sticky="ew")
 
     def Pick():
         Home = os.path.expanduser("~")
@@ -2701,7 +2701,7 @@ def SearchForAnyFile(Controller, var, Field, Page=None):
 def AddMidiRow(Row=None, Loading=False):
     global MidiRows, DeleteDeviceConfirmation, DeleteDeviceRowConfirmation, MidiRowObjects
     Frame = nulltk.Frame(MidiContainer)
-    Frame.pack(fill="x", expand=False, padx=5, pady=5)
+    Frame.pack(fill="x", expand=False, padx=10, pady=10)
     Frame.columnconfigure(0, weight=1)
     Frame.rowconfigure(0, weight=1)
     
@@ -2746,7 +2746,7 @@ def AddMidiRow(Row=None, Loading=False):
 
     # --- Togglerow before any selection
     TogglesRow = nulltk.Frame(Frame)
-    TogglesRow.pack(fill="x", padx=5, pady=5)
+    TogglesRow.pack(fill="x", padx=10, pady=10)
     TogglesRow.columnconfigure(0, weight=1)
     TogglesRow.columnconfigure(1, weight=1)
     TogglesRow.columnconfigure(2, weight=1)
@@ -2769,7 +2769,7 @@ def AddMidiRow(Row=None, Loading=False):
     #----------------------
     
     BasicTopRow = nulltk.Frame(Frame)
-    BasicTopRow.pack(fill="x", padx=5, pady=5)
+    BasicTopRow.pack(fill="x", padx=10, pady=10)
     BasicTopRow.columnconfigure(0, weight=0)
     BasicTopRow.columnconfigure(1, weight=0)
     BasicTopRow.columnconfigure(2, weight=0)
@@ -2785,7 +2785,7 @@ def AddMidiRow(Row=None, Loading=False):
     BasicTopRow.rowconfigure(0, weight=0)
     
     ControllerRow = nulltk.Frame(Frame)
-    ControllerRow.pack(fill="both", expand=True, padx=5, pady=5)
+    ControllerRow.pack(fill="both", expand=True, padx=10, pady=10)
     ControllerRow.rowconfigure(0, weight=0)
     ControllerRow.rowconfigure(1, weight=0)
     ControllerRow.columnconfigure(0, weight=0)
@@ -2803,7 +2803,7 @@ def AddMidiRow(Row=None, Loading=False):
     ControllerRow.pack_forget()
 
     DrumRow = nulltk.Frame(Frame)
-    DrumRow.pack(fill="x", expand=False, padx=5, pady=5)
+    DrumRow.pack(fill="x", expand=False, padx=10, pady=10)
     DrumRow.columnconfigure(0, weight=0)
     DrumRow.columnconfigure(1, weight=1)
     DrumRow.columnconfigure(2, weight=0)
@@ -2819,10 +2819,10 @@ def AddMidiRow(Row=None, Loading=False):
     DrumRow.pack_forget()
 
     KeyboardRow = nulltk.Frame(Frame)
-    KeyboardRow.pack(fill="x", padx=5, pady=5)
-    nulltk.Label(KeyboardRow, text="Keyboard has been redacted, Just go here lol: ").pack(fill="x", padx=5, pady=5)
+    KeyboardRow.pack(fill="x", padx=10, pady=10)
+    nulltk.Label(KeyboardRow, text="Keyboard has been redacted, Just go here lol: ").pack(fill="x", padx=10, pady=10)
     pianist = nulltk.Label(KeyboardRow,text="https://www.onlinepianist.com/virtual-piano",fg="blue",cursor="hand2")
-    pianist.pack(fill="x", padx=5, pady=5)
+    pianist.pack(fill="x", padx=10, pady=10)
     pianist.bind("<Button-1>", lambda e: webbrowser.open_new("https://www.onlinepianist.com/virtual-piano"))
     
     KeyboardRow.pack_forget()
@@ -2850,21 +2850,21 @@ def AddMidiRow(Row=None, Loading=False):
             else:
                 BasicTopRowCollapseButton.config(text="▼")
                 if Row["Drums"]:
-                    DrumRow.pack(fill="x", expand=False, padx=5, pady=5)
+                    DrumRow.pack(fill="x", expand=False, padx=10, pady=10)
                 elif Row["Controller"]:
-                    ControllerRow.pack(fill="x", padx=5, pady=5)
+                    ControllerRow.pack(fill="x", padx=10, pady=10)
                 elif Row["Keyboard"]:
-                    KeyboardRow.pack(fill="x", padx=5, pady=5)
+                    KeyboardRow.pack(fill="x", padx=10, pady=10)
             return
 
         if Row["RowCollapsed"]:
             BasicTopRowCollapseButton.config(text="▼")
             if Row["Drums"]:
-                DrumRow.pack(fill="both", expand=True, padx=5, pady=5)
+                DrumRow.pack(fill="both", expand=True, padx=10, pady=10)
             elif Row["Controller"]:
-                ControllerRow.pack(fill="x", padx=5, pady=5)
+                ControllerRow.pack(fill="x", padx=10, pady=10)
             elif Row["Keyboard"]:
-                KeyboardRow.pack(fill="x", padx=5, pady=5)
+                KeyboardRow.pack(fill="x", padx=10, pady=10)
             Row["RowCollapsed"] = False
         else:
             DrumRow.pack_forget()
@@ -2891,7 +2891,7 @@ def AddMidiRow(Row=None, Loading=False):
         BasicTopRowControllerToggle.grid_remove()
         BasicTopRowDrumToggle.grid_remove()
         BasicTopRowKeyboardToggle.grid_remove()
-        TogglesRow.pack(fill="x", padx=5, pady=5)
+        TogglesRow.pack(fill="x", padx=10, pady=10)
 
     def UpdateActiveState():
         Row["Active"] = ActiveMidiDevice.get()
@@ -2935,7 +2935,7 @@ def AddMidiRow(Row=None, Loading=False):
     #---
 
     Divider = nulltk.Frame(BasicTopRow,width=2,bg="#555")
-    Divider.grid(row=0,column=2,sticky="news",padx=5)
+    Divider.grid(row=0,column=2,sticky="news",padx=10)
 
     BasicTopRowActiveMidi = nulltk.Checkbutton(BasicTopRow,variable=ActiveMidiDevice, text="Active?", command=lambda: UpdateActiveState())
     BasicTopRowActiveMidi.grid(row=0, column=3, sticky="ew", padx=2)
@@ -2987,7 +2987,7 @@ def AddMidiRow(Row=None, Loading=False):
         ControllerRow.pack_forget()
         DrumRow.pack_forget()
         KeyboardRow.pack_forget()
-        BasicTopRow.pack(fill="x", padx=5, pady=5)
+        BasicTopRow.pack(fill="x", padx=10, pady=10)
         Row['Controller'] = False
         Row['Drums'] = False
         Row['Keyboard'] = False
@@ -3015,7 +3015,7 @@ def AddMidiRow(Row=None, Loading=False):
     # --------------- Controller
 
     Controllerlist = nulltk.Frame(ControllerRow)
-    Controllerlist.pack(fill="both", expand="True", padx=5, pady=5)
+    Controllerlist.pack(fill="both", expand="True", padx=10, pady=10)
     Controllerlist.grid(row=1, column=0, sticky="ewns", padx=2,columnspan=20)
     Controllerlist.columnconfigure(0,weight=1)
     Controllerlist.rowconfigure(0,weight=0)
@@ -3032,7 +3032,7 @@ def AddMidiRow(Row=None, Loading=False):
     ControllerPageUp.grid(row=0, column=4)
 
     Divider = nulltk.Frame(ControllerRow,width=2,bg="#555")
-    Divider.grid(row=0,column=5,sticky="news",padx=5)
+    Divider.grid(row=0,column=5,sticky="news",padx=10)
 
     nulltk.Label(ControllerRow, text="Page Down Midi").grid(row=0, column=6, sticky="e", padx=(5,0))
 
@@ -3045,7 +3045,7 @@ def AddMidiRow(Row=None, Loading=False):
     nulltk.Label(ControllerRow, text="Page Up Midi").grid(row=0, column=9, sticky="w", padx=(0,5))
 
     Divider = nulltk.Frame(ControllerRow,width=2,bg="#555")
-    Divider.grid(row=0,column=10,sticky="news",padx=5)
+    Divider.grid(row=0,column=10,sticky="news",padx=10)
 
     AddControllerObjectToList = nulltk.Button(ControllerRow, text="Add Controller", command=lambda:AddControllerToList(None,False))
     AddControllerObjectToList.grid(row=0, column=11, sticky="ew", padx=2)
@@ -3054,7 +3054,7 @@ def AddMidiRow(Row=None, Loading=False):
 
     def AddControllerToList(Controller=None, Loading=False):
         ControllerFrame = nulltk.Frame(Controllerlist)
-        ControllerFrame.pack(fill="x", padx=5, pady=5)
+        ControllerFrame.pack(fill="x", padx=10, pady=10)
         ControllerFrame.columnconfigure(0, weight=0)
         ControllerFrame.columnconfigure(1, weight=0)
         ControllerFrame.columnconfigure(2, weight=0)
@@ -3198,7 +3198,7 @@ def AddMidiRow(Row=None, Loading=False):
         ControllerMidiInputButton.grid(row=0, column=2)
 
         SwitcherDivider = nulltk.Frame(ControllerFrame,width=2,bg="#555")
-        SwitcherDivider.grid(row=0,column=3,sticky="news",padx=5)
+        SwitcherDivider.grid(row=0,column=3,sticky="news",padx=10)
 
         #--- Key
 
@@ -3241,7 +3241,7 @@ def AddMidiRow(Row=None, Loading=False):
     # --------------- Drums
 
     DrumList = nulltk.Frame(DrumRow)#ScrollableFrame(DrumRow)
-    DrumList.pack(fill="both", expand="True", padx=5, pady=5)
+    DrumList.pack(fill="both", expand="True", padx=10, pady=10)
 
     DrumList.grid(row=2, column=0, sticky="ewns", padx=2,columnspan=10)
     DrumList.columnconfigure(0,weight=1)
@@ -3250,7 +3250,7 @@ def AddMidiRow(Row=None, Loading=False):
 
     def AddDrumToList(Drum=None, Loading=False):
         MainDrumFrame = nulltk.Frame(DrumList)
-        MainDrumFrame.pack(fill="x", padx=5, pady=5)
+        MainDrumFrame.pack(fill="x", padx=10, pady=10)
 
         MainDrumFrame.columnconfigure(0, weight=1)
         MainDrumFrame.rowconfigure(0, weight=1)
@@ -3360,10 +3360,10 @@ def AddMidiRow(Row=None, Loading=False):
         DrumWindowSpecifiWindowShow.grid_forget()
 
         Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
-        Divider.grid(row=1,column=7,sticky="news",padx=5)
+        Divider.grid(row=1,column=7,sticky="news",padx=10)
 
         Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
-        Divider.grid(row=1,column=3,sticky="news",padx=5)
+        Divider.grid(row=1,column=3,sticky="news",padx=10)
 
         DrumRowAlwaysFalsePad = tk.BooleanVar(value=False)
         DrumRowAlwaysFalseCymbal = tk.BooleanVar(value=False)
@@ -3505,9 +3505,9 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowDrumToMainToggle = nulltk.Checkbutton(DrumRowTopRow, text="Pad", variable=DrumRowAlwaysTruePad, command=lambda:SwitchDrumType("Main"))
                 DrumRowDrumToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
                 Divider = nulltk.Frame(DrumRowTopRow,width=2,bg="#555")
-                Divider.grid(row=0,column=2,sticky="ns",padx=5)
+                Divider.grid(row=0,column=2,sticky="ns",padx=10)
                 DrumRowWhichDrum = nulltk.Label(DrumRowTopRow, text="Pad Name:")
-                DrumRowWhichDrum.grid(row=0,column=3,sticky="w",padx=5)
+                DrumRowWhichDrum.grid(row=0,column=3,sticky="w",padx=10)
                 DrumName = tk.StringVar(value=Drum.get("DrumName", ""))
 
                 def UpdateDrumName(Row):
@@ -3555,7 +3555,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
                 DrumCenterSounds = nulltk.LabelFrame(DrumRowCenterPad, text = "Sounds")
-                DrumCenterSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                DrumCenterSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
                 SoundWidgets[DrumCenterSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
 
                 DrumCenterSounds.columnconfigure(0,weight=0)
@@ -3619,7 +3619,7 @@ def AddMidiRow(Row=None, Loading=False):
 
         
                 Divider = nulltk.Frame(PadsContainer,width=2,bg="#555")
-                Divider.grid(row=1,column=1,sticky="ns",padx=5)
+                Divider.grid(row=1,column=1,sticky="ns",padx=10)
 
 
                 #------------ RimRow
@@ -3649,7 +3649,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
                 DrumRimSounds = nulltk.LabelFrame(DrumRowRimPad, text = "Sounds")
-                DrumRimSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                DrumRimSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
                 SoundWidgets[DrumRimSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 DrumRimSounds.columnconfigure(0,weight=0)
                 DrumRimSounds.columnconfigure(1,weight=0)
@@ -3770,9 +3770,9 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowCymbalToMainToggle = nulltk.Checkbutton(CymbalRowTopRow, text="Cymbals", variable=DrumRowAlwaysTrueCymbal, command=lambda:SwitchDrumType("Main"))
                 CymbalRowCymbalToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
                 Divider = nulltk.Frame(CymbalRowTopRow,width=2,bg="#555")
-                Divider.grid(row=0,column=2,sticky="ns",padx=5)
+                Divider.grid(row=0,column=2,sticky="ns",padx=10)
                 CymbalRowWhichCymbal = nulltk.Label(CymbalRowTopRow, text="Cymbal Name:")
-                CymbalRowWhichCymbal.grid(row=0,column=3,sticky="w",padx=5)
+                CymbalRowWhichCymbal.grid(row=0,column=3,sticky="w",padx=10)
                 CymbalName = tk.StringVar(value=Drum.get("DrumName", ""))
 
                 def UpdateDrumName(Row):
@@ -3819,7 +3819,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowBellKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 CymbalRowBellSounds = nulltk.LabelFrame(CymbalRowBellRow, text="Sounds")
-                CymbalRowBellSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                CymbalRowBellSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
                 SoundWidgets[CymbalRowBellSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 CymbalRowBellSounds.columnconfigure(0, weight=0)
                 CymbalRowBellSounds.columnconfigure(1, weight=0)
@@ -3884,7 +3884,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowBellSlamShowLabel.grid(row=3, column=2, sticky="w")
 
                 Divider = nulltk.Frame(CymbalsContainer, width=2, bg="#555")
-                Divider.grid(row=1, column=1, sticky="ns", padx=5)
+                Divider.grid(row=1, column=1, sticky="ns", padx=10)
 
                 
 
@@ -3913,7 +3913,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowEdgeKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 CymbalRowEdgeSounds = nulltk.LabelFrame(CymbalRowEdgeRow, text="Sounds")
-                CymbalRowEdgeSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                CymbalRowEdgeSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
                 SoundWidgets[CymbalRowEdgeSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 CymbalRowEdgeSounds.columnconfigure(0, weight=0)
                 CymbalRowEdgeSounds.columnconfigure(1, weight=0)
@@ -3979,7 +3979,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
                 Divider = nulltk.Frame(CymbalsContainer, width=2, bg="#555")
-                Divider.grid(row=1, column=3, sticky="ns", padx=5)
+                Divider.grid(row=1, column=3, sticky="ns", padx=10)
 
                 #------------ BowRow
                 CymbalRowBowRow = nulltk.Frame(CymbalsContainer)
@@ -4005,7 +4005,7 @@ def AddMidiRow(Row=None, Loading=False):
                 CymbalRowBowKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 CymbalRowBowSounds = nulltk.LabelFrame(CymbalRowBowRow, text="Sounds")
-                CymbalRowBowSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                CymbalRowBowSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
                 SoundWidgets[CymbalRowBowSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
                 CymbalRowBowSounds.columnconfigure(0, weight=0)
                 CymbalRowBowSounds.columnconfigure(1, weight=0)
@@ -4132,7 +4132,7 @@ def AddMidiRow(Row=None, Loading=False):
                 DrumRowDrumToMainToggle = nulltk.Checkbutton(KickRowTopRow, text="Bass", variable=DrumRowAlwaysTruePad, command=lambda:SwitchDrumType("Main"))
                 DrumRowDrumToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
                 Divider = nulltk.Frame(KickRowTopRow,width=2,bg="#555")
-                Divider.grid(row=0,column=2,sticky="ns",padx=5)
+                Divider.grid(row=0,column=2,sticky="ns",padx=10)
 
                 RemoveDrumObjectFromList= nulltk.Button(KickRowTopRow, text="Remove Drum", command=lambda:RemoveDrum(Drum, RemoveDrumObjectFromList))
                 RemoveDrumObjectFromList.grid(row=0, column=3, sticky="ew", padx=2)
@@ -4169,7 +4169,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
                 DrumRowKickSounds = nulltk.LabelFrame(DrumRowKickPad,text="Sounds")
-                DrumRowKickSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                DrumRowKickSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
                 SoundWidgets[DrumRowKickSounds] = {"row": 2,"column": 0,"sticky": "ew","padx": 5,"pady": (2,10)}
 
                 DrumRowKickSounds.columnconfigure(0,weight=0)
@@ -4285,7 +4285,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowToMainToggle.grid(row=0, column=1, sticky="ew", padx=2)
 
                 Divider = nulltk.Frame(HihatRowTopRow, width=2, bg="#555")
-                Divider.grid(row=0, column=2, sticky="ns", padx=5)
+                Divider.grid(row=0, column=2, sticky="ns", padx=10)
 
                 RemoveHiHatObjectFromList = nulltk.Button(HihatRowTopRow, text="Delete Drum", command=lambda:RemoveDrum(Drum, RemoveHiHatObjectFromList))
                 RemoveHiHatObjectFromList.grid(row=0, column=3, sticky="ew", padx=2)
@@ -4317,7 +4317,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowClosedKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowClosedSounds = nulltk.LabelFrame(HihatRowClosedRow, text="Sounds")
-                HihatRowClosedSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                HihatRowClosedSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
 
                 SoundWidgets[HihatRowClosedSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
 
@@ -4367,7 +4367,7 @@ def AddMidiRow(Row=None, Loading=False):
                 
 
                 Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
-                Divider.grid(row=0, column=1, sticky="ns", padx=5)
+                Divider.grid(row=0, column=1, sticky="ns", padx=10)
 
                                 #------------ HalfRow
                 HihatRowHalfRow = nulltk.Frame(HihatContainer)
@@ -4396,7 +4396,7 @@ def AddMidiRow(Row=None, Loading=False):
                 
 
                 HihatRowHalfSounds = nulltk.LabelFrame(HihatRowHalfRow, text="Sounds")
-                HihatRowHalfSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                HihatRowHalfSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
 
                 SoundWidgets[HihatRowHalfSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
 
@@ -4432,7 +4432,7 @@ def AddMidiRow(Row=None, Loading=False):
 
                 
                 Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
-                Divider.grid(row=0, column=3, sticky="ns", padx=5)
+                Divider.grid(row=0, column=3, sticky="ns", padx=10)
 
 
 
@@ -4461,7 +4461,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowOpenKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowOpenSounds = nulltk.LabelFrame(HihatRowOpenRow, text="Sounds")
-                HihatRowOpenSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                HihatRowOpenSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
 
                 SoundWidgets[HihatRowOpenSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
 
@@ -4536,7 +4536,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowStompKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowStompSounds = nulltk.LabelFrame(HihatRowStompRow, text="Sounds")
-                HihatRowStompSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                HihatRowStompSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
 
                 SoundWidgets[HihatRowStompSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
 
@@ -4607,7 +4607,7 @@ def AddMidiRow(Row=None, Loading=False):
 
 
                 Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
-                Divider.grid(row=1, column=1, sticky="ns", padx=5)
+                Divider.grid(row=1, column=1, sticky="ns", padx=10)
 
 
 
@@ -4636,7 +4636,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellOpenKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowBellOpenSounds = nulltk.LabelFrame(HihatRowBellOpenRow, text="Sounds")
-                HihatRowBellOpenSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                HihatRowBellOpenSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
 
                 SoundWidgets[HihatRowBellOpenSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
 
@@ -4672,7 +4672,7 @@ def AddMidiRow(Row=None, Loading=False):
                 
 
                 Divider = nulltk.Frame(HihatContainer, width=2, bg="#555")
-                Divider.grid(row=1, column=3, sticky="ns", padx=5)
+                Divider.grid(row=1, column=3, sticky="ns", padx=10)
 
 
 
@@ -4701,7 +4701,7 @@ def AddMidiRow(Row=None, Loading=False):
                 HihatRowBellClosedKeyOutputButton.grid(row=0, column=2, sticky="ew")
 
                 HihatRowBellClosedSounds = nulltk.LabelFrame(HihatRowBellClosedRow, text="Sounds")
-                HihatRowBellClosedSounds.grid(row=2, column=0, sticky="ew", padx=5, pady=(2,10))
+                HihatRowBellClosedSounds.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
 
                 SoundWidgets[HihatRowBellClosedSounds] = {"row": 2, "column": 0, "sticky": "ew", "padx": 5, "pady": (2,10)}
 
@@ -4825,7 +4825,7 @@ def AddMidiRow(Row=None, Loading=False):
     DrumGhostVolumeShowLabel.grid(row=0, column=2, sticky="w")
 
     Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
-    Divider.grid(row=0,column=3,sticky="news",padx=5)
+    Divider.grid(row=0,column=3,sticky="news",padx=10)
 
     DrumSlamVolumeLabel = nulltk.Label(DrumRow, text= "Slam Note\n Volume", width = 12, height=2)
     DrumSlamVolumeLabel.grid(row=0, column=4, sticky="e")
@@ -4835,7 +4835,7 @@ def AddMidiRow(Row=None, Loading=False):
     DrumSlamVolumeShowLabel.grid(row=0, column=6, sticky="w")
 
     Divider = nulltk.Frame(DrumRow,width=2,bg="#555")
-    Divider.grid(row=0,column=7,sticky="news",padx=5)
+    Divider.grid(row=0,column=7,sticky="news",padx=10)
 
     DynamicVolume = nulltk.Checkbutton(DrumRow,variable=DynamicVolumeCheck, text="Dynamic Volume", command=lambda: UpdateDynamics(), width=15)
     DynamicVolume.grid(row=0, column=8, sticky="ew", padx=2)
@@ -4904,12 +4904,12 @@ def RemoveMidiRow(Frame, Row, Button, Timeout=4):
 
 
 TopBar = nulltk.Frame(NullMidi)
-TopBar.pack(fill="x", padx=5, pady=5)
+TopBar.pack(fill="x", padx=10, pady=10)
 MidiScrollBox = ScrollableFrame(NullMidi)
 MidiScrollBox.pack(fill="both", expand=True)
 MidiContainer = MidiScrollBox.Inner
 nulltk.Button(TopBar, text="Add New Input", command=lambda: AddMidiRow(None)).pack(fill="x")
-ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=5)
+ttk.Separator(NullMidi, orient="horizontal").pack(fill="both", pady=10)
 
 def NullMidiLoop():
     global LoadTimes
@@ -5043,7 +5043,7 @@ class ToolTip:
             text=self.text,
             bg="black",
             fg="white",
-            padx=5,
+            padx=10,
             pady=3
         )
         label.pack()
@@ -5483,7 +5483,7 @@ def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
     Frame = nulltk.Frame(Popup, padx=10, pady=10)
     Frame.pack()
 
-    nulltk.Label(Frame, text=f"{SourceID} → {TargetID}").pack(pady=5)
+    nulltk.Label(Frame, text=f"{SourceID} → {TargetID}").pack(pady=10)
 
     Edges = ["TopLeft", "Top", "TopRight",
              "Right",
@@ -5516,7 +5516,7 @@ def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
         Popup.destroy()
         SaveConfig("NullMonitor")
 
-    nulltk.Button(Frame, text="Confirm", command=Confirm).pack(pady=5)
+    nulltk.Button(Frame, text="Confirm", command=Confirm).pack(pady=10)
 
 def StartWarpSelection(ProfileName):
     State = {"source": None}
@@ -6020,18 +6020,18 @@ def ManageWallPapers(Name):
             "LSMode": "Fill"
         })
         MonitorFrame = nulltk.LabelFrame(WallpaperScrollFrame.Inner,text=ID)
-        MonitorFrame.grid(row=Row+1,column=0,padx=5,pady=5,sticky="ew")
+        MonitorFrame.grid(row=Row+1,column=0,padx=10,pady=10,sticky="ew")
         MonitorFrame.columnconfigure(0,weight=1)
         MonitorFrame.columnconfigure(1,weight=0)
         MonitorFrame.columnconfigure(2,weight=1)
         MonitorWallPaperRows.append(MonitorFrame)
 
         DTContainer = nulltk.Frame(MonitorFrame)
-        DTContainer.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+        DTContainer.grid(row=0,column=0,padx=10,pady=10,sticky="ew")
         DTContainer.columnconfigure(1,weight=1)
-        ttk.Separator(MonitorFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+        ttk.Separator(MonitorFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=10)
         LSContainer = nulltk.Frame(MonitorFrame)
-        LSContainer.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
+        LSContainer.grid(row=0,column=2,padx=10,pady=10,sticky="ew")
         LSContainer.columnconfigure(1,weight=1)
 
 
@@ -6054,10 +6054,10 @@ def ManageWallPapers(Name):
                     UpdateDesktopWallPapers(ProfileName)
 
         DTBrowseButton = nulltk.Button(DTContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=DTPathVar, ProfileName=Name: DTBrowseForPic(Data, PathVar, ProfileName))
-        DTBrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        nulltk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        DTBrowseButton.grid(row=0,column=0,padx=10,pady=10)
+        nulltk.Entry(DTContainer,textvariable=DTPathVar,state="readonly").grid(row=0,column=1,padx=10,pady=10,sticky="ew")
         DTModebox = nulltk.Combobox(DTContainer,textvariable=DTModeVar,values=WallpaperModes,state="readonly",width=18)
-        DTModebox.grid(row=0,column=2,padx=5,pady=5)
+        DTModebox.grid(row=0,column=2,padx=10,pady=10)
 
         def DTUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
             Data["DTMode"] = ModeVar.get()
@@ -6081,10 +6081,10 @@ def ManageWallPapers(Name):
                     UpdateLockScreenWallPapers(ProfileName)
 
         LSBrowseButton = nulltk.Button(LSContainer,text="Browse",width=8,command=lambda Data=Data, PathVar=LSPathVar, ProfileName=Name: LSBrowseForPic(Data, PathVar, ProfileName))
-        LSBrowseButton.grid(row=0,column=0,padx=5,pady=5)
-        nulltk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=5,pady=5,sticky="ew")
+        LSBrowseButton.grid(row=0,column=0,padx=10,pady=10)
+        nulltk.Entry(LSContainer,textvariable=LSPathVar,state="readonly").grid(row=0,column=1,padx=10,pady=10,sticky="ew")
         LSModebox = nulltk.Combobox(LSContainer,textvariable=LSModeVar,values=WallpaperModes,state="readonly",width=18)
-        LSModebox.grid(row=0,column=2,padx=5,pady=5)
+        LSModebox.grid(row=0,column=2,padx=10,pady=10)
 
         def LSUpdateWallPaperStyle(ID, Data, ModeVar,ProfileName):
             Data["LSMode"] = ModeVar.get()
@@ -6118,8 +6118,8 @@ def NullMonitorNoteBookChange(event):
 
 def CreateProfileBox(Name):
     global NullMonitorSetActiveCheckBoxes
-    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=5,pady=5)
-    Frame.pack(fill="x",pady=5)
+    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=10,pady=10)
+    Frame.pack(fill="x",pady=10)
 
     TopRow = nulltk.Frame(Frame)
     TopRow.pack(fill="x")
@@ -6158,7 +6158,7 @@ def CreateProfileBox(Name):
     UpdateWallPaperEnabled(ManageWallPaper)
 
     Spacer3 = nulltk.Frame(Frame,bg="black",height=2)
-    Spacer3.pack(fill="x",pady=5)
+    Spacer3.pack(fill="x",pady=10)
 
     BtnRow = nulltk.Frame(Frame)
     BtnRow.pack(fill="x")
@@ -6167,7 +6167,7 @@ def CreateProfileBox(Name):
     nulltk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
 
     WarpBox = nulltk.Frame(Frame,padx=1,pady=1)
-    WarpBox.pack(fill="x",pady=5)
+    WarpBox.pack(fill="x",pady=10)
 
     InnerWarp = nulltk.Frame(WarpBox)
     InnerWarp.pack(fill="x")
@@ -6175,7 +6175,7 @@ def CreateProfileBox(Name):
     WarpVar = tk.StringVar()
 
     WarpLabel = nulltk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
-    WarpLabel.pack(fill="x",padx=5,pady=3)
+    WarpLabel.pack(fill="x",padx=10,pady=3)
 
     ProfileWidgets[Name] = {
         "Frame": Frame,
@@ -6229,15 +6229,15 @@ NullMonitorNotebook.add(NullMonitorWallPapersPage, text="WallPapers",state="disa
 NullMonitorNotebook.bind("<<NotebookTabChanged>>",NullMonitorNoteBookChange)
     #region NullMonitor Main Page
 NullMonitorCheck = nulltk.Frame(NullMonitorPage)
-NullMonitorCheck.pack(fill="x", padx=5, pady=5)
+NullMonitorCheck.pack(fill="x", padx=10, pady=10)
 NullMonitorTopBar = nulltk.Frame(NullMonitorPage)
-NullMonitorTopBar.pack(fill="x", padx=5, pady=5)
+NullMonitorTopBar.pack(fill="x", padx=10, pady=10)
 NullMonitorTopBar.columnconfigure(0, weight=2)
 NullMonitorTopBar.columnconfigure(1, weight=1)
 NullMonitorTopBar.rowconfigure(0, weight=0)
 NullMonitorTopBar.rowconfigure(1, weight=0)
 NullMonitorProfileBox = nulltk.Frame(NullMonitorPage)
-NullMonitorProfileBox.pack(fill="x", padx=5, pady=5)
+NullMonitorProfileBox.pack(fill="x", padx=10, pady=10)
 NullMonitorProfileBox.columnconfigure(0, weight=2)
 NullMonitorProfileBox.columnconfigure(1, weight=1)
 NullMonitorProfileBox.rowconfigure(0, weight=0)
@@ -6300,7 +6300,7 @@ NullMonitorSlider2.bind("<Button-4>", lambda e: (NullMonitorSlider2.set(min(150,
 NullMonitorSlider2.bind("<Button-5>", lambda e: (NullMonitorSlider2.set(max(0, NullMonitorSlider2.get()-0.005)), UpdateScanTime()))
 ToolTip(NullMonitorScan, "How often the cursor is scanned (higher = less CPU, more delay). Recommended is 0.05 or lower.")
 NullMonitorScroll = ScrollableFrame(NullMonitorPage)
-NullMonitorScroll.pack(fill="both", expand=True, padx=5, pady=5)
+NullMonitorScroll.pack(fill="both", expand=True, padx=10, pady=10)
 NullMonitorProfileContainer = NullMonitorScroll.Inner
 NullMonitorProfileContainer.pack(padx=(0,10),fill="x")
 NullMonitorEnabledVar = tk.BooleanVar(value=ScanForMouse)
@@ -6317,27 +6317,27 @@ NullMonitorToggle.grid(row=0,column=1,columnspan=2,pady=(5,0))
 NullMonitorWallPapersPage.columnconfigure(0,weight=1)
 NullMonitorWallPapersPage.rowconfigure(2,weight=1)
 WallpaperPreviewFrame = nulltk.LabelFrame(NullMonitorWallPapersPage,text="Monitor Layout")
-WallpaperPreviewFrame.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
+WallpaperPreviewFrame.grid(row=0,column=0,padx=10,pady=10,sticky="ew")
 WallpaperPreviewFrame.columnconfigure(0,weight=1)
 
 WallpaperLayoutContainer = nulltk.Frame(WallpaperPreviewFrame)
-WallpaperLayoutContainer.grid(row=0,column=0,pady=5)
+WallpaperLayoutContainer.grid(row=0,column=0,pady=10)
 
 WallpaperInfoFrame = nulltk.Frame(NullMonitorWallPapersPage)
-WallpaperInfoFrame.grid(row=1,column=0,padx=5,pady=5,sticky="ew")
+WallpaperInfoFrame.grid(row=1,column=0,padx=10,pady=10,sticky="ew")
 WallpaperInfoFrame.columnconfigure(0,weight=1)
 WallpaperInfoFrame.columnconfigure(1,weight=0)
 WallpaperInfoFrame.columnconfigure(2,weight=1)
 
 desktoplabel = nulltk.Label(WallpaperInfoFrame, text="Desktop Wallpapers")
-desktoplabel.grid(row=0,column=0,padx=5,pady=5,sticky="ew")
-ttk.Separator(WallpaperInfoFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=5)
+desktoplabel.grid(row=0,column=0,padx=10,pady=10,sticky="ew")
+ttk.Separator(WallpaperInfoFrame,orient="vertical").grid(row=0,column=1,sticky="ns",padx=10)
 lockscreenlabel = nulltk.Label(WallpaperInfoFrame, text="LockScreen Wallpapers")
-lockscreenlabel.grid(row=0,column=2,padx=5,pady=5,sticky="ew")
+lockscreenlabel.grid(row=0,column=2,padx=10,pady=10,sticky="ew")
 
 
 WallpaperScrollFrame = ScrollableFrame(NullMonitorWallPapersPage)
-WallpaperScrollFrame.grid(row=2,column=0,padx=5,pady=5,sticky="nsew")
+WallpaperScrollFrame.grid(row=2,column=0,padx=10,pady=10,sticky="nsew")
 WallpaperScrollFrame.Inner.columnconfigure(0,weight=1)
     #endregion
 
@@ -7391,7 +7391,7 @@ def PullRelease(Repo, StatusVar):
         nulltk.Label(
             Popup,
             text="Select Release Assets"
-        ).pack(pady=5)
+        ).pack(pady=10)
 
         Scroll = ScrollableFrame(Popup)
 
@@ -7421,7 +7421,7 @@ def PullRelease(Repo, StatusVar):
                 variable=Var
             ).pack(
                 anchor="w",
-                padx=5,
+                padx=10,
                 pady=2
             )
 
@@ -7436,7 +7436,7 @@ def PullRelease(Repo, StatusVar):
             Popup,
             text="Open Folder After Download",
             variable=OpenOnFinish
-        ).pack(pady=5)
+        ).pack(pady=10)
 
         SelectedAssets = []
 
@@ -7456,7 +7456,7 @@ def PullRelease(Repo, StatusVar):
             Popup,
             text="Download Selected",
             command=DownloadSelected
-        ).pack(pady=5)
+        ).pack(pady=10)
 
         Popup.wait_window()
 
@@ -8237,36 +8237,36 @@ def BuildGitPage(Repo=None):
         MainFrame.rowconfigure(0,weight=1)
 
         NullGitAddRepo = nulltk.LabelFrame(MainFrame, text= "Add A Repo")
-        NullGitAddRepo.grid(row=1, column=0, sticky="ew", padx=5)
+        NullGitAddRepo.grid(row=1, column=0, sticky="ew", padx=10)
         NullGitAddRepo.columnconfigure(0,weight=1)
         NullGitAddRepo.columnconfigure(1,weight=1)
         NullGitAddRepo.rowconfigure(0, weight=1)
         NullGitAddRepo.rowconfigure(1, weight=1)
         NullGitAddRepo.rowconfigure(2, weight=1)
-        nulltk.Button(NullGitAddRepo, text="Browse For Repo" ,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="ew", padx=5, pady=10)
+        nulltk.Button(NullGitAddRepo, text="Browse For Repo" ,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         nulltk.Entry(NullGitAddRepo,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew", pady=10)
-        nulltk.Button(NullGitAddRepo, text="Add Repo",command=lambda: AddRepo(NullGitInputPath.get())).grid(row=2, column=0, sticky="ew", padx=5, pady=10, columnspan=2)
+        nulltk.Button(NullGitAddRepo, text="Add Repo",command=lambda: AddRepo(NullGitInputPath.get())).grid(row=2, column=0, sticky="ew", padx=10, pady=10, columnspan=2)
 
         NullGitCreateRepo = nulltk.LabelFrame(MainFrame, text= "Create Repo")
-        NullGitCreateRepo.grid(row=2, column=0, sticky="ew", padx=5)
+        NullGitCreateRepo.grid(row=2, column=0, sticky="ew", padx=10, pady=33)
         NullGitCreateRepo.columnconfigure(0, weight=1)
         NullGitCreateRepo.columnconfigure(1, weight=1)
-        nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
-        nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=1, column=1, sticky="ew")
-        nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=1, column=0, sticky="ew", padx=5)
+        nulltk.Button(NullGitCreateRepo, text="Creation Location", command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="we", padx=10, pady=10)
+        nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew", pady=10)
+        nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=1, column=1, sticky="ew", pady=10)
+        nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
         NullGitCloneRepo = nulltk.LabelFrame(MainFrame, text= "Clone Repo")
-        NullGitCloneRepo.grid(row=3, column=0, sticky="ew", padx=5)
+        NullGitCloneRepo.grid(row=3, column=0, sticky="ew", padx=10, pady=33)
+        NullGitCloneRepo.columnconfigure(0, weight=1)
         NullGitCloneRepo.columnconfigure(1, weight=1)
-        NullGitCloneRepo.columnconfigure(2, weight=1)
-        nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-        nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
+        nulltk.Button(NullGitCloneRepo, text="Set Clone Location", command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+        nulltk.Entry(NullGitCloneRepo,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
 
-        GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
-        GitCloneRepoEntry.grid(row=1, column=0, sticky="ew")
+        GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
+        GitCloneRepoEntry.grid(row=1, column=0, sticky="ew", pady=10)
         ToolTip(GitCloneRepoEntry, "Paste the github link here. you do not need to add \"git\", just the link to the webpage will suffice.")
-        nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=1, column=1, sticky="w", padx=5)
+        nulltk.Button(NullGitCloneRepo, text="Clone Repo", command=lambda:CloneRepo()).grid(row=1, column=1, sticky="we", padx=10, pady=10)
 
 
     else:
@@ -8499,16 +8499,16 @@ def BuildRepoButtons(Repo=None, Title = None):
     if Repo == None:
         if Title == "Check All":
             RepoCheckButton = nulltk.Button(NullGitRepoButtonsListInner, text="Check For Updates", command= lambda: CheckAllRepos())
-            RepoCheckButton.pack(fill="x", expand=True, padx=10, pady=5)
+            RepoCheckButton.pack(fill="x", expand=True, padx=10, pady=10)
 
         else:
             OptionsButton = nulltk.Button(NullGitRepoButtonsListInner, text="Options", command= lambda: BuildGitPage())
-            OptionsButton.pack(fill="x", expand=True, padx=10, pady=5)
+            OptionsButton.pack(fill="x", expand=True, padx=10, pady=10)
             pass
     else:
         RepoText = tk.StringVar(value=f"{Repo['Name']} (❔)")
         RepoButton = nulltk.Button(NullGitRepoButtonsListInner, textvariable=RepoText, command=lambda: BuildGitPage(Repo))
-        RepoButton.pack(fill="x", expand=True, padx=10, pady=5)
+        RepoButton.pack(fill="x", expand=True, padx=10, pady=3)
         NullGitButtonsList[Repo['Path']] = {
             "TextVar": RepoText,
             "RepoName": Repo['Name'],
@@ -8536,7 +8536,6 @@ NullGitRepoPageListInner.columnconfigure(0,weight=1)
 DownloadOverlay = nulltk.Frame(NullGit,bg="#000000", ThemeBG = False)
 DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
 DownloadOverlayLabel.pack(expand=True)
-DownloadOverlayLabel.pack_forget()
 nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
 ManageRemoteURL = tk.StringVar()
 ManageRepoPath = tk.StringVar()
@@ -8782,7 +8781,7 @@ def GetWindowClass(WindowID):
 
 def AddNewTracker(Name=None, Loading=False):
     global AppClassification
-    Frame = nulltk.Frame(ClassiciationListContainer, pady=5)
+    Frame = nulltk.Frame(ClassiciationListContainer, pady=10)
     Frame.pack(fill="x", expand=True)
     TrackerFrame = nulltk.Frame(Frame, pady=2)
 
@@ -9124,11 +9123,10 @@ def ClickYearButton(Year):
         Button = nulltk.Button(
             MonthChoicesButtons,
             text=Month,
-            command=lambda M=Month, Y=Year: ClickMonthButton(Y, M),
-            width=14
+            command=lambda M=Month, Y=Year: ClickMonthButton(Y, M)
         )
 
-        Button.pack(fill="x")
+        Button.pack(fill="x", expand=True, padx=(0,5), pady=3)
 
         MonthButtons.append(Button)
 
@@ -9165,11 +9163,10 @@ def ClickMonthButton(Year, Month):
         Button = nulltk.Button(
             CycleChoicesButtons,
             text=DisplayText,
-            command=lambda C=Cycle, Y=Year, M=Month: ClickCycleButton(Y, M, C),
-            width=15
+            command=lambda C=Cycle, Y=Year, M=Month: ClickCycleButton(Y, M, C)
         )
 
-        Button.pack(fill="x")
+        Button.pack(fill="x", expand=True, padx=(0,5), pady=3)
 
         CycleButtons.append(Button)
 
@@ -9552,10 +9549,10 @@ def BuildClipBoardRow(Row):
     )
 
     if ClipBoardRows:
-        CBRow.pack(fill="x",expand=True,anchor="n",pady=5,before=ClipBoardRows[0])
+        CBRow.pack(fill="x",expand=True,anchor="n",pady=10,before=ClipBoardRows[0])
         ClipBoardRows.insert(0, CBRow)
     else:
-        CBRow.pack(fill="x",expand=True,anchor="n",pady=5)
+        CBRow.pack(fill="x",expand=True,anchor="n",pady=10)
         ClipBoardRows.append(CBRow)
 
     CBRow.columnconfigure(1, weight=1)
@@ -9718,7 +9715,7 @@ def BuildClipBoardRow(Row):
             ImageLabel.image = Thumbnail
 
             ImageLabel.pack(
-                pady=5
+                pady=10
             )
 
         except Exception as e:
@@ -9744,7 +9741,7 @@ def BuildClipBoardRow(Row):
         )
 
         OpenButton.pack(
-            pady=5
+            pady=10
         )
 
         ImageHolder.grid_remove()
@@ -10055,7 +10052,7 @@ NullFocusManagePageMain.rowconfigure(1, weight=0)
 NullFocusManagePageMain.rowconfigure(2, weight=0)
 NullFocusManagePageMain.rowconfigure(3, weight=1)
 NullFocusManagePageSlidersNTexts = nulltk.Frame(NullFocusManagePageMain)
-NullFocusManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=5)
+NullFocusManagePageSlidersNTexts.grid(row=0, column=0, sticky="ew", pady=10)
 NullFocusManagePageSlidersNTexts.columnconfigure(0, weight=1)
 NullFocusManagePageSlidersNTexts.columnconfigure(1, weight=1)
 NullFocusManagePageSlidersNTexts.columnconfigure(2, weight=1)
@@ -10073,15 +10070,15 @@ RequiredFocusText.grid(row=0, column=1, sticky="ew", pady=0)
 NewDayText = nulltk.Label(NullFocusManagePageSlidersNTexts, text= f"New Cycle After {TrackerNewDay.get()} Hours")
 NewDayText.grid(row=0, column=2, sticky="ew", pady=0)
 WriteIntervalSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerWriteInterval,showvalue=False, command=lambda e: UpdateTrackerQuality())
-WriteIntervalSlider.grid(row=1, column=0, sticky="ew", padx=5)
+WriteIntervalSlider.grid(row=1, column=0, sticky="ew", padx=10)
 RequiredFocusSlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=60,orient="horizontal",variable=TrackerMinimumWindowTime,showvalue=False, command=lambda e: UpdateTrackerQuality())
-RequiredFocusSlider.grid(row=1, column=1, sticky="ew", padx=5)
+RequiredFocusSlider.grid(row=1, column=1, sticky="ew", padx=10)
 NewDaySlider = nulltk.Scale(NullFocusManagePageSlidersNTexts,from_=1,to=23,orient="horizontal",variable=TrackerNewDay,showvalue=False, command=lambda e: UpdateTrackerQuality())
-NewDaySlider.grid(row=1, column=2, sticky="ew", padx=5)
+NewDaySlider.grid(row=1, column=2, sticky="ew", padx=10)
 AddNewTrackerClass = nulltk.Button(NullFocusManagePageMain,text="New Category", command=lambda: AddNewTracker(None,False))
-AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=5, padx=5)
+AddNewTrackerClass.grid(row=1, column=0, sticky="ew", pady=10, padx=10)
 TrackerDiv = nulltk.Frame(NullFocusManagePageMain, height=3, bg="gray")
-TrackerDiv.grid(row=2, column=0, sticky="ew", pady=5)
+TrackerDiv.grid(row=2, column=0, sticky="ew", pady=10)
 TrackerBottomLists = nulltk.Frame(NullFocusManagePageMain)
 TrackerBottomLists.grid(row=3, column=0, sticky="ensw", pady=(0,5))
 TrackerBottomLists.columnconfigure(0,weight=1)
@@ -10094,16 +10091,16 @@ IgnoredAppsFrame.rowconfigure(0,weight=0)
 IgnoredAppsFrame.rowconfigure(1,weight=1)
 IgnoredAppsFrame.rowconfigure(2,weight=0)
 AddIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Add App", command=lambda: AddIgnoredTracker(), width = 30)
-AddIgnoredAppButton.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
+AddIgnoredAppButton.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
 IgnoredAppsList = ScrollableFrame(IgnoredAppsFrame)
-IgnoredAppsList.grid(row=1, column=0, sticky="ewns",padx=5)
+IgnoredAppsList.grid(row=1, column=0, sticky="ewns",padx=10)
 IgnoredAppsContainer = IgnoredAppsList.Inner
 IgnoredAppsListText = nulltk.Label(IgnoredAppsContainer, textvariable = IgnoredAppListVar, anchor="center", justify="center")
 IgnoredAppsListText.pack(fill="x", expand=True)
 RemoveIgnoredAppButton = nulltk.Button(IgnoredAppsFrame ,text="Remove App", command=lambda: DeleteIgnoredTracker(), width = 30)
-RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=5, padx=5)
+RemoveIgnoredAppButton.grid(row=2, column=0, sticky="ew", pady=10, padx=10)
 TrackerClassificationList = ScrollableFrame(TrackerBottomLists)
-TrackerClassificationList.grid(row=0, column=1, sticky="ensw", padx=5, pady=5)
+TrackerClassificationList.grid(row=0, column=1, sticky="ensw", padx=10, pady=10)
 ClassiciationListContainer = TrackerClassificationList.Inner
 IgnoredAppsList.BindMouseWheel(NullFocusManagePageMain)
 TrackerClassificationList.BindMouseWheel(NullFocusManagePageMain)
@@ -10141,7 +10138,7 @@ BreakDownText = nulltk.Label(NullFocusLogsPageInner, text= f"Breakdown")
 BreakDownText.grid(row=1, column=3, sticky="ew")
 CurrentLogView = tk.StringVar(value = "")
 YearChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
-YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=5, pady=5)
+YearChoicesBox.grid(row=2,column=0, sticky="nsew",padx=10, pady=10)
 YearChoicesBox.rowconfigure(0,weight=1)
 YearChoicesBox.columnconfigure(0,weight=1)
 YearChoices = ScrollableFrame(YearChoicesBox)
@@ -10149,7 +10146,7 @@ YearChoices.pack(fill="both", expand=True, anchor="n")
 YearChoicesButtons = YearChoices.Inner
 YearChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 MonthChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
-MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=5, pady=5)
+MonthChoicesBox.grid(row=2,column=1, sticky="nsew",padx=10, pady=10)
 MonthChoicesBox.rowconfigure(0,weight=1)
 MonthChoicesBox.columnconfigure(0,weight=1)
 MonthChoices = ScrollableFrame(MonthChoicesBox)
@@ -10157,7 +10154,7 @@ MonthChoices.pack(fill="both", expand=True, anchor="n")
 MonthChoicesButtons = MonthChoices.Inner
 MonthChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 CycleChoicesBox = nulltk.Frame(NullFocusLogsPageInner)
-CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=5, pady=5)
+CycleChoicesBox.grid(row=2,column=2, sticky="nsew",padx=10, pady=10)
 CycleChoicesBox.rowconfigure(0,weight=1)
 CycleChoicesBox.columnconfigure(0,weight=1)
 CycleChoices = ScrollableFrame(CycleChoicesBox)
@@ -10165,7 +10162,7 @@ CycleChoices.pack(fill="both", expand=True, anchor="n")
 CycleChoicesButtons = CycleChoices.Inner
 CycleChoicesButtons.pack(fill="x", expand=True, anchor="n", padx=3)
 LogDataBox = nulltk.Frame(NullFocusLogsPageInner)
-LogDataBox.grid(row=2,column=3, sticky="nsew",padx=5, pady=5)
+LogDataBox.grid(row=2,column=3, sticky="nsew",padx=10, pady=10)
 LogDataBox.rowconfigure(0,weight=1)
 LogDataBox.columnconfigure(0,weight=1)
 LogData = ScrollableFrame(LogDataBox)
@@ -10184,7 +10181,7 @@ HereLine = nulltk.Label(NullFocusClockPage, text = "↓", font=("Arial, 18"))
 HereLine.grid(row=0, column=0, sticky="nswe", pady=(10,0))
 ClockLabel = nulltk.Label(NullFocusClockPage, image=ClockImage)
 ClockLabel.image = ClockImage
-ClockLabel.grid(row=1,column=0, sticky="nswe",pady=5)
+ClockLabel.grid(row=1,column=0, sticky="nswe",pady=10)
     #endregion
     #region ClipBoardPage
 NullFocusClipBoardPage = nulltk.Frame(NullFocusClipBoard)
@@ -10193,7 +10190,7 @@ NullFocusClipBoardPage.pack(fill="both",expand="true")
 NullFocusClipBoardPage.columnconfigure(0, weight=1)
 NullFocusClipBoardPage.rowconfigure(1, weight=1)
 ClipBoardTopRow = nulltk.Frame(NullFocusClipBoardPage)
-ClipBoardTopRow.grid(column=0,row=0,sticky="ew",pady=(5,0), padx=5)
+ClipBoardTopRow.grid(column=0,row=0,sticky="ew",pady=(5,0), padx=10)
 ClipBoardTopRow.columnconfigure(0,weight=1)
 ClipBoardTopRow.columnconfigure(1,weight=1)
 ClipBoardTopRow.columnconfigure(2,weight=1)
@@ -10204,7 +10201,7 @@ ClipboardSelectAll.grid(row=0,column=1,sticky="ew")
 ClipboardSelectNone= nulltk.Button(ClipBoardTopRow, text="Select None", command=lambda: SelectNoneClipBoard())
 ClipboardSelectNone.grid(row=0,column=2,sticky="ew")
 ClipBoardList = ScrollableFrame(NullFocusClipBoardPage)
-ClipBoardList.grid(column=0,row=1,sticky="nesw",columnspan=99, pady=5, padx=5)
+ClipBoardList.grid(column=0,row=1,sticky="nesw",columnspan=99, pady=10, padx=10)
 ClipBoardList.rowconfigure(0,weight=1)
 ClipBoardList.columnconfigure(0,weight=1)
     #endregion
@@ -10212,12 +10209,12 @@ ClipBoardList.columnconfigure(0,weight=1)
 NullFocusOperator.columnconfigure(0,weight=1)
 NullFocusOperator.rowconfigure(2,weight=1)
 NullFocusAddOperatorButton = nulltk.Button(NullFocusOperator, text = "Add Operator", command=lambda: AddOperatorWindow())
-NullFocusAddOperatorButton.grid(row=0,column=0, sticky="ew", padx=5)
-nulltk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=5)
+NullFocusAddOperatorButton.grid(row=0,column=0, sticky="ew", padx=10)
+nulltk.Frame(NullFocusOperator,height=2,bg="gray").grid(row=1,column=0,sticky="ew",pady=6, padx=10)
 OperatorList = ScrollableFrame(NullFocusOperator)
 OperatorList.rowconfigure(0,weight=1)
 OperatorList.columnconfigure(0,weight=1)
-OperatorList.grid(row=2,column=0, sticky="ewns", pady=5, padx=5)
+OperatorList.grid(row=2,column=0, sticky="ewns", pady=10, padx=10)
     #endregion
 
 def NullFocusLoop():
@@ -10416,8 +10413,8 @@ def StartUpNullFocus():
             YearButtons.clear()
 
             for Year in sorted(FileYears):
-                Button = nulltk.Button(YearChoicesButtons,text=Year,command=lambda Y=Year: ClickYearButton(Y), width=15)
-                Button.pack(fill="x")
+                Button = nulltk.Button(YearChoicesButtons,text=Year,command=lambda Y=Year: ClickYearButton(Y))
+                Button.pack(fill="x", expand=True, padx=(4,5), pady=3)
                 YearButtons.append(Button)
 
         LatestYear = max(os.path.splitext(File)[0]for File in YearFiles)
@@ -10630,7 +10627,7 @@ def CreateCustomEmojiBar(Key, DictEntry):
 
     
 
-    EmojiFrame = nulltk.Frame(NullMojiAllCustomsColumnListInner, padx=5, pady=5)
+    EmojiFrame = nulltk.Frame(NullMojiAllCustomsColumnListInner, padx=10, pady=10)
     EmojiFrame.pack(expand=True,fill="x")
     EmojiFrame.rowconfigure(0,weight=1)
     EmojiFrame.columnconfigure(0,weight=1)
@@ -11237,7 +11234,7 @@ def NullWireCreatePopupWindow(ThisType, Wire):
             text=Item,
             command=lambda value=Item, steam=issteamapp: SelectItem(value,steam)
         )
-        Button.pack(fill="x", padx=5, pady=2)
+        Button.pack(fill="x", padx=10, pady=2)
 
     Popup.wait_window()
 
@@ -11694,7 +11691,7 @@ def CreateOutputWire(OutputWire):
 
         DeviceConnected = tk.BooleanVar(value=DeviceSent['Connected'])
         DeviceConnectedToggle = nulltk.Checkbutton(DeviceFrame, variable=DeviceConnected, command=ConnectDevice, text="Connected |")
-        DeviceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=5)
+        DeviceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=10)
 
 
         def SetDeviceMono():
@@ -11717,7 +11714,7 @@ def CreateOutputWire(OutputWire):
         if DeviceSent['Wire'] == False:
             
             DeviceMonoCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceMono, command=SetDeviceMono, text="Mono")
-            DeviceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=5)
+            DeviceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=10)
 
 
         def SetDeviceMute():
@@ -11732,7 +11729,7 @@ def CreateOutputWire(OutputWire):
         if DeviceSent['Wire'] == False:
             
             DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
-            DeviceMute.grid(row=0,column=2, sticky="we", padx=10, pady=5)
+            DeviceMute.grid(row=0,column=2, sticky="we", padx=10, pady=10)
 
         def SetDeviceVolume(Event=None):
             DeviceSent['Volume'] = DeviceVolume.get()
@@ -11745,11 +11742,11 @@ def CreateOutputWire(OutputWire):
         if DeviceSent['Wire'] == False:
             
             DeviceVolumeLabel = nulltk.Label(DeviceFrame, text="Volume:")
-            DeviceVolumeLabel.grid(row=0,column=3, sticky="w", pady=5)
+            DeviceVolumeLabel.grid(row=0,column=3, sticky="w", pady=10)
             DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
-            DeviceVolumeScale.grid(row=0,column=4, sticky="ew", pady=5)
+            DeviceVolumeScale.grid(row=0,column=4, sticky="ew", pady=10)
             DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
-            DeviceVolumeAmountShow.grid(row=0,column=5, sticky="w", padx=(0,10), pady=5)
+            DeviceVolumeAmountShow.grid(row=0,column=5, sticky="w", padx=(0,10), pady=10)
 
             DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
             DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
@@ -11764,7 +11761,7 @@ def CreateOutputWire(OutputWire):
         DeviceOverride = tk.BooleanVar(value=DeviceSent['Override'])
         if DeviceSent['Wire'] == False:
             DeviceOverrideCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceOverride, command=SetDeviceOverride, text="Override")
-            DeviceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=5)
+            DeviceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=10)
             ToolTip(DeviceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
 
         def DeleteDevice(Button, Timeout=4):
@@ -11803,7 +11800,7 @@ def CreateOutputWire(OutputWire):
             return
     
         DeviceDeleteButton = nulltk.Button(DeviceFrame, text="Remove", command=lambda: DeleteDevice(DeviceDeleteButton))
-        DeviceDeleteButton.grid(row=0,column=7,sticky="ew", padx=10, pady=5)
+        DeviceDeleteButton.grid(row=0,column=7,sticky="ew", padx=10, pady=10)
 
         ConnectDevice()
         OutputRows[MainFrame]['DeviceRows'][DeviceSent['Name']] = {
@@ -11910,7 +11907,7 @@ def CreateOutputWire(OutputWire):
 
         SourceConnected = tk.BooleanVar(value=SourceSent['Connected'])
         SourceConnectedToggle = nulltk.Checkbutton(SourceFrame, variable=SourceConnected, command=ConnectSource, text="Connected |")
-        SourceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=5)
+        SourceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=10)
 
         def SetSourceMono():
             SourceSent['Mono'] = SourceMono.get()
@@ -11925,7 +11922,7 @@ def CreateOutputWire(OutputWire):
         
         SourceMono = tk.BooleanVar(value=SourceSent['Mono'])
         SourceMonoCheck = nulltk.Checkbutton(SourceFrame, variable=SourceMono, command=SetSourceMono, text="Mono")
-        SourceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=5)
+        SourceMonoCheck.grid(row=0,column=1, sticky="we", padx=(10,0), pady=10)
 
         def SetSourceMute():
             SourceSent['Muted'] = SourceMuted.get()
@@ -11937,7 +11934,7 @@ def CreateOutputWire(OutputWire):
 
         SourceMuted = tk.BooleanVar(value=SourceSent['Muted'])
         SourceMute = nulltk.Checkbutton(SourceFrame, variable=SourceMuted, command=SetSourceMute, text="Mute")
-        SourceMute.grid(row=0,column=2, sticky="we",padx=10, pady=5)
+        SourceMute.grid(row=0,column=2, sticky="we",padx=10, pady=10)
 
         def SetSourceVolume(Event=None):
             SourceSent['Volume'] = SourceVolume.get()
@@ -11951,7 +11948,7 @@ def CreateOutputWire(OutputWire):
         SourceVolumeLabel = nulltk.Label(SourceFrame, text="Volume:")
         SourceVolumeLabel.grid(row=0,column=3, sticky="w", pady=10)
         SourceVolumeScale = nulltk.Scale(SourceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=SourceVolume)
-        SourceVolumeScale.grid(row=0,column=4, sticky="we", pady=5)
+        SourceVolumeScale.grid(row=0,column=4, sticky="we", pady=10)
         SourceVolumeAmountShow = nulltk.Label(SourceFrame, textvariable=SourceVolume)
         SourceVolumeAmountShow.grid(row=0,column=5, sticky="w")
 
@@ -11968,7 +11965,7 @@ def CreateOutputWire(OutputWire):
 
         SourceOverride = tk.BooleanVar(value=SourceSent['Override'])
         SourceOverrideCheck = nulltk.Checkbutton(SourceFrame, variable=SourceOverride, command=SetSourceOverride, text="Override")
-        SourceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=5)
+        SourceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=10)
 
         ToolTip(SourceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
 
@@ -12092,7 +12089,7 @@ NullWireOutputPage.rowconfigure(1, weight=1)
 NullWireOutputPage.columnconfigure(0, weight=1)
 
 NullWireOutputTop = nulltk.Frame(NullWireOutputPage)
-NullWireOutputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=5)
+NullWireOutputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=10)
 NullWireOutputTop.rowconfigure(1, weight=1)
 NullWireOutputTop.columnconfigure(1, weight=1)
 
@@ -12121,7 +12118,7 @@ NullWireInputPage.rowconfigure(1, weight=1)
 NullWireInputPage.columnconfigure(0, weight=1)
 
 NullWireInputTop = nulltk.Frame(NullWireInputPage)
-NullWireInputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=5)
+NullWireInputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=10)
 NullWireInputTop.rowconfigure(1, weight=1)
 NullWireInputTop.columnconfigure(0, weight=1)
 
