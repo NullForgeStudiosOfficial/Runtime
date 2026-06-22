@@ -6491,53 +6491,8 @@ CurrentManagedRepo = None
 CurrentDownloadProcess = None
 NullGitDividers = []
 
-def InstallGitLoginThings():
-    Result = NullMessageBox(Root,
-    "Install GitHub Support?",
-    "This will install software required for GitHub integration.\n\n"
-    "This includes:\n"
-    "• Git\n"
-    "• GitHub CLI (gh)\n\n"
-    "Approximate Disk Usage: ~20 MB\n\n"
-    "Continue?",
-    ("SureWhyNot", "No Thanks")
-    ).Show()
-
-    if Result != "SureWhyNot":
-        return
-
-    try:
-        subprocess.run(
-            [
-                "pkexec",
-                "apt",
-                "install",
-                "-y",
-                "git",
-                "gh"
-            ],
-            check=True
-        )
-
-        #After V
-        NullMessageBox(Root,"It's Installed~","Git and GitHub CLI have been installed.\n\n"
-            "Use 'Login To GitHub' to authenticate.", ("Coolbeans 👍",)).Show()
-        
-
-
-        InstallGithubButton.grid_forget()
-        NullGitCheckUpdates.grid(
-            row=0,
-            column=0,
-            sticky="ew",
-            padx=5,
-            pady=(3,5),
-            columnspan=99
-        )
-
-    except Exception as e:
-        NullMessageBox(Root,"It Broke",f"Failed to install for... Some reason. Probably This:\n\n{e}"
-            ,("Well damn. OH WELL",)).Show()
+NullGitButtonsList = {}
+CurrentRepoPageMainFrame = None
 
 def LoginToGitHub():
     try:
@@ -6547,9 +6502,6 @@ def LoginToGitHub():
         )
 
         NullMessageBox(Root,"You're Logged in!","Successfully logged in~", ("Yay 🎊",)).Show()
-
-
-        BuildRepoList()
 
     except Exception as e:
         NullMessageBox(Root,"Well that failed.",f"Somethin messedup. This:\n\n{str(e)}", ("Ok...",)).Show()
@@ -6784,7 +6736,7 @@ def GetCurrentBranch(Path):
         return ""
 
 def ChangeBranch(Repo, Branch, StatusVar):
-    StatusVar.set("🔄 Checking...")
+    StatusVar.set(f"{Repo['Name']} 🔄 Checking...")
     try:
         subprocess.run(
             ["git", "checkout", Branch],
@@ -6794,7 +6746,7 @@ def ChangeBranch(Repo, Branch, StatusVar):
             text=True
         )
 
-        StatusVar.set(GetRepoStatus(Repo))
+        StatusVar.set(f"{Repo['Name']} {GetRepoStatus(Repo)}")
     except Exception as e:
         NullMessageBox(Root,"Branch Change Failed",f"{str(e)}", ("Ok...",)).Show()
 
@@ -6860,7 +6812,7 @@ def GetRepoStatus(Repo):
             return "📛 Needs Updated"
         except Exception as e:
             Log(f"NullGit: Error getting latest release status - {e}", "Error")
-            return "❔ Release Unknown"
+            return "❓"
 
     try:
 
@@ -6882,18 +6834,18 @@ def GetRepoStatus(Repo):
         Status = Result.stdout.lower()
 
         if "behind" in Status:
-            return "📛 Needs Updated"
+            return "📛"
 
         if "ahead" in Status:
-            return "⏩ Ahead"
+            return "⏩"
 
-        return "💚 Up To Date"
+        return "💚"
 
     except Exception as e:
 
         Log(f"NullGit: Error getting branch status {e}", "Error")
 
-        return "❔ Unknown"
+        return "❓"
 
 def ShowDownloadOverlay():
     DownloadOverlay.place(
@@ -6990,7 +6942,7 @@ def PullRepo(Repo, StatusVar):
             ""
         )
         Path = Repo["Path"]
-        StatusVar.set("🔄 Pulling...")
+        StatusVar.set(f"{Repo['Name']} 🔄 Pulling...")
         try:
             subprocess.run(
                 [
@@ -7005,16 +6957,16 @@ def PullRepo(Repo, StatusVar):
                 text=True
             )
             StatusVar.set(
-                GetRepoStatus(Repo)
+                f"{Repo['Name']} {GetRepoStatus(Repo)}"
             )
         except subprocess.CalledProcessError as e:
             StatusVar.set(
-                "🔴 Pull Failed"
+               f"{Repo['Name']} 🔴"
             )
             NullMessageBox(Root,"Pull Failed",f"{e.stderr}", ("Ok...",)).Show()
         except Exception as e:
             StatusVar.set(
-                "🔴 Pull Failed"
+                f"{Repo['Name']} 🔴"
             )
             NullMessageBox(Root,"Pull Failed",f"{str(e)}", ("Ok...",)).Show()
         return
@@ -7026,7 +6978,7 @@ def PullRepo(Repo, StatusVar):
         )
         return
     StatusVar.set(
-        "⚪ Unknown"
+        f"{Repo['Name']} ❔"
     )
 
 def PushOnlyCommited():
@@ -7198,13 +7150,6 @@ def ForcePushCommit():
     except Exception as e:
         NullMessageBox(Root,"That Somehow Failed",f"{str(e)}", ("Ok...",)).Show()
 
-def OnNotebookChanged(event):
-    CurrentTab = NullGitNotebook.select()
-    if str(CurrentTab) == str(NullGitMainPage):
-        NullGitNotebook.forget(NullGitManagePage)
-        global CurrentManagedRepo
-        CurrentManagedRepo = None
-
 def MergeBranch():
     
     global CurrentManagedRepo
@@ -7224,87 +7169,7 @@ def MergeBranch():
 
 def ManageRepo(Repo):
     global CurrentManagedRepo
-    Path = Repo["Path"]
-
-    CurrentManagedRepo = Repo
-
-    ManageRepoPath.set(Path)
-    try:
-        Result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=Path,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        ManageRemoteURL.set(
-            Result.stdout.strip()
-        )
-    except:
-        ManageRemoteURL.set("")
-
-    ManageBranchName.set(
-        Repo.get("CurrentBranch", "")
-    )
-    GitIgnorePath = os.path.join(
-        Path,
-        ".gitignore"
-    )
-    if os.path.exists(GitIgnorePath):
-        CreateGitIgnoreButton.grid_remove()
-        EditGitIgnoreButton.grid()
-        with open(GitIgnorePath, "r") as File:
-
-            GitIgnoredVar.set(
-                File.read()
-            )
-
-        GitList.grid()
-
-    else:
-        EditGitIgnoreButton.grid_remove()
-        CreateGitIgnoreButton.grid()
-        GitIgnoredVar.set("")
-        GitList.grid_remove()
-
-    try:
-        Result = subprocess.run(
-            ["git", "diff", "--cached", "--name-only"],
-            cwd=Path,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        Files = Result.stdout.strip()
-        CommittedVar.set(Files)
-
-    except:
-        CommittedVar.set("")
-
-    try:
-        Result = subprocess.run(
-            ["git", "branch"],
-            cwd=Path,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-
-        Branches = []
-
-        for B in Result.stdout.splitlines():
-
-            Clean = B.replace ("*", "").strip()
-            if Clean != CurrentManagedRepo["CurrentBranch"].replace(" [Branch]", ""):
-                Branches.append(Clean)
-
-        MergeBranchBox["values"] = Branches
-
-    except Exception as e:
-        Log(f"NullGit: Error with Manage - {e}", "Error")
-
-    NullGitNotebook.add(NullGitManagePage, text="Manage")
-    NullGitNotebook.select(NullGitManagePage)
+   
     return
 
 def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFinish):
@@ -7352,7 +7217,7 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
                 f"{FileName}\n({CurrentAsset}/{TotalAssets})"
             )
 
-            StatusVar.set(f"🟣 Downloading...")
+            StatusVar.set(f"{Repo['Name']} 🟣 Downloading...")
 
             CurrentDownloadProcess = subprocess.Popen(
                 [
@@ -7444,7 +7309,7 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
         Root.after(
             0,
             lambda: StatusVar.set(
-                "💚 Up To Date"
+                f"{Repo['Name']} 💚"
             )
         )
         if OpenOnFinish:
@@ -7464,7 +7329,7 @@ def DownloadReleaseThread(Repo, StatusVar, SelectedAssets, Tag, Path, OpenOnFini
         Root.after(
             0,
             lambda: StatusVar.set(
-                "❌ Failed"
+                f"{Repo['Name']} ❌"
             )
         )
 
@@ -7482,10 +7347,10 @@ def PullRelease(Repo, StatusVar):
     RepoName = GetGitHubRepo(Path)
 
     if not RepoName:
-        StatusVar.set("🔴 No Repo")
+        StatusVar.set(f"{Repo['Name']}...No Repo")
         return
 
-    StatusVar.set("🟣 Checking...")
+    StatusVar.set(f"{Repo['Name']} 🟣 Checking...")
 
     try:
 
@@ -7493,7 +7358,7 @@ def PullRelease(Repo, StatusVar):
 
         if not Data:
 
-            StatusVar.set("🔴 No Release")
+            StatusVar.set(f"{Repo['Name']} 🔴 None")
 
             NullMessageBox(Root,"No Release Found?",f"Can't pull something that don't exist.", ("Ok...",)).Show()
 
@@ -7503,7 +7368,7 @@ def PullRelease(Repo, StatusVar):
 
         if not Assets:
 
-            StatusVar.set("🔴 No Assets")
+            StatusVar.set(f"{Repo['Name']} 🔴 None")
 
             NullMessageBox(Root,"Nothing to download?",f"release has no downloadable files?", ("Ok...",)).Show()
 
@@ -7601,7 +7466,7 @@ def PullRelease(Repo, StatusVar):
 
         if not SelectedAssets:
 
-            StatusVar.set("⚪ Cancelled")
+            StatusVar.set(f"{Repo['Name']} ⚪ Cancelled")
 
             return
 
@@ -7637,7 +7502,7 @@ def PullRelease(Repo, StatusVar):
 
     except Exception as e:
 
-        StatusVar.set("🔴 Failed")
+        StatusVar.set(f"{Repo['Name']} 🔴 Failed")
 
         NullMessageBox(Root,"Pull Failed",f"{str(e)}", ("Ok...",)).Show()
 
@@ -7663,7 +7528,7 @@ def UpdateRepoStatus(Repo, StatusVar):
     Result = GetRepoStatus(Repo)
     Root.after(
         0,
-        lambda: StatusVar.set(Result)
+        lambda: StatusVar.set(f"{Repo['Name']} {Result}")
     )
 
 def UpdateReleaseOption(
@@ -7737,123 +7602,8 @@ def GetReleaseDisplay(Repo):
 
     return Data.get("tag_name", "Unknown Release")
 
-def AddRepoObject(Repo):
-    global RepoBoxes,NullGitDividers
-    Frame = nulltk.LabelFrame(NullGitcontainer, text=Repo["Name"])
-    Frame.pack(fill="x", padx=5, pady=5)
-    Frame.columnconfigure(0, weight=0)
-    Frame.columnconfigure(1, weight=2)
-    Frame.columnconfigure(2, weight=0)
-    for i in range(9):
-        Frame.rowconfigure(i, weight=0)
-
-    StatusVar = tk.StringVar()
-    StatusVar.set("⚪ Checking...")
-    Branches = GetBranches(Repo["Path"])
-    RepoOptions = []
-    CommitVar = tk.StringVar()
-
-    for Branch in Branches:
-        RepoOptions.append({"Label": f"{Branch} [Branch]", "Type": "Branch", "Value": Branch})
-
-    
-    DisplayValues = [x["Label"] for x in RepoOptions]
-    SavedBranch = Repo.get("CurrentBranch", f"{GetCurrentBranch(Repo['Path'])} [Branch]")
-    CurrentBranch = tk.StringVar(value=SavedBranch)
-    Repo["CurrentBranch"] = SavedBranch
-    def OnRepoOptionChanged():
-        Selected = CurrentBranch.get()
-        Match = next((x for x in RepoOptions if x["Label"] == Selected), None)
-        if not Match:
-            return
-        Repo["CurrentBranch"] = Match["Label"]
-        if Match["Type"] == "Branch":
-            ChangeBranch(Repo, Match["Value"], StatusVar)
-            CommitVar.set(GetCurrentCommit(Repo["Path"]))
-        elif Match["Type"] == "Release":
-            CommitVar.set(GetReleaseDisplay(Repo))
-        StatusVar.set(GetRepoStatus(Repo))
-        SaveConfig("NullGit")
-        Frame.focus_set()
-
-
-    StatusLabel = nulltk.Label(Frame, textvariable=StatusVar, width=15, padx=5)
-    StatusLabel.grid(row=0, column=0, sticky="ew")
-
-    BranchBox = nulltk.Combobox(Frame, values=DisplayValues, textvariable=CurrentBranch, state="readonly")
-    BranchBox.grid(row=0, column=1, sticky="ew",padx=10)
-    BranchBox.bind("<<ComboboxSelected>>", lambda e: OnRepoOptionChanged())
-    BranchBox.unbind_class("TCombobox", "<Button-4>")
-    BranchBox.unbind_class("TCombobox", "<Button-5>")
-
-    try:
-        threading.Thread(target=UpdateReleaseOption,args=(Repo,RepoOptions,BranchBox),daemon=True).start()
-    except Exception as e:
-        Log(f"NullGit: Release Detection Error {e}", "Error")
-
-    
-
-    nulltk.Button(Frame, text="Pull Repo", width=10, command=lambda: PullRepo(Repo, StatusVar)).grid(row=1, column=0, sticky="ew",pady=5, padx=5)
-    
-    CommitLabel = nulltk.Entry(Frame,textvariable=CommitVar, state="readonly")
-    CommitLabel.grid(row=1,column=1,columnspan=3,sticky="ew",padx=10,pady=5)
-
-    ttk.Separator(Frame, orient="horizontal").grid(row=2, column=0, sticky="ew", columnspan=99, pady=6)
-    
-    InnerFrame = nulltk.Frame(Frame)
-    InnerFrame.grid(row=6, column=0, sticky="ew", padx=5, pady=2,columnspan=3)
-    InnerFrame.columnconfigure(0, weight=1)
-    InnerFrame.columnconfigure(1, weight=1)
-    nulltk.Button(InnerFrame, text="Open Repo In Browser", command=lambda: OpenRepo(Repo, False)).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-    nulltk.Button(InnerFrame, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-
-    ttk.Separator(Frame, orient="horizontal").grid(row=7, column=0, sticky="ew", columnspan=99, pady=6)
-    if IsOwner(Repo['Path']):
-        CommitMessage = tk.StringVar()
-        CommitMessageShow = nulltk.Label(Frame, text="Commit Message:", width=15, padx=5)
-        CommitMessageShow.grid(row=3, column=0, sticky="ew")
-        CommitEntry = nulltk.Entry(Frame, width=30, textvariable=CommitMessage)
-        CommitEntry.grid(row=3, column=1, sticky="ew", padx=5)
-        nulltk.Button(Frame, text="Push Repo", width=10, command=lambda: PushGit(Repo, CommitMessage, StatusVar, CommitVar)).grid(row=4, column=0, padx=5)
-        ttk.Separator(Frame, orient="horizontal").grid(row=5, column=0, sticky="ew", columnspan=99, pady=6)
-        nulltk.Button(Frame, text="Manage Repo", command=lambda: ManageRepo(Repo)).grid(row=8, column=0, columnspan=99, sticky="ew", padx=5, pady=5)
-        
-    else:
-        DeleteButton = nulltk.Button(Frame, text="Delete Repo From NullGit", command=lambda: DeleteRepoInNull(Repo, DeleteButton))
-        DeleteButton.grid(row=8, column=0, sticky="ew", padx=5, pady=5, columnspan=3)
-
-    threading.Thread(target=UpdateRepoStatus,args=(Repo, StatusVar),daemon=True).start()
-    Root.after(1, OnRepoOptionChanged)
-    RepoBoxes.append(Frame)
-    NullGitReposList.BindMouseWheel(NullGitMainPage)
-
-    RepoNullGitSep = nulltk.Frame(NullGitcontainer,height=6,Reversed = True)
-    RepoNullGitSep.pack(fill="x", padx=1, pady=(10,5))
-
-    NullGitDividers.append(RepoNullGitSep)
-    
-def BuildRepoList():
-    global RepoBoxes, NullGitDividers
-
-    for div in range(len(NullGitDividers)):
-        NullGitDividers[div].destroy()
-
-    NullGitDividers.clear()
-
-    for Box in RepoBoxes:
-        Box.destroy()
-
-    RepoBoxes.clear()
-
-    for repo in Repos.values():
-        AddRepoObject(repo)
-        
-    return
-
 def GetLoggedInGitHubUser():
     if shutil.which("gh") is None:
-        InstallGithubButton.grid(row=0, column=1, sticky="ew", padx=5, pady=(3,5))
-        NullGitCheckUpdates.grid(row=0, column=0, sticky="ew", padx=5, pady=(3,5))
         return None
 
     try:
@@ -7887,8 +7637,6 @@ def GetRepoOwner(Path):
 
 def IsOwner(Path):
     if shutil.which("gh") is None:
-        InstallGithubButton.grid(row=0, column=1, sticky="ew", padx=5, pady=(3,5))
-        NullGitCheckUpdates.grid(row=0, column=0, sticky="ew", padx=5, pady=(3,5))
         return False
 
     User = GetLoggedInGitHubUser()
@@ -7906,14 +7654,16 @@ def AddRepo(Path):
     if Path in Repos:
         return
     
-    Repos[Path] = {
+    NewRepo = Repos[Path] = {
         "Name": Name,
         "Path": Path,
         "DeleteConfirmation": False
     }
 
+    BuildRepoButtons(NewRepo)
+
     SaveConfig("NullGit")
-    BuildRepoList()
+    
 
 def OpenRepo(Repo, LocalOrNet=True):
     try:
@@ -7971,8 +7721,8 @@ def DeleteRepoInNull(Repo, Button, Timeout=4):
     Path = Repo["Path"]
     Repos.pop(Path, None)
     SaveConfig("NullGit")
-    BuildRepoList()
-    NullGitNotebook.select(NullGitMainPage)
+    NullGitButtonsList[Repo['Path']]['Button'].destroy()
+    del NullGitButtonsList[Repo['Path']]
 
 def CreateBranchOnGit():
     if not CurrentManagedRepo:
@@ -7998,7 +7748,7 @@ def CreateBranchOnGit():
         text=True
         )
         SaveConfig("NullGit")
-        BuildRepoList()
+        
     except Exception as e:
         NullMessageBox(Root,"Branch Creation Failed?",f"{str(e)}", ("Ok...",)).Show()
 
@@ -8026,7 +7776,7 @@ def RenameBranchOnGit():
         )
         CurrentManagedRepo["CurrentBranch"] = f"{NewBranch} [Branch]"
         SaveConfig("NullGit")
-        BuildRepoList()
+        
     except Exception as e:
         NullMessageBox(Root,"Renaming Branch Failed",f"{str(e)}", ("Ok...",)).Show()
 
@@ -8107,10 +7857,7 @@ def DeleteBranchOnGit():
             text=True
             )
         SaveConfig("NullGit")
-        BuildRepoList()
-        NullGitNotebook.select(
-            NullGitMainPage
-        )
+        
         NullMessageBox(Root,
         "Branch Killed",
         f"The branch was deleted → {Branch}",
@@ -8124,6 +7871,7 @@ def DeleteBranchOnGit():
         NullMessageBox(Root,"Deleting The Branch Failed!?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
 def CreateGitIgnoreFile():
+    global TempGitList, TempCreateGitIgnore, TempEditGitIgnore
     if not CurrentManagedRepo:
         NullMessageBox(Root,"creating the .ignore failed o_O",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
         return
@@ -8134,9 +7882,9 @@ def CreateGitIgnoreFile():
     )
     try:
         open(GitIgnorePath, "w").close()
-        CreateGitIgnoreButton.grid_remove()
-        EditGitIgnoreButton.grid()
-        GitList.grid()
+        TempCreateGitIgnore.grid_remove()
+        TempEditGitIgnore.grid()
+        TempGitList.grid()
         GitIgnoredVar.set("")
 
     except Exception as e:
@@ -8178,7 +7926,7 @@ def EditGitIgnoreFile():
     ).pack(fill="x", pady=3)
 
 def SelectGitIgnore(Type, Popup):
-
+    global TempGitList
     Popup.destroy()
 
     if not CurrentManagedRepo:
@@ -8281,9 +8029,9 @@ def SelectGitIgnore(Type, Popup):
         )
 
         if Lines:
-            GitList.grid()
+            TempGitList.grid()
         else:
-            GitList.grid_remove()
+            TempGitList.grid_remove()
 
     except Exception as e:
         NullMessageBox(Root,"Editing Failed?",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
@@ -8464,176 +8212,343 @@ def StashAndPull():
         ("OK!",)
         ).Show()
 
-
-        BuildRepoList()
         SaveConfig("NullGit")
 
     except Exception as e:
         NullMessageBox(Root,"Well That Failed",f"Ya Broke It:\n{str(e)}", ("Ok...",)).Show()
 
-NullGitNotebook = nulltk.Notebook(NullGit)
-NullGitNotebook.pack(fill="both", expand=True)
-NullGitMainPage = nulltk.Frame(NullGitNotebook)
-NullGitManagePage = nulltk.Frame(NullGitNotebook)
-NullGitNotebook.add(NullGitMainPage, text="Repos")
-NullGitNotebook.add(NullGitManagePage, text="Manage")
-NullGitNotebook.bind("<<NotebookTabChanged>>",OnNotebookChanged)
-    #region MainPage
-NullGitMainPage.rowconfigure(0, weight=1)
-NullGitMainPage.columnconfigure(0, weight=1)
-NullGitInputPath = tk.StringVar()
-NullGitCreateRepoPath = tk.StringVar()
-NullGitCreateRepoLink = tk.StringVar()
-NullGitClonePath = tk.StringVar()
-NullGitCloneLink =tk.StringVar()
-NullGitReposList = ScrollableFrame(NullGitMainPage)
-NullGitReposList.grid(row=0, column=0, sticky="nsew", padx=5, columnspan=3)
-NullGitcontainer = NullGitReposList.Inner
+
+def BuildGitPage(Repo=None):
+    global CurrentRepoPageMainFrame, CurrentManagedRepo, TempGitList, TempCreateGitIgnore, TempEditGitIgnore
+
+    if CurrentRepoPageMainFrame != None:
+        CurrentRepoPageMainFrame.destroy()
+
+    MainFrame = nulltk.Frame(NullGitRepoPageListInner)
+    MainFrame.grid(row=0,column=0,sticky="nsew")
+    MainFrame.columnconfigure(0,weight=1)
+    MainFrame.rowconfigure(0,weight=1)
+    
+    
+
+    CurrentRepoPageMainFrame = MainFrame
+    if Repo == None:
+        MainFrame.columnconfigure(0,weight=1)
+        MainFrame.rowconfigure(0,weight=1)
+
+        NullGitAddRepo = nulltk.LabelFrame(MainFrame, text= "Add A Repo")
+        NullGitAddRepo.grid(row=1, column=0, sticky="ew", padx=5)
+        NullGitAddRepo.columnconfigure(0,weight=1)
+        NullGitAddRepo.columnconfigure(1,weight=1)
+        NullGitAddRepo.rowconfigure(0, weight=1)
+        NullGitAddRepo.rowconfigure(1, weight=1)
+        NullGitAddRepo.rowconfigure(2, weight=1)
+        nulltk.Button(NullGitAddRepo, text="Browse For Repo" ,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="ew", padx=5, pady=10)
+        nulltk.Entry(NullGitAddRepo,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew", pady=10)
+        nulltk.Button(NullGitAddRepo, text="Add Repo",command=lambda: AddRepo(NullGitInputPath.get())).grid(row=2, column=0, sticky="ew", padx=5, pady=10, columnspan=2)
+
+        NullGitCreateRepo = nulltk.LabelFrame(MainFrame, text= "Create Repo")
+        NullGitCreateRepo.grid(row=2, column=0, sticky="ew", padx=5)
+        NullGitCreateRepo.columnconfigure(0, weight=1)
+        NullGitCreateRepo.columnconfigure(1, weight=1)
+        nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
+        nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=1, column=1, sticky="ew")
+        nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=1, column=0, sticky="ew", padx=5)
+
+        NullGitCloneRepo = nulltk.LabelFrame(MainFrame, text= "Clone Repo")
+        NullGitCloneRepo.grid(row=3, column=0, sticky="ew", padx=5)
+        NullGitCloneRepo.columnconfigure(1, weight=1)
+        NullGitCloneRepo.columnconfigure(2, weight=1)
+        nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
+
+        GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
+        GitCloneRepoEntry.grid(row=1, column=0, sticky="ew")
+        ToolTip(GitCloneRepoEntry, "Paste the github link here. you do not need to add \"git\", just the link to the webpage will suffice.")
+        nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=1, column=1, sticky="w", padx=5)
+
+
+    else:
+        
+        StatusVar = NullGitButtonsList[Repo['Path']]['TextVar']
+        AllBox = nulltk.Frame(MainFrame)
+        AllBox.grid(row=0,column=0,sticky="nsew")
+        AllBox.columnconfigure(0,weight=1)
+        AllBox.columnconfigure(1,weight=1)
+        AllBox.columnconfigure(2,weight=1)
+        AllBox.rowconfigure(13,weight=1)
+
+        StatusVar.set(f"{Repo['Name']} ...")
+        Branches = GetBranches(Repo["Path"])
+        RepoOptions = []
+        for Branch in Branches:
+            RepoOptions.append({"Label": f"{Branch} [Branch]", "Type": "Branch", "Value": Branch})
+        DisplayValues = [x["Label"] for x in RepoOptions]
+        SavedBranch = Repo.get("CurrentBranch", f"{GetCurrentBranch(Repo['Path'])} [Branch]")
+        Repo["CurrentBranch"] = SavedBranch
+        CurrentBranch = tk.StringVar(value=SavedBranch)
+        def OnRepoOptionChanged():
+            Selected = CurrentBranch.get()
+            Match = next((x for x in RepoOptions if x["Label"] == Selected), None)
+            if not Match:
+                return
+            Repo["CurrentBranch"] = Match["Label"]
+            if Match["Type"] == "Branch":
+                ChangeBranch(Repo, Match["Value"], StatusVar)
+                CommitVar.set(GetCurrentCommit(Repo["Path"]))
+            elif Match["Type"] == "Release":
+                CommitVar.set(GetReleaseDisplay(Repo))
+            StatusVar.set(f"{Repo['Name']} {GetRepoStatus(Repo)}")
+            SaveConfig("NullGit")
+            MainFrame.focus_set()
+        BranchBox = nulltk.Combobox(AllBox, values=DisplayValues, textvariable=CurrentBranch, state="readonly")
+        BranchBox.grid(row=0, column=0, sticky="ew",padx=10, pady=(10,5) , columnspan=99)
+        BranchBox.bind("<<ComboboxSelected>>", lambda e: OnRepoOptionChanged())
+        BranchBox.unbind_class("TCombobox", "<Button-4>")
+        BranchBox.unbind_class("TCombobox", "<Button-5>")
+        try:
+            threading.Thread(target=UpdateReleaseOption,args=(Repo,RepoOptions,BranchBox),daemon=True).start()
+        except Exception as e:
+            Log(f"NullGit: Release Detection Error {e}", "Error")
+        nulltk.Label(AllBox, text="Last Commit Title:").grid(row=1,column=0,sticky="ew", pady=10,columnspan=99, padx=10)
+        CommitLabel = nulltk.Entry(AllBox,textvariable=CommitVar, state="readonly")
+        CommitLabel.grid(row=2, column=0,columnspan=3,sticky="ew",padx=10,pady=10)
+        nulltk.Button(AllBox, text="Pull Repo", command=lambda: PullRepo(Repo, StatusVar)).grid(row=3, column=0, sticky="ew",pady=10, padx=10,columnspan=99)
+        
+        
+
+
+
+
+
+
+
+        if IsOwner(Repo['Path']):
+            nulltk.Button(AllBox, text="Push Repo",command=lambda: PushGit(Repo, CommitMessage, StatusVar, CommitVar)).grid(row=4, column=0, padx=10, sticky="we")
+            nulltk.Entry(AllBox, textvariable=CommitMessage).grid(row=4, column=1, sticky="ew", padx=10, columnspan=99)
+            nulltk.Button(AllBox, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=5, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+            
+            nulltk.Frame(AllBox,height=6,Reversed = True).grid(row=6, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+
+            nulltk.Button(AllBox, text="Create Branch", command=lambda:CreateBranchOnGit()).grid(row=8, column=0, sticky="ew", padx=10, pady=2)
+            nulltk.Button(AllBox, text="Rename Branch", command=lambda:RenameBranchOnGit()).grid(row=8, column=1, sticky="ew", padx=10, pady=2)
+            nulltk.Button(AllBox, text="Delete Branch", command=lambda:DeleteBranchOnGit()).grid(row=8, column=2, sticky="ew", padx=10, pady=2)
+            nulltk.Label(AllBox, text= "Branch Name").grid(row=9, column=0, sticky="ew", padx=10, pady=2)
+            nulltk.Entry(AllBox, textvariable=ManageBranchName).grid(row=9, column=1, sticky="ew", padx=10, pady=2,columnspan=2)
+            
+            nulltk.Frame(AllBox,height=6,Reversed = True,).grid(row=11, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+            
+            MergeBranches = nulltk.Label(AllBox,text="Merge this branch into current:",font=("Arial", 12),justify="center")
+            MergeBranches.grid(row=10, column=0, sticky="ew", padx=10, pady=2)
+            MergeBranchBox = nulltk.Combobox(AllBox, values=[], textvariable=CurrentMergeBranch, state="readonly")
+            MergeBranchBox.grid(row=10, column=1, sticky="ew", padx=10, pady=2)
+            MergeButton = nulltk.Button(AllBox,text="Merge", command=lambda:MergeBranch())
+            MergeButton.grid(row=10,column=2,sticky="ew",padx=10,pady=2)
+
+
+
+            TempCreateGitIgnore = CreateGitIgnoreButton = nulltk.Button(AllBox,text="Create .gitignore", command=lambda:CreateGitIgnoreFile())
+            CreateGitIgnoreButton.grid(row=12,column=0,sticky="ew",padx=10,pady=2,columnspan=3)
+            TempEditGitIgnore = EditGitIgnoreButton = nulltk.Button(AllBox,text="Edit .gitignore", command=lambda:EditGitIgnoreFile())
+            EditGitIgnoreButton.grid(row=12,column=0,sticky="ew",padx=10,pady=2,columnspan=3)
+            ToolTip(EditGitIgnoreButton, "Adding a file to the .gitignore also removes it from the repo, to remove something from the .gitignore, add a file/folder already in the .gitignore")
+            TempGitList = GitList = ScrollableFrame(AllBox)
+            GitList.grid(row=13, column=0, sticky="nsew", padx=10, columnspan=3)
+            GitListContainer = GitList.Inner
+            CreateGitIgnoreButton.grid_remove()
+            EditGitIgnoreButton.grid_remove()
+            GitList.grid_remove()
+            GitIgnoredLabel = nulltk.Label(GitListContainer,textvariable=GitIgnoredVar, justify="left",anchor="nw",bg="white",fg="black")
+            GitIgnoredLabel.pack(fill="both",expand=True,padx=10,pady=10)
+            nulltk.Button(AllBox, text="Add File To Commit", command=lambda:AddFileToCommit()).grid(row=14, column=0, sticky="ew", padx=10, pady=2)
+            nulltk.Button(AllBox, text="Remove File From Commit", command=lambda:RemoveFileFromCommit()).grid(row=14, column=1, sticky="ew", padx=10, pady=2)
+            nulltk.Button(AllBox, text="Clear Current Commit", command=lambda:ClearCurrentCommit()).grid(row=14, column=2, sticky="ew", padx=10, pady=2, columnspan=2)
+            
+            nulltk.Entry(AllBox,width=30,textvariable=OnlyCommitMessage).grid(row=16, column=0, sticky="ew", padx=10)
+            nulltk.Button(AllBox, text="Push Commit List", command=lambda:PushOnlyCommited()).grid(row=16, column=1, sticky="ew", padx=10, pady=2, columnspan=2)
+            CommitList = ScrollableFrame(AllBox)
+            CommitList.grid(row=17, column=0, sticky="nsew", padx=10, columnspan=3)
+            CommitListContainer = CommitList.Inner
+
+            nulltk.Frame(AllBox,height=6,Reversed = True,).grid(row=18, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+
+            CommittedLabel = nulltk.Label(CommitListContainer,textvariable=CommittedVar,justify="left",anchor="nw",bg="white",fg="black")
+            CommittedLabel.pack(fill="both",expand=True,padx=10,pady=10) 
+            Stash = nulltk.Button(AllBox,text="Stash & Pull", command=lambda:StashAndPull())
+            Stash.grid(row=19,column=0,sticky="ew",padx=10,pady=2,columnspan=3)
+            ForcePush = nulltk.Button(AllBox,text="Force Push", command=lambda:ForcePushCommit())
+            ForcePush.grid(row=20,column=0,sticky="ew",padx=10,pady=2, columnspan=3)
+            DeleteNullGitRepoButton = nulltk.Button(AllBox, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
+            DeleteNullGitRepoButton.grid(row=21, column=0, sticky="ew", padx=10, pady=10, columnspan=99)     
+
+            Path = Repo["Path"]
+
+            CurrentManagedRepo = Repo
+
+            ManageRepoPath.set(Path)
+            try:
+                Result = subprocess.run(
+                    ["git", "remote", "get-url", "origin"],
+                    cwd=Path,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                ManageRemoteURL.set(
+                    Result.stdout.strip()
+                )
+            except:
+                ManageRemoteURL.set("")
+
+            ManageBranchName.set(
+                Repo.get("CurrentBranch", "")
+            )
+            GitIgnorePath = os.path.join(
+                Path,
+                ".gitignore"
+            )
+            if os.path.exists(GitIgnorePath):
+                CreateGitIgnoreButton.grid_remove()
+                EditGitIgnoreButton.grid()
+                with open(GitIgnorePath, "r") as File:
+
+                    GitIgnoredVar.set(
+                        File.read()
+                    )
+
+                GitList.grid()
+
+            else:
+                EditGitIgnoreButton.grid_remove()
+                CreateGitIgnoreButton.grid()
+                GitIgnoredVar.set("")
+                GitList.grid_remove()
+
+            try:
+                Result = subprocess.run(
+                    ["git", "diff", "--cached", "--name-only"],
+                    cwd=Path,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                Files = Result.stdout.strip()
+                CommittedVar.set(Files)
+
+            except:
+                CommittedVar.set("")
+
+            try:
+                Result = subprocess.run(
+                    ["git", "branch"],
+                    cwd=Path,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+
+                Branches = []
+
+                for B in Result.stdout.splitlines():
+
+                    Clean = B.replace ("*", "").strip()
+                    if Clean != CurrentManagedRepo["CurrentBranch"].replace(" [Branch]", ""):
+                        Branches.append(Clean)
+
+                MergeBranchBox["values"] = Branches
+
+            except Exception as e:
+                Log(f"NullGit: Error with Loading Page - {e}", "Error")
+
+        else:
+            nulltk.Button(AllBox, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=4, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+            nulltk.Frame(AllBox,height=6,Reversed = True,).grid(row=5, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+            DeleteNullGitRepoButton = nulltk.Button(AllBox, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
+            DeleteNullGitRepoButton.grid(row=6, column=0, sticky="ew", padx=10, pady=10, columnspan=99)        
+        
+        
+
+
+        threading.Thread(target=UpdateRepoStatus,args=(Repo, StatusVar),daemon=True).start()
+        Root.after(1, OnRepoOptionChanged)      
+        NullGitRepoPageList.BindMouseWheel(NullGitMainPage)
+
+
+    return
+
+def CheckAllRepos():
+    Answer = NullMessageBox(Root,
+        "Check All Repos Status",
+        "Upon clicking yes... This will fetch all current status' of your listed repos...This will halt NullSuite until it's finished collecting data from Github. Continue?",
+        ("Yes", "No")
+        ).Show()
+
+    if Answer == "Yes":
+        pass
+    return
+
+def BuildRepoButtons(Repo=None, Title = None):
+
+    if Repo == None:
+        if Title == "Check All":
+            RepoCheckButton = nulltk.Button(NullGitRepoButtonsListInner, text="Check For Updates", command= lambda: CheckAllRepos())
+            RepoCheckButton.pack(fill="x", expand=True, padx=10, pady=5)
+
+        else:
+            OptionsButton = nulltk.Button(NullGitRepoButtonsListInner, text="Options", command= lambda: BuildGitPage())
+            OptionsButton.pack(fill="x", expand=True, padx=10, pady=5)
+            pass
+    else:
+        RepoText = tk.StringVar(value=f"{Repo['Name']} (❔)")
+        RepoButton = nulltk.Button(NullGitRepoButtonsListInner, textvariable=RepoText, command=lambda: BuildGitPage(Repo))
+        RepoButton.pack(fill="x", expand=True, padx=10, pady=5)
+        NullGitButtonsList[Repo['Path']] = {
+            "TextVar": RepoText,
+            "RepoName": Repo['Name'],
+            "Button": RepoButton
+        }
+
+    return
+
+NullGitMainPage = nulltk.Frame(NullGit)
+NullGitMainPage.pack(fill="both", expand=True)
+NullGitMainPage.columnconfigure(0,weight=0)
+NullGitMainPage.rowconfigure(0,weight=1)
+NullGitMainPage.columnconfigure(1,weight=1)
+NullGitMainPage.columnconfigure(0, minsize=300)
+NullGitRepoButtonsList = ScrollableFrame(NullGitMainPage)
+NullGitRepoButtonsList.grid(row=0,column=0,sticky="nswe")
+NullGitRepoButtonsListInner = NullGitRepoButtonsList.Inner
+NullGitRepoPageList = ScrollableFrame(NullGitMainPage)
+NullGitRepoPageList.rowconfigure(0,weight=1)
+NullGitRepoPageList.columnconfigure(0,weight=1)
+NullGitRepoPageList.grid(row=0,column=1,sticky="nswe")
+NullGitRepoPageListInner = NullGitRepoPageList.Inner
+NullGitRepoPageListInner.rowconfigure(0,weight=1)
+NullGitRepoPageListInner.columnconfigure(0,weight=1)
 DownloadOverlay = nulltk.Frame(NullGit,bg="#000000", ThemeBG = False)
 DownloadOverlayLabel = nulltk.Label(DownloadOverlay,text="Downloading...",font=("Arial", 12),justify="center")
 DownloadOverlayLabel.pack(expand=True)
+DownloadOverlayLabel.pack_forget()
 nulltk.Button(DownloadOverlay,text="Cancel",command=CancelDownload).pack(pady=10)
-NullGitOptionsArea = nulltk.LabelFrame(NullGitcontainer, text= "NullGit Options")
-NullGitOptionsArea.pack(fill="x", padx=5, pady=5)
-NullGitOptionsArea.columnconfigure(0, weight=1)
-NullGitOptionsArea.columnconfigure(1, weight=1)
-NullGitCheckUpdates = nulltk.Button(NullGitOptionsArea, text="Check For Updates",command=lambda:BuildRepoList())
-NullGitCheckUpdates.grid(row=0, column=0, columnspan=99, sticky="ew", padx=5, pady=(3,5))
-InstallGithubButton = nulltk.Button(NullGitOptionsArea, text="Install Github Login",command=lambda: InstallGitLoginThings())
-InstallGithubButton.grid(row=0, column=1, sticky="e", padx=5)
-InstallGithubButton.grid_forget()
-NullGitAddRepo = nulltk.LabelFrame(NullGitcontainer, text= "Add A Repo")
-NullGitAddRepo.pack(fill="x", padx=5, pady=5)
-NullGitAddRepo.columnconfigure(1, weight=1)
-nulltk.Button(NullGitAddRepo, text="Browse For Repo", width =16,command=lambda: BrowseForRepo()).grid(row=0, column=0, sticky="e", padx=5, pady=5)
-nulltk.Entry(NullGitAddRepo,width=30,textvariable=NullGitInputPath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-nulltk.Button(NullGitAddRepo, text="Add Repo", width =16,command=lambda: AddRepo(NullGitInputPath.get())).grid(row=0, column=2, sticky="e", padx=5)
-NullGitCreateRepo = nulltk.LabelFrame(NullGitcontainer, text= "Create Repo")
-NullGitCreateRepo.pack(fill="x", padx=5, pady=5)
-NullGitCreateRepo.columnconfigure(1, weight=1)
-NullGitCreateRepo.columnconfigure(2, weight=1)
-nulltk.Button(NullGitCreateRepo, text="Creation Location", width =16,command=lambda: SetRepoCreationLocation()).grid(row=0, column=0, sticky="w", padx=5, pady=5)
-nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoPath,state="readonly",).grid(row=0, column=1, sticky="ew")
-nulltk.Entry(NullGitCreateRepo,width=30,textvariable=NullGitCreateRepoLink,).grid(row=0, column=2, sticky="ew")
-nulltk.Button(NullGitCreateRepo, text="Create Repo", width =16,command=lambda:CreateRepo()).grid(row=0, column=3, sticky="ew", padx=5)
-NullGitCloneRepo = nulltk.LabelFrame(NullGitcontainer, text= "Clone Repo")
-NullGitCloneRepo.pack(fill="x", padx=5, pady=5)
-NullGitCloneRepo.columnconfigure(1, weight=1)
-NullGitCloneRepo.columnconfigure(2, weight=1)
-nulltk.Button(NullGitCloneRepo, text="Set Clone Location", width =16,command=lambda:SetCloneLocation()).grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitClonePath,state="readonly",readonlybackground="#e7e7e7").grid(row=0, column=1, sticky="ew")
-GitCloneRepoEntry = nulltk.Entry(NullGitCloneRepo,width=30,textvariable=NullGitCloneLink,readonlybackground="#e7e7e7")
-GitCloneRepoEntry.grid(row=0, column=2, sticky="ew")
-ToolTip(GitCloneRepoEntry, "Paste the github link here. you do not need to add \"git\", just the link to the webpage will suffice.")
-nulltk.Button(NullGitCloneRepo, text="Clone Repo", width =16,command=lambda:CloneRepo()).grid(row=0, column=3, sticky="w", padx=5)
-NullGitSep = nulltk.Frame(NullGitcontainer,height=12, Reversed = True)
-NullGitSep.pack(fill="x", padx=1, pady=(10,5))
-    #endregion
-    #region ManagePage
 ManageRemoteURL = tk.StringVar()
 ManageRepoPath = tk.StringVar()
 ManageBranchName = tk.StringVar()
 GitIgnoredVar = tk.StringVar()
 CommittedVar = tk.StringVar()
-NullGitManagePage.columnconfigure(0, weight=1)
-NullGitManagePage.rowconfigure(0, weight=0)
-NullGitManagePage.rowconfigure(1, weight=0)
-NullGitManagePage.rowconfigure(2, weight=1)
-NullGitManagePage.rowconfigure(3, weight=1)
-NullGitManagePage.rowconfigure(4, weight=0)
-RepoFrame = nulltk.LabelFrame(NullGitManagePage,text="Repo Management",bd=3,relief="solid")
-RepoFrame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-RepoFrame.columnconfigure(0, weight=0)
-RepoFrame.columnconfigure(1, weight=1)
-RepoFrame.columnconfigure(2, weight=0)
-RepoFrame.rowconfigure(0, weight=1)
-BranchFrame = nulltk.LabelFrame(NullGitManagePage,text="Branch Management",bd=3,relief="solid")
-BranchFrame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-BranchFrame.columnconfigure(0, weight=0)
-BranchFrame.columnconfigure(1, weight=1)
-BranchFrame.columnconfigure(2, weight=0)
-BranchFrame.rowconfigure(0, weight=1)
-IgnoreFrame = nulltk.LabelFrame(NullGitManagePage,text="GitIgnore Management",bd=3,relief="solid")
-IgnoreFrame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
-IgnoreFrame.columnconfigure(0, weight=1)
-IgnoreFrame.rowconfigure(0, weight=0)
-IgnoreFrame.rowconfigure(1, weight=1)
-CommitFrame = nulltk.LabelFrame(NullGitManagePage,text="Commit Management",bd=3,relief="solid")
-CommitFrame.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
-CommitFrame.columnconfigure(0, weight=1)
-CommitFrame.columnconfigure(1, weight=1)
-CommitFrame.rowconfigure(0, weight=0)
-CommitFrame.rowconfigure(1, weight=0)
-CommitFrame.rowconfigure(2, weight=0)
-CommitFrame.rowconfigure(3, weight=1)
-NuclearFrame = nulltk.LabelFrame(NullGitManagePage,text="Nuclear Commands",bd=3,relief="solid")
-NuclearFrame.grid(row=4, column=0, sticky="ew", padx=5, pady=5)
-NuclearFrame.columnconfigure(0, weight=1)
-NuclearFrame.columnconfigure(1, weight=1)
-NuclearFrame.rowconfigure(0, weight=0)
-NuclearFrame.rowconfigure(1, weight=0)
-NuclearFrame.rowconfigure(2, weight=1)
-DeleteNullGitRepoButton = nulltk.Button(RepoFrame, text="Delete Repo From NullGit", command=lambda:DeleteRepoInNull(CurrentManagedRepo, DeleteNullGitRepoButton))
-DeleteNullGitRepoButton.grid(row=0, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
-nulltk.Button(BranchFrame, text="Create Branch", width= 11, command=lambda:CreateBranchOnGit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-nulltk.Entry(BranchFrame, textvariable=ManageBranchName).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-nulltk.Button(BranchFrame, text="Rename Branch", width= 11, command=lambda:RenameBranchOnGit()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
-nulltk.Button(BranchFrame, text="Delete Branch", command=lambda:DeleteBranchOnGit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=3)
-CurrentMergeBranch = tk.StringVar()
-MergeBranches = nulltk.Label(BranchFrame,text="Merge this branch into current:",font=("Arial", 12),justify="center")
-MergeBranches.grid(row=2, column=0, sticky="ew", padx=5, pady=2)
-MergeBranchBox = nulltk.Combobox(BranchFrame, values=[], textvariable=CurrentMergeBranch, state="readonly")
-MergeBranchBox.grid(row=2, column=1, sticky="ew", padx=5, pady=2)
-MergeButton = nulltk.Button(BranchFrame,text="Merge", command=lambda:MergeBranch())
-MergeButton.grid(row=2,column=2,sticky="ew",padx=5,pady=2)
-CreateGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Create .gitignore", command=lambda:CreateGitIgnoreFile())
-CreateGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
-EditGitIgnoreButton = nulltk.Button(IgnoreFrame,text="Edit .gitignore", command=lambda:EditGitIgnoreFile())
-EditGitIgnoreButton.grid(row=0,column=0,sticky="ew",padx=5,pady=2)
-ToolTip(EditGitIgnoreButton, "Adding a file to the .gitignore also removes it from the repo, to remove something from the .gitignore, add a file/folder already in the .gitignore")
-GitList = ScrollableFrame(IgnoreFrame)
-GitList.grid(row=1, column=0, sticky="nsew", padx=5, columnspan=3)
-GitListContainer = GitList.Inner
-GitListContainer.configure(bg="white")
-CreateGitIgnoreButton.grid_remove()
-EditGitIgnoreButton.grid_remove()
-GitList.grid_remove()
-GitIgnoredLabel = nulltk.Label(GitListContainer,textvariable=GitIgnoredVar, justify="left",anchor="nw",bg="white",fg="black")
-GitIgnoredLabel.pack(fill="both",expand=True,padx=5,pady=5)
-nulltk.Button(CommitFrame, text="Add File To Commit", command=lambda:AddFileToCommit()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
-nulltk.Button(CommitFrame, text="Remove File From Commit", command=lambda:RemoveFileFromCommit()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-nulltk.Button(CommitFrame, text="Clear Current Commit", command=lambda:ClearCurrentCommit()).grid(row=1, column=0, sticky="ew", padx=5, pady=2, columnspan=2)
+CommitMessage = tk.StringVar()
+NullGitInputPath = tk.StringVar()
+NullGitCreateRepoPath = tk.StringVar()
+NullGitCreateRepoLink = tk.StringVar()
+NullGitClonePath = tk.StringVar()
+NullGitCloneLink =tk.StringVar()
+CommitVar = tk.StringVar()
 OnlyCommitMessage = tk.StringVar()
-nulltk.Entry(CommitFrame,width=30,textvariable=OnlyCommitMessage).grid(row=2, column=0, sticky="ew", padx=5)
-nulltk.Button(CommitFrame, text="Push Commit List", command=lambda:PushOnlyCommited()).grid(row=2, column=1, sticky="ew", padx=5, pady=2, columnspan=2)
-CommitList = ScrollableFrame(CommitFrame)
-CommitList.grid(row=3, column=0, sticky="nsew", padx=5, columnspan=2)
-CommitListContainer = CommitList.Inner
-CommitListContainer.configure(bg="white")
-CommittedLabel = nulltk.Label(CommitListContainer,textvariable=CommittedVar,justify="left",anchor="nw",bg="white",fg="black")
-CommittedLabel.pack(fill="both",expand=True,padx=5,pady=5) 
-Stash = nulltk.Button(NuclearFrame,text="Stash & Pull", command=lambda:StashAndPull())
-Stash.grid(row=0,column=0,sticky="ew",padx=5,pady=2,)
-ForcePush = nulltk.Button(NuclearFrame,text="Force Push", command=lambda:ForcePushCommit())
-ForcePush.grid(row=0,column=1,sticky="ew",padx=5,pady=2, columnspan=2)
-    #endregion
-
-def NullGitLoop():
-    while True:
-        if NullGitActive.get() == False:
-            time.sleep(1)
-            continue
-
-        for _ in range(1800):
-            if NullGitActive.get() == False:
-                break
-            time.sleep(1)
-
-        try:
-            if NullGitActive.get() == True:
-                Root.after(1, BuildRepoList)
-        except Exception as e:
-            Log(f"NullGit: The loop errored somehow - {e}")
+CurrentMergeBranch = tk.StringVar()
+TempGitList = None
+TempCreateGitIgnore = None
+TempEditGitIgnore = None
 
 def StartUpNullGit():
     global Repos, LoadCompleted, SystemLoading,ActualProgramLoadedCount, NullGitThreads
@@ -8653,15 +8568,21 @@ def StartUpNullGit():
 
             if NullGitThreads == False:
                 NullGitThreads = True
-                threading.Thread(target=NullGitLoop, daemon=True).start()
-                Log("NullGit background processes started. This may slightly increase CPU usage. To fully unload NullGit: restart NullSuite with NullGit disabled.")
+                BuildRepoButtons(None,"Butts")
+                BuildRepoButtons(None,"Check All")
+                RepoNullGitSep = nulltk.Frame(NullGitRepoButtonsListInner,height=6,Reversed = True)
+                RepoNullGitSep.pack(fill="x", padx=1, pady=(5,10))
+
+
         except Exception as e:
             Butts.set(f"ERROR LOADING NULL GIT SAVE\n\n{e}")
             Root.update_idletasks()
             return False
         
         Repos = repos.get("Repos", {})
-        BuildRepoList()
+
+        for repo in Repos.values():
+            BuildRepoButtons(repo)
 
 
         Notebook.add(NullGit, text="NullGit")
