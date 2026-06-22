@@ -6834,12 +6834,12 @@ def GetRepoStatus(Repo):
         Status = Result.stdout.lower()
 
         if "behind" in Status:
-            return f" 📛"
+            return f"{Repo['Name']} 📛"
 
         if "ahead" in Status:
-            return f" ⏩"
+            return f"{Repo['Name']} ⏩"
 
-        return f" 💚"
+        return f"{Repo['Name']} 💚"
 
     except Exception as e:
 
@@ -7528,7 +7528,7 @@ def UpdateRepoStatus(Repo, StatusVar):
     Result = GetRepoStatus(Repo)
     Root.after(
         0,
-        lambda: StatusVar.set(f"{Repo['Name']} {Result}")
+        lambda: StatusVar.set(f"{Result}")
     )
 
 def UpdateReleaseOption(
