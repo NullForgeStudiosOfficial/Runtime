@@ -6808,8 +6808,8 @@ def GetRepoStatus(Repo):
             if not InstalledTag:
                 return "❔ No Release Installed"
             if InstalledTag == LatestTag:
-                return "💚 Up To Date"
-            return "📛 Needs Updated"
+                return f"{Repo['Name']} 💚"
+            return f"{Repo['Name']} 📛"
         except Exception as e:
             Log(f"NullGit: Error getting latest release status - {e}", "Error")
             return "❓"
@@ -6834,12 +6834,12 @@ def GetRepoStatus(Repo):
         Status = Result.stdout.lower()
 
         if "behind" in Status:
-            return "📛"
+            return f"{Repo['Name']} 📛"
 
         if "ahead" in Status:
-            return "⏩"
+            return f"{Repo['Name']} ⏩"
 
-        return "💚"
+        return f"{Repo['Name']} 💚"
 
     except Exception as e:
 
