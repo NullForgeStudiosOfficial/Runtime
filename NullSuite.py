@@ -90,6 +90,11 @@ NullMonitorActive = tk.BooleanVar(value=False)
 NullGitActive = tk.BooleanVar(value=False)
 NullFocusActive = tk.BooleanVar(value=False)
 NullMojiActive = tk.BooleanVar(value=False)
+NullMonitorThreads = False
+NullMidiThreads = False
+NullWireThreads = False
+NullGitThreads = False
+NullFocusThreads = False
 StartMinimizedActive= tk.BooleanVar(value=False)
 StartInTrayActive= tk.BooleanVar(value=False)
 DontLoadAppsOnStartUpActive= tk.BooleanVar(value=False)
@@ -1077,17 +1082,7 @@ def WaitForLoad():
     global ProgramCount, BaseEmoji, NullMojiAllEmojiButtons, CustomEmojis, RecentEmojis
     threading.Thread(target=StartTray, daemon=True).start()
     threading.Thread(target=WatchShowSignal, daemon=True).start()
-    threading.Thread(target=NullMonitorLoop, daemon=True).start()
-    threading.Thread(target=NullMidiLoop, daemon=True).start()
-    threading.Thread(target=NullWireLoop, daemon=True).start()
-    threading.Thread(target=SoundPlayer, daemon=True).start()
-    threading.Thread(target=CymbalPlayer, daemon=True).start()
-    threading.Thread(target=DrumPlayer, daemon=True).start()
-    threading.Thread(target=NullGitLoop, daemon=True).start()
-    threading.Thread(target=NullFocusLoop, daemon=True).start()
-    threading.Thread(target=NullFocusFocusLoop, daemon=True).start()
-    threading.Thread(target=NullFocusClockLoop, daemon=True).start()
-    threading.Thread(target=NullFocusClipBoardLoop, daemon=True).start()
+
     
     LoadConfig()
     ChangeTheme()
@@ -4942,7 +4937,8 @@ def NullMidiLoop():
         time.sleep(1)
 
 def StartUpNullMidi():
-    global MixerInitialized, MidiRows, LoadCompleted, MidiRowObjects,ActualProgramLoadedCount
+    global MixerInitialized, MidiRows, LoadCompleted, MidiRowObjects,ActualProgramLoadedCount, NullMidiThreads
+    
     if NullMidiActive.get() == True:
 
         midi = None
@@ -4955,6 +4951,14 @@ def StartUpNullMidi():
             with open(ConfigPath, "r") as f:
                 data = json.load(f)
                 midi = data.get("NullMidi", {})
+
+            if NullMidiThreads == False:
+                NullMidiThreads = True
+                threading.Thread(target=NullMidiLoop, daemon=True).start()
+                threading.Thread(target=SoundPlayer, daemon=True).start()
+                threading.Thread(target=CymbalPlayer, daemon=True).start()
+                threading.Thread(target=DrumPlayer, daemon=True).start()
+                Log("NullMidi background processes started. This may slightly increase CPU usage. To fully unload NullMidi: restart NullSuite with NullMidi disabled.")
 
             for row in MidiRowObjects[:]:
                 row.destroy()
@@ -6408,7 +6412,7 @@ def NullMonitorLoop():
         time.sleep(max(ScanTime, WarpCooldown))
 
 def StartUpNullMonitor():
-    global Profiles, ActiveProfile, ScanForMouse, LoadCompleted, SystemLoading,ActualProgramLoadedCount
+    global Profiles, ActiveProfile, ScanForMouse, LoadCompleted, SystemLoading,ActualProgramLoadedCount, NullMonitorThreads
     
     if NullMonitorActive.get() == True:
         SystemLoading = True
@@ -6421,6 +6425,12 @@ def StartUpNullMonitor():
             with open(ConfigPath, "r") as f:
                 data = json.load(f)
                 cursor = data.get("NullMonitor", {})
+
+
+            if NullMonitorThreads == False:
+                NullMonitorThreads = True
+                threading.Thread(target=NullMonitorLoop, daemon=True).start()
+                Log("NullMonitor background processes started. This may slightly increase CPU usage. To fully unload NullMonitor: restart NullSuite with NullMonitor disabled.")
 
         except Exception as e:
             Butts.set(f"ERROR LOADING Null MonitorSAVE\n\n{e}")
@@ -8626,7 +8636,7 @@ def NullGitLoop():
             Log(f"NullGit: The loop errored somehow - {e}")
 
 def StartUpNullGit():
-    global Repos, LoadCompleted, SystemLoading,ActualProgramLoadedCount
+    global Repos, LoadCompleted, SystemLoading,ActualProgramLoadedCount, NullGitThreads
     
     if NullGitActive.get() == True:
         SystemLoading = True
@@ -8640,6 +8650,11 @@ def StartUpNullGit():
             with open(ConfigPath, "r") as f:
                 data = json.load(f)
                 repos = data.get("NullGit", {})
+
+            if NullGitThreads == False:
+                NullGitThreads = True
+                threading.Thread(target=NullGitLoop, daemon=True).start()
+                Log("NullGit background processes started. This may slightly increase CPU usage. To fully unload NullGit: restart NullSuite with NullGit disabled.")
         except Exception as e:
             Butts.set(f"ERROR LOADING NULL GIT SAVE\n\n{e}")
             Root.update_idletasks()
@@ -10395,6 +10410,7 @@ def StartUpNullFocus():
     global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
     global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
     global NullFocusOperatorRows, NullFocusOperators, ClipBoardHistory
+    global NullFocusThreads
     
     if NullFocusActive.get() == True:
         SystemLoading = True
@@ -10412,6 +10428,14 @@ def StartUpNullFocus():
             with open(ConfigPath, "r") as f:
                 data = json.load(f)
                 tracker = data.get("NullFocus", {})
+
+            if NullFocusThreads == False:
+                NullFocusThreads = True
+                threading.Thread(target=NullFocusLoop, daemon=True).start()
+                threading.Thread(target=NullFocusFocusLoop, daemon=True).start()
+                threading.Thread(target=NullFocusClockLoop, daemon=True).start()
+                threading.Thread(target=NullFocusClipBoardLoop, daemon=True).start()
+                Log("NullFocus background processes started. This may slightly increase CPU usage. To fully unload NullFocus: restart NullSuite with NullFocus disabled.")
 
         except Exception as e:
             Butts.set(f"ERROR LOADING Null Focus SAVE\n\n{e}")
@@ -11003,6 +11027,8 @@ CurrentOutputs = []
 CurrentInputs = []
 CurrentSources = []
 SourceWindowClass = {}
+
+CurrentSourceStreams = {}
 
 def ResolveID(WhatWeIdentifying, CallType):
     FoundSources = []
@@ -12188,7 +12214,7 @@ NullWireInputListInner.grid(row=0,column=0,sticky="nsew", columnspan=99)
     #endregion
 
 
-def NullWireLoop():
+def NullWireConnectionLoop():
     global LastOutputs, LastInputs, LastSources
     
     tick = 0
@@ -12270,7 +12296,17 @@ def NullWireLoop():
                                         AttachedInput['IDs'] = AllIDs
                                         for i in range(len(AllIDs)):
                                             PactlAttach(AttachedInput,Wire,"SinkToInput", i)
-            elif tick == 3:
+
+            tick = (tick + 1) % 3
+        time.sleep(0.5)
+
+def NullWireVolumeLoop():
+    global LastOutputs, LastInputs, LastSources
+    
+    tick = 0
+    while True:
+        if NullWireActive.get() == True:
+            if tick == 0:
                 for Wire in OutputWires.values():
                     PactlSetVolume(Wire,"Sink")
                     for AttachedOutput in Wire["AttachedOutputs"]:
@@ -12289,7 +12325,7 @@ def NullWireLoop():
         time.sleep(0.5)
 
 def StartUpNullWire():
-    global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows
+    global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows, NullWireThreads
     
     if NullWireActive.get() == True:
 
@@ -12303,6 +12339,13 @@ def StartUpNullWire():
                 wire = data.get("NullWire", {})
                 OutputWires = wire['OutputWires']
                 InputWires = wire['InputWires']
+
+            if NullWireThreads == False:
+                NullWireThreads = True
+                threading.Thread(target=NullWireConnectionLoop, daemon=True).start()
+                threading.Thread(target=NullWireVolumeLoop, daemon=True).start()
+                Log("NullWire background processes started. This may slightly increase CPU usage. To fully unload NullWire: restart NullSuite with NullWire disabled.")
+
             for MainFrame in list(OutputRows.keys()):
                 MainFrame.destroy()
 
@@ -12326,6 +12369,9 @@ def StartUpNullWire():
             for Wire in InputWires.values():
                 CreateInputWire(Wire)
             
+
+            
+
             Notebook.add(NullWire, text="NullWire")
         except Exception as e:
             Butts.set(f"ERROR LOADING NULL WIRE SAVE\n\n{e}")
