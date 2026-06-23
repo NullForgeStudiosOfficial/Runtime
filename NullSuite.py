@@ -12099,7 +12099,6 @@ def NullWireConnectionLoop():
                                     if not AlreadyAttached and SourceInfo:
                                         SteamSource = {
                                             "Name": SourceInfo.get("Name"),
-                                            "Connected": True,
                                             "Override": True,
                                             "IDs": [],
                                             "Muted": False,
