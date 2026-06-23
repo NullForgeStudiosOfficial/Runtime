@@ -11410,8 +11410,6 @@ def AddOutputWire():
         "Muted": False,
         "Volume": 100,
         "Delete": False,
-        "LimiterToggle": False,
-        "Limiter": 50,
         "SteamAppAuto": False,
         "SteamAsk": False,
         "AttachedOutputs": [],
@@ -11471,46 +11469,6 @@ def CreateOutputWire(OutputWire):
     WireMute = nulltk.Checkbutton(WireTopFrame, variable=Muted, command=SetMute, text="Mute")
     WireMute.grid(row=0,column=0, sticky="we", padx=(0,10))
 
-    def SwitchLimited():
-        OutputWire['LimiterToggle'] = Limited.get()
-        LimitedToggle.grid(row=0,column=1, sticky="e")
-        SaveConfig("NullWire")
-
-        if Limited.get() == True:
-            WireTopFrame.columnconfigure(2,weight=1)
-            WireTopFrame.columnconfigure(3,weight=0)
-            WireTopFrame.columnconfigure(5,weight=1)
-            
-            LimitedScale.grid(row=0,column=2, sticky="ew")
-            LimitedAmountShow.grid(row=0,column=3, sticky="w", padx=(0,10))
-
-            VolumeLabel.grid(row=0,column=4, sticky="e", padx=(10,0))
-            VolumeScale.grid(row=0,column=5, sticky="ew")
-            VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
-        else:
-            LimitedScale.grid_forget()
-            LimitedAmountShow.grid_forget()
-            WireTopFrame.columnconfigure(2,weight=0)
-            WireTopFrame.columnconfigure(3,weight=1)
-            WireTopFrame.columnconfigure(5,weight=0)
-
-            VolumeLabel.grid(row=0,column=2, sticky="e", padx=(10,0))
-            VolumeScale.grid(row=0,column=3, sticky="ew", columnspan=1)
-            VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
-
-    def SetLimiter():   
-        OutputWire['Limiter'] = LimitedAmount.get()
-        SaveConfig("NullWire")
-        return
-        
-    Limited = tk.BooleanVar(value=OutputWire['LimiterToggle'])
-    LimitedToggle = nulltk.Checkbutton(WireTopFrame, variable=Limited, command=SwitchLimited, text="Limiter")
-
-    LimitedAmount = tk.IntVar(value=OutputWire['Limiter'])
-    LimitedScale = nulltk.Scale(WireTopFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=LimitedAmount)
-    LimitedAmountShow = nulltk.Label(WireTopFrame, textvariable=LimitedAmount, width=4)
-    
-
     def SetVolume(event=None):
         OutputWire['Volume'] = Volume.get()
         PactlSetVolume(OutputWire,"Sink")
@@ -11525,7 +11483,12 @@ def CreateOutputWire(OutputWire):
     VolumeAmountShow = nulltk.Label(WireTopFrame, textvariable=Volume, width=4)
     VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
 
-    SwitchLimited()
+    WireTopFrame.columnconfigure(2,weight=0)
+    WireTopFrame.columnconfigure(3,weight=1)
+    WireTopFrame.columnconfigure(5,weight=0)
+    VolumeLabel.grid(row=0,column=2, sticky="e", padx=(10,0))
+    VolumeScale.grid(row=0,column=3, sticky="ew", columnspan=1)
+    VolumeAmountShow.grid(row=0,column=6, sticky="w", padx=(0,10))
 
     def DeleteWire(Button, Timeout=4):
         EndTime = time.time() + Timeout
@@ -11666,7 +11629,6 @@ def CreateOutputWire(OutputWire):
         DeviceFrame.columnconfigure(4,weight=1)
 
         def ConnectDevice():
-            DeviceSent['Connected'] = DeviceConnected.get()
             SaveConfig("NullWire")
 
             if DeviceSent['Wire'] == False:
@@ -11677,22 +11639,12 @@ def CreateOutputWire(OutputWire):
                 else:
                     DeviceSent['IDs'] = AllIDs
                     for i in range(len(AllIDs)):
-                        if DeviceConnected.get() == True:
-                            PactlAttach(DeviceSent,OutputWire,"SinkToOutput", i)
-                        else:
-                            PactlRemove(DeviceSent,OutputWire,"SinkFromOutput", i)
+                        PactlAttach(DeviceSent,OutputWire,"SinkToOutput", i)
             else:
-                if DeviceConnected.get() == True:
-                    PactlAttach(DeviceSent,OutputWire,"SinkToOutput", 0, True)
-                else:
-                    PactlRemove(DeviceSent,OutputWire,"SinkFromOutput", 0, True)
+                PactlAttach(DeviceSent,OutputWire,"SinkToOutput", 0, True)
+
 
             return
-
-        DeviceConnected = tk.BooleanVar(value=DeviceSent['Connected'])
-        DeviceConnectedToggle = nulltk.Checkbutton(DeviceFrame, variable=DeviceConnected, command=ConnectDevice, text="Connected |")
-        DeviceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=10)
-
 
         def SetDeviceMono():
             DeviceSent['Mono'] = DeviceMono.get()
@@ -11870,7 +11822,6 @@ def CreateOutputWire(OutputWire):
         else:
             Source = {
                 "Name": SourceFound,
-                "Connected": True,
                 "Override": True,
                 "ID": None,
                 "Mono": False,
@@ -11895,27 +11846,14 @@ def CreateOutputWire(OutputWire):
         SourceFrame.columnconfigure(4,weight=1)
 
         def ConnectSource():
-            SourceSent['Connected'] = SourceConnected.get()
+            PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
             SaveConfig("NullWire")
-
-            if SourceConnected.get() == True:
-                PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
-            else:
-                PactlRemove(SourceSent,OutputWire,"SourceFromSink", 0)
-
             return
-
-        SourceConnected = tk.BooleanVar(value=SourceSent['Connected'])
-        SourceConnectedToggle = nulltk.Checkbutton(SourceFrame, variable=SourceConnected, command=ConnectSource, text="Connected |")
-        SourceConnectedToggle.grid(row=0,column=0, sticky="we", padx=(10,10), pady=10)
 
         def SetSourceMono():
             SourceSent['Mono'] = SourceMono.get()
             SaveConfig("NullWire")
-            if SourceConnected.get() == True:
-                PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
-            else:
-                PactlRemove(SourceSent,OutputWire,"SourceFromSink", 0)
+            PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
 
             NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'], SourceSent['Override'])
             return
@@ -12053,10 +11991,6 @@ def CreateOutputWire(OutputWire):
     VolumeScale.bind("<ButtonRelease-1>", SetVolume)
     VolumeScale.bind("<Button-4>",lambda e: (VolumeScale.set(min(200, VolumeScale.get() + 5)),SetVolume()))
     VolumeScale.bind("<Button-5>",lambda e: (VolumeScale.set(max(0, VolumeScale.get() - 5)),SetVolume()))
-
-    LimitedScale.bind("<ButtonRelease-1>", SetLimiter)
-    LimitedScale.bind("<Button-4>",lambda e: (LimitedScale.set(min(100, LimitedScale.get() + 5)),SetLimiter()))
-    LimitedScale.bind("<Button-5>",lambda e: (LimitedScale.set(max(0, LimitedScale.get() - 5)),SetLimiter()))
 
     #------ LoadingBullshit
 
