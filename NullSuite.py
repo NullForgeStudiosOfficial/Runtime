@@ -11079,7 +11079,7 @@ def PactlAttach(Source,Wire, AttachmentType, IDIndex, BypassMono=False):
             "False"
             ])
             return
-    elif AttachmentType == "SinkToInput":
+    elif AttachmentType == "InputToSink":
         subprocess.call([
         NWPath,
         "ConnectMicToSink",
@@ -11150,6 +11150,10 @@ def PactlSetVolume(Source, VolumeType):
     elif VolumeType == "Source":
         Call = "SetSourceVolume"
         Name = Source['Name']
+
+    elif VolumeType == "MicSink":
+        Call = "SetMicSinkVolume"
+        Name = Source['InternalName']
 
     if Call is None:
         Log(f"NullWire: Idk wtf you're tryna do. error setting volume", "Error")
@@ -11268,14 +11272,22 @@ def GetAllInputDevices():
 
     CurrentInputs = []
 
+    CurrentName = None
+
     for line in out.splitlines():
         line = line.strip()
 
-        if "Description:" in line:
-            name = line.split(":", 1)[1].strip()
+        if line.startswith("Name:"):
+            CurrentName = line.split(":", 1)[1].strip()
 
-            if name not in CurrentInputs:
-                CurrentInputs.append(name)
+        elif line.startswith("Description:"):
+            Description = line.split(":", 1)[1].strip()
+
+            if CurrentName and ".monitor" in CurrentName:
+                continue
+
+            if Description not in CurrentInputs:
+                CurrentInputs.append(Description)
 
     return
 
@@ -11351,16 +11363,16 @@ def GetAllAudioSources():
     return
 
 def NormalizeDeviceVolumesInSinks(DeviceName, NewVolume,NewMute,NewMono,NewOverride, Outputs):
-    global OutputRows, InputRows
-    Rows = OutputRows if Outputs else InputRows
-    Data = OutputWires if Outputs else InputWires
+    global OutputRows
+    Rows = OutputRows 
+    Data = OutputWires
 
     for MainFrame, RowData in Rows.items():
         if DeviceName in RowData["DeviceRows"]:
             RowData["DeviceRows"][DeviceName]["Volume"].set(NewVolume)
             RowData["DeviceRows"][DeviceName]["Mute"].set(NewMute)
-            RowData["DeviceRows"][DeviceName]["Mono"].set(NewMono)
             RowData["DeviceRows"][DeviceName]["Override"].set(NewOverride)
+            RowData["DeviceRows"][DeviceName]["Mono"].set(NewMono)
 
     for Wire in Data.values():
         for AttachedOutput in Wire["AttachedOutputs"]:
@@ -11394,6 +11406,30 @@ def NormalizeSourceVolumesInSinks(SourceName, NewVolume,NewMute,NewMono, NewOver
 
     SaveConfig("NullWire")
     return
+
+def NormalizeMicVolumeInSinks(MicName, NewVolume,NewMute,NewOverride):
+    global InputRows
+
+    Rows = InputRows 
+    Data = InputWires
+
+    for MainFrame, RowData in Rows.items():
+        if MicName in RowData["DeviceRows"]:
+            RowData["DeviceRows"][MicName]["Volume"].set(NewVolume)
+            RowData["DeviceRows"][MicName]["Mute"].set(NewMute)
+            RowData["DeviceRows"][MicName]["Override"].set(NewOverride)
+
+    for Wire in Data.values():
+        for AttachedInput in Wire["AttachedInputs"]:
+            if AttachedInput["Name"] == MicName:
+                AttachedInput["Volume"] = NewVolume
+                AttachedInput["Muted"] = NewMute
+                AttachedInput["Override"] = NewOverride
+
+    SaveConfig("NullWire")
+
+    return
+
 
 def AddOutputWire():
     global OutputWires
@@ -11590,7 +11626,6 @@ def CreateOutputWire(OutputWire):
             if ThisWire is not None:
                 Device = {
                     "Name": ThisWire['Name'],
-                    "Connected": True,
                     "Override": False,
                     "IDs": [],
                     "Muted": ThisWire['Muted'],
@@ -11603,7 +11638,6 @@ def CreateOutputWire(OutputWire):
             else:
                 Device = {
                     "Name": DeviceFound,
-                    "Connected": True,
                     "Override": True,
                     "IDs": [],
                     "Muted": False,
@@ -12002,12 +12036,391 @@ def CreateOutputWire(OutputWire):
     return    
 
 def AddInputWire():
+    global InputWires
+
+    if NullWireInputName.get() == "" or NullWireInputName.get() in InputWires:
+        return
+
+    WireName = NullWireInputName.get().strip()
+    InternalName = WireName.replace(" ", "_") + "_NullWireMicrophone"
+
+    ThisInputWire = InputWires[NullWireInputName.get()] = {
+        "Name": WireName,
+        "InternalName": InternalName,
+        "Muted": False,
+        "Delete": False,
+        "Volume": 100,
+        "AttachedInputs": []
+    }
+
+    AddThisMic = NullWireCreatePopupWindow("Input", ThisInputWire)
+
+    if AddThisMic is None:
+        del InputWires[NullWireInputName.get()] 
+        return
+
+    NullWireInputName.set("")
+
+    Device = {
+        "Name": AddThisMic,
+        "IDs": [],
+        "Muted": False,
+        "Volume": 100,
+        "Delete": False,
+        "Override": False,
+        "Wire": False,
+        "InternalName": None
+
+    }
+
+    ThisInputWire["AttachedInputs"].append(Device)
+
+    MicIDs = ResolveID(AddThisMic, "Input")
+
+    if not MicIDs:
+        Log(f"Could not resolve input device {AddThisMic}", "Error")
+        return
+
+    MicID = MicIDs[0]
+
+    subprocess.call([
+        NWPath,
+        "CreateMic",
+        ThisInputWire['InternalName'],
+        MicID
+        ])
+
+
+    CreateInputWire(ThisInputWire)
+
+    SaveConfig("NullWire")
 
     return
 
 def CreateInputWire(InputWire):
+    global InputRows, InputWires
+
+    MainFrame = nulltk.LabelFrame(NullWireInputListInner, text= InputWire['Name'])
+    MainFrame.pack(fill="x", expand=True, padx=10, pady=10)
+    MainFrame.columnconfigure(1,weight=1)
+
+    WireIsCollapsed = tk.BooleanVar(value=True)
+
+    def CollapseWire(Button):
+        if WireIsCollapsed.get() == True:
+            WireIsCollapsed.set(False)
+            Button.config(text="▼")
+            WireAddativesFrame.grid(row=1,column=1,sticky="nsew")
+        else:
+            WireIsCollapsed.set(True)
+            Button.config(text="▶")
+            WireAddativesFrame.grid_forget()
+
+        return
+
+    CollapseButton = nulltk.Button(MainFrame, text = "▶", command=lambda: CollapseWire(CollapseButton))
+    CollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+
+    WireTopFrame = nulltk.Frame(MainFrame)
+    WireTopFrame.grid(row=0,column=1,pady=(10,5), padx=(5,10), sticky="nsew", columnspan=99)
+
+
+    def SetMute():
+        InputWire['Muted'] = Muted.get()
+        PactlSetVolume(InputWire,"MicSink")
+        SaveConfig("NullWire")
+        return
+
+    Muted = tk.BooleanVar(value=InputWire['Muted'])
+    WireMute = nulltk.Checkbutton(WireTopFrame, variable=Muted, command=SetMute, text="Mute")
+    WireMute.grid(row=0,column=0, sticky="we", padx=(0,10))
+
+    WireTopFrame.columnconfigure(2,weight=0)
+    WireTopFrame.columnconfigure(3,weight=1)
+    WireTopFrame.columnconfigure(5,weight=0)
+
+    def DeleteWire(Button, Timeout=4):
+        EndTime = time.time() + Timeout
+
+        def tick():
+            Remaining = int(EndTime - time.time())
+            if Remaining <= 0:
+                if not Button.winfo_exists():
+                    return
+
+                Button.config(text="Delete")
+                InputWire['Delete'] = False
+                return
+
+            if not Button.winfo_exists():
+                return
+            Button.config(text=f"R U Sure? {Remaining}")
+            Root.after(1000, tick)
+            return
+        
+        if InputWire['Delete'] == False:
+            InputWire['Delete'] = True
+            tick()
+            return
+
+        subprocess.call([
+        NWPath,
+        "DeleteMic",
+        InputWire['InternalName'],
+        ])
+
+
+
+        del InputWires[InputWire['Name']]
+        del InputRows[MainFrame]
+        SaveConfig("NullWire")
+        MainFrame.destroy()
+        return
+    
+    DeleteButton = nulltk.Button(WireTopFrame, text="Delete", command=lambda: DeleteWire(DeleteButton))
+    DeleteButton.grid(row=0,column=7,sticky="ew")
+
+    WireAddativesFrame = nulltk.Frame(MainFrame)
+    WireAddativesFrame.grid(row=1,column=1,sticky="nsew",padx=10, pady=10, columnspan=99)
+    WireAddativesFrame.columnconfigure(0,weight=1)
+    WireAddativesFrame.grid_forget()
+
+    WireInputList = nulltk.LabelFrame(WireAddativesFrame, text="Attached Microphones")
+    WireInputList.grid(row=0,column=0, sticky="nsew", pady=10, columnspan=99, padx=10,)
+    WireInputList.columnconfigure(2,weight=1)
+
+    def CollapseWireInputList(Button):
+        if WireInputListIsCollapsed.get() == True:
+            WireInputListIsCollapsed.set(False)
+            Button.config(text="▼")
+            WireInputListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=9)
+        else:
+            WireInputListIsCollapsed.set(True)
+            Button.config(text="▶")
+            WireInputListFrame.grid_forget()
+
+        return
+    
+    WireInputListIsCollapsed = tk.BooleanVar(value=False)
+    WireInputListCollapseButton = nulltk.Button(WireInputList, text = "▶", command=lambda: CollapseWireInputList(WireInputListCollapseButton))
+    WireInputListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="new")
+
+    def AddDeviceToWire():
+        DeviceFound = NullWireCreatePopupWindow("Input",InputWire)
+
+        if DeviceFound == None:
+            return
+
+        ExistingDevice = None
+
+        for Wire in InputWires.values():
+            for AttachedInput in Wire["AttachedInputs"]:
+                if AttachedInput["Name"] == DeviceFound:
+                    ExistingDevice = AttachedInput
+                    break
+
+            if ExistingDevice:
+                break
+
+        if ExistingDevice == None:
+            ThisWire = None
+            for Wire in InputWires.values():
+                if DeviceFound == Wire['InternalName']:
+                    ThisWire = Wire
+                    break
+
+        if ExistingDevice:
+            Device = ExistingDevice.copy()
+        else:
+            if ThisWire is not None:
+                Device = {
+                "Name": ThisWire['Name'],
+                "IDs": [],
+                "Muted": ThisWire['Muted'],
+                "Override": False,
+                "Volume": ThisWire['Volume'],
+                "Delete": False,
+                "Wire": True,
+                "InternalName": ThisWire['InternalName']
+                }
+            else:
+                Device = {
+                    "Name": DeviceFound,
+                    "Override": True,
+                    "IDs": [],
+                    "Muted": False,
+                    "Volume": 100,
+                    "Delete": False,
+                    "Wire": False,
+                    "InternalName": None
+                    }
+        InputWire['AttachedInputs'].append(Device)
+
+        CreateDeviceOnWire(Device)
+        SaveConfig("NullWire")
+        return
+
+    def CreateDeviceOnWire(DeviceSent):
+        if WireInputListIsCollapsed.get():
+            CollapseWireInputList(WireInputListCollapseButton)
+
+        DeviceFrame = nulltk.LabelFrame(WireInputListListInner, text= DeviceSent['Name'], bd=4)
+        DeviceFrame.pack(fill="both", expand=True, padx=10, pady=10)
+        DeviceFrame.rowconfigure(0,weight=1)
+        DeviceFrame.columnconfigure(4,weight=1)
+
+        def ConnectDevice():
+            SaveConfig("NullWire")
+
+            if DeviceSent['Wire'] == False:
+                AllIDs = ResolveID(DeviceSent['Name'], "Input")
+                if not AllIDs:
+                    Log(f"No Ids Found for {DeviceSent['Name']}", "Error")
+                    return
+                else:
+                    DeviceSent['IDs'] = AllIDs
+                    for i in range(len(AllIDs)):
+                        PactlAttach(DeviceSent,InputWire,"InputToSink", i)
+            else:
+                PactlAttach(DeviceSent,InputWire,"InputToSink", 0, True)
+
+
+            return
+
+        def SetDeviceMute():
+            DeviceSent['Muted'] = DeviceMuted.get()
+            PactlSetVolume(DeviceSent,"Mic")
+            NormalizeMicVolumeInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Override'])
+            SaveConfig("NullWire")
+
+            return
+
+        DeviceMuted = tk.BooleanVar(value=DeviceSent['Muted'])
+        if DeviceSent['Wire'] == False:
+            DeviceMute = nulltk.Checkbutton(DeviceFrame, variable=DeviceMuted, command=SetDeviceMute, text="Mute")
+            DeviceMute.grid(row=0,column=2, sticky="we", padx=10, pady=10)
+
+        def SetDeviceVolume(Event=None):
+            DeviceSent['Volume'] = DeviceVolume.get()
+            PactlSetVolume(DeviceSent,"Mic")
+            NormalizeMicVolumeInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Override'])
+            SaveConfig("NullWire")
+            return
+
+        DeviceVolume = tk.IntVar(value=DeviceSent['Volume'])
+        if DeviceSent['Wire'] == False:
+            
+            DeviceVolumeLabel = nulltk.Label(DeviceFrame, text="Volume:")
+            DeviceVolumeLabel.grid(row=0,column=3, sticky="w", pady=10)
+            DeviceVolumeScale = nulltk.Scale(DeviceFrame,from_=0,to=100,orient="horizontal",showvalue=0,variable=DeviceVolume)
+            DeviceVolumeScale.grid(row=0,column=4, sticky="ew", pady=10)
+            DeviceVolumeAmountShow = nulltk.Label(DeviceFrame, textvariable=DeviceVolume)
+            DeviceVolumeAmountShow.grid(row=0,column=5, sticky="w", padx=(0,10), pady=10)
+
+            DeviceVolumeScale.bind("<ButtonRelease-1>", SetDeviceVolume)
+            DeviceVolumeScale.bind("<Button-4>",lambda e: (DeviceVolumeScale.set(min(100, DeviceVolumeScale.get() + 5)),SetDeviceVolume()))
+            DeviceVolumeScale.bind("<Button-5>",lambda e: (DeviceVolumeScale.set(max(0, DeviceVolumeScale.get() - 5)),SetDeviceVolume()))
+
+        def SetDeviceOverride():
+            DeviceSent['Override'] = DeviceOverride.get()
+            NormalizeMicVolumeInSinks(DeviceSent['Name'],DeviceSent['Volume'], DeviceSent['Muted'],DeviceSent['Override'])
+            SaveConfig("NullWire")
+
+            return
+        DeviceOverride = tk.BooleanVar(value=DeviceSent['Override'])
+        if DeviceSent['Wire'] == False:
+            DeviceOverrideCheck = nulltk.Checkbutton(DeviceFrame, variable=DeviceOverride, command=SetDeviceOverride, text="Override")
+            DeviceOverrideCheck.grid(row=0,column=6, sticky="we",padx=10, pady=10)
+            ToolTip(DeviceOverrideCheck, "Enabling the override, will make the system constantly match the volume as its set in NullWire \n Otherwise other applications, and functions can change the volume, which wont show in NullWire.")
+
+        def DeleteDevice(Button, Timeout=4):
+            EndTime = time.time() + Timeout
+
+            def tick():
+                Remaining = int(EndTime - time.time())
+                if Remaining <= 0:
+                    if not Button.winfo_exists():
+                        return
+
+                    Button.config(text="Remove")
+                    DeviceSent['Delete'] = False
+                    return
+
+                if not Button.winfo_exists():
+                    return
+                Button.config(text=f"R U Sure? {Remaining}")
+                Root.after(1000, tick)
+                return
+
+            if DeviceSent['Delete'] == False:
+                DeviceSent['Delete'] = True
+                tick()
+                return
+
+
+            if DeviceSent['Wire'] == False:
+                PactlRemove(DeviceSent, InputWire,"SinkFromInput",0)
+            else:
+                PactlRemove(DeviceSent, InputWire,"SinkFromInput",0, True)
+            InputWire['AttachedInputs'].remove(DeviceSent)
+            del InputRows[MainFrame]['DeviceRows'][DeviceSent['Name']]
+            SaveConfig("NullWire")
+            DeviceFrame.destroy()
+            return
+    
+        DeviceDeleteButton = nulltk.Button(DeviceFrame, text="Remove", command=lambda: DeleteDevice(DeviceDeleteButton))
+        DeviceDeleteButton.grid(row=0,column=7,sticky="ew", padx=10, pady=10)
+
+        ConnectDevice()
+        InputRows[MainFrame]['DeviceRows'][DeviceSent['Name']] = {
+            "Frame": DeviceFrame,
+            "Volume": DeviceVolume,
+            "Mute": DeviceMuted,
+            "Override": DeviceOverride
+        }
+        return
+
+    WireInputListAddDevice = nulltk.Button(WireInputList, text = "+", command=lambda: AddDeviceToWire())
+    WireInputListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="new")
+
+    WireInputListFrame = nulltk.LabelFrame(WireInputList)
+    WireInputListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=8)
+    WireInputListFrame.config(height=200)
+    WireInputListFrame.columnconfigure(0,weight=1)
+
+    CollapseWireInputList(WireInputListCollapseButton)
+
+
+    WireInputListList = ScrollableFrame(WireInputListFrame)
+    WireInputListList.grid(row=0, column=0,sticky="nsew")
+    WireInputListList.columnconfigure(0,weight=1)
+
+
+    WireInputListListInner = WireInputListList.Inner
+
+    InputRows[MainFrame] = {
+        "Wire": InputWire,
+        "Mute": Muted,
+        "DeviceRows": {},
+    }
+
+    for item in InputWire['AttachedInputs']:
+        CreateDeviceOnWire(item)
+
 
     return
+
+
+
+
+
+
+
+
+
+
+
+
 
 NullWireNotebook = nulltk.Notebook(NullWire)
 
@@ -12056,18 +12469,21 @@ NullWireInputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=10)
 NullWireInputTop.rowconfigure(1, weight=1)
 NullWireInputTop.columnconfigure(0, weight=1)
 
-NullWireInputEntry = nulltk.Entry(NullWireInputTop)
+NullWireInputName = tk.StringVar(value="")
+
+NullWireInputEntry = nulltk.Entry(NullWireInputTop, textvariable=NullWireInputName)
 NullWireInputEntry.grid(row=0,column=0,sticky="ew")
 NullWireInputEntry.bind("<Return>",lambda event: AddInputWire())
 
 NullWireAddInputWireButton = nulltk.Button(NullWireInputTop, text="Add Input Wire", command=lambda: AddInputWire(), width = 16)
 NullWireAddInputWireButton.grid(row=0,column=1,sticky="ew")
 
+
 NullWireInputList = ScrollableFrame(NullWireInputPage)
 NullWireInputList.grid(row=1,column=0,sticky="nsew", columnspan=99)
+NullWireInputList.columnconfigure(0,weight=1)
 
 NullWireInputListInner = NullWireInputList.Inner
-NullWireInputListInner.grid(row=0,column=0,sticky="nsew", columnspan=99)
 
     #endregion
 
@@ -12178,8 +12594,8 @@ def NullWireVolumeLoop():
                             PactlSetVolume(AttachedInput,"Mic")
 
 
-            tick = (tick + 1) % 4
-        time.sleep(0.5)
+            tick = (tick + 1) % 1
+        time.sleep(0.100)
 
 def StartUpNullWire():
     global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows, NullWireThreads

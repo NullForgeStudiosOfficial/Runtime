@@ -28,6 +28,21 @@ case "$Action" in
         exit 0
     ;;
 
+    CreateMic)
+        pactl list short modules | grep -q "source_name=$Arg1"
+
+        if [[ $? -eq 0 ]]; then
+            exit 0
+        fi
+
+        pactl load-module module-remap-source \
+            master="$Arg2" \
+            source_name="$Arg1" \
+            source_properties=device.description="$Arg1"
+
+        exit 0
+    ;;
+
     DeleteSink)
         ModuleId=$(pactl list short modules | grep "sink_name=$Arg1" | awk '{print $1}')
 
@@ -35,6 +50,21 @@ case "$Action" in
             echo "Deleting sink: $Arg1"
             pactl unload-module "$ModuleId"
         fi
+
+        exit 0
+    ;;
+
+    DeleteMic)
+        MicName="$Arg1"
+
+        pactl list short modules | \
+        grep "source_name=$MicName" | \
+        awk '{print $1}' | while read -r ModuleId; do
+
+            echo "Deleting mic: $MicName ($ModuleId)"
+            pactl unload-module "$ModuleId"
+
+        done
 
         exit 0
     ;;
@@ -58,6 +88,19 @@ case "$Action" in
         fi
 
         pactl set-sink-volume "$Sink" "$Volume"
+        exit 0
+    ;;
+
+    SetMicSinkVolume)
+        Sink="$Arg1"
+        Volume="$Arg2%"
+        Muted="$Arg3"
+
+        if [[ "$Muted" == "1" || "$Muted" == "True" || "$Muted" == "true" ]]; then
+            Volume="0%"
+        fi
+
+        pactl set-source-volume "$Sink" "$Volume"
         exit 0
     ;;
 
@@ -146,63 +189,15 @@ case "$Action" in
 
     #------------------------------------------ Mic
 
-    ConnectMicToSink)
-        Mic="$Arg1"
-        Sink="$Arg2"
-        Ports=$(pw-link -o | awk -v mic="$Mic" '$1 ~ "^"mic":" {print $1}')
-        Success=1
-        for Port in $Ports; do
-            case "$Port" in
-                *capture_MONO)
-                    pw-link "$Port" "$Sink:playback_FL" || Success=0 
-                    pw-link "$Port" "$Sink:playback_FR" || Success=0
-                ;;
-                *capture_FL)
-                    pw-link "$Port" "$Sink:playback_FL" || Success=0
-                ;;
-                *capture_FR)
-                    pw-link "$Port" "$Sink:playback_FR" || Success=0
-                ;;
-            esac
-        done
-
-        exit $((1 - Success))
-    ;;
-
-    RemoveMicFromSink)
-        Mic="$Arg1"
-        Sink="$Arg2"
-
-        echo "Disconnect $Mic → $Sink"
-
-        Ports=$(pw-link -o | awk -v mic="$Mic" '$1 ~ "^"mic":" {print $1}')
-
-        for Port in $Ports; do
-            pw-link -d "$Port" "$Sink:playback_FL" 2>/dev/null || true
-            pw-link -d "$Port" "$Sink:playback_FR" 2>/dev/null || true
-        done
-
-        exit 0
-    ;;
-
-    RemoveMicFromAllSinks)
-        Mic="$Arg1"
-
-        echo "Disconnect $Mic from ALL sinks"
-
-        pw-link -l | grep "$Mic:capture" | while read -r line; do
-            Source=$(echo "$line" | awk '{print $1}')
-            Target=$(echo "$line" | awk '{print $3}')
-
-            pw-link -d "$Source" "$Target" 2>/dev/null
-        done
-
-        exit 0
-    ;;
 
     SetMicVolume)
         Mic="$Arg1"
         Volume="$Arg2%"
+        Muted="$Arg3"
+
+        if [[ "$Muted" == "1" || "$Muted" == "True" || "$Muted" == "true" ]]; then
+            Volume="0%"
+        fi
 
         pactl list short sources | while read -r Id SourceName Rest; do
 
