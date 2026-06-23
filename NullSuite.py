@@ -421,6 +421,7 @@ def SaveConfig(Which, FirstTimeSetup=False):
         elif Which == "NullWire":
             data.update({
             "NullWire": {
+                "UnattachedVolume": UnattachedVolume,
                 "OutputWires": OutputWires,
                 "InputWires":  InputWires,
             }
@@ -1135,7 +1136,6 @@ def DoneLoadingCheck():
         pass
     LoadPopup.destroy()
     Root.focus_force()
-    
 
 #endregion
 
@@ -10946,6 +10946,8 @@ InputRows = {}
 LastOutputs = set()
 LastInputs = set()
 LastSources = set()
+UnattachedSources = set()
+
 
 CurrentOutputs = []
 CurrentInputs = []
@@ -10953,6 +10955,8 @@ CurrentSources = []
 SourceWindowClass = {}
 
 CurrentSourceStreams = {}
+
+UnattachedVolume = 100
 
 def ResolveID(WhatWeIdentifying, CallType):
     FoundSources = []
@@ -11154,6 +11158,18 @@ def PactlSetVolume(Source, VolumeType):
     elif VolumeType == "MicSink":
         Call = "SetMicSinkVolume"
         Name = Source['InternalName']
+
+    elif VolumeType == "Unattached":
+        Call = "SetUnattachedVolume"
+        Name = Source
+        subprocess.call([
+        NWPath,
+        Call,
+        Name,
+        str(UnattachedVolume)
+        ])
+        return
+
 
     if Call is None:
         Log(f"NullWire: Idk wtf you're tryna do. error setting volume", "Error")
@@ -11478,7 +11494,7 @@ def CreateOutputWire(OutputWire):
         if WireIsCollapsed.get() == True:
             WireIsCollapsed.set(False)
             Button.config(text="▼")
-            WireAddativesFrame.grid(row=1,column=1,sticky="nsew")
+            WireAddativesFrame.grid(row=1,column=1,sticky="ew")
         else:
             WireIsCollapsed.set(True)
             Button.config(text="▶")
@@ -11487,12 +11503,12 @@ def CreateOutputWire(OutputWire):
         return
 
     CollapseButton = nulltk.Button(MainFrame, text = "▶", command=lambda: CollapseWire(CollapseButton))
-    CollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="ew")
+    CollapseButton.grid(row=0,column=0, pady=(10,5), padx=(10, 5), sticky="ew")
 
     # ---- Top Frame
 
     WireTopFrame = nulltk.Frame(MainFrame)
-    WireTopFrame.grid(row=0,column=1,pady=(10,5), padx=(5,10), sticky="nsew", columnspan=99)
+    WireTopFrame.grid(row=0,column=1,pady=(10,0), padx=(5,10), sticky="nsew", columnspan=99)
     
 
     def SetMute():
@@ -11568,23 +11584,23 @@ def CreateOutputWire(OutputWire):
     DeleteButton.grid(row=0,column=7,sticky="ew")
 
     WireAddativesFrame = nulltk.Frame(MainFrame)
-    WireAddativesFrame.grid(row=1,column=1,sticky="nsew",padx=10, pady=10, columnspan=99)
+    WireAddativesFrame.grid(row=1,column=1,sticky="ew",padx=10, pady=(2,5), columnspan=99)
     WireAddativesFrame.columnconfigure(0,weight=1)
-    WireAddativesFrame.grid_forget()
+    
     
     #----------------------------------------------------------------------------------------------------------------------------------------------------------------------- the bullshit part
 
     
 
     WireOutputList = nulltk.LabelFrame(WireAddativesFrame, text="Play Audio On These Devices")
-    WireOutputList.grid(row=0,column=0, sticky="nsew", pady=10, columnspan=99, padx=10,)
+    WireOutputList.grid(row=0,column=0, sticky="ew", pady=(2,10), columnspan=99, padx=10,)
     WireOutputList.columnconfigure(2,weight=1)
 
     def CollapseWireOutputList(Button):
         if WireOutputListIsCollapsed.get() == True:
             WireOutputListIsCollapsed.set(False)
             Button.config(text="▼")
-            WireOutputListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=9)
+            WireOutputListFrame.grid(row=0, column=2,sticky="ew",padx=(0,5), pady=9)
         else:
             WireOutputListIsCollapsed.set(True)
             Button.config(text="▶")
@@ -11595,6 +11611,8 @@ def CreateOutputWire(OutputWire):
     WireOutputListIsCollapsed = tk.BooleanVar(value=False)
     WireOutputListCollapseButton = nulltk.Button(WireOutputList, text = "▶", command=lambda: CollapseWireOutputList(WireOutputListCollapseButton))
     WireOutputListCollapseButton.grid(row=0,column=0, pady=10, padx=(10, 5), sticky="new")
+
+    
 
     def AddDeviceToWire():
         DeviceFound = NullWireCreatePopupWindow("Output",OutputWire)
@@ -11658,8 +11676,8 @@ def CreateOutputWire(OutputWire):
             CollapseWireOutputList(WireOutputListCollapseButton)
 
         DeviceFrame = nulltk.LabelFrame(WireOutputListListInner, text= DeviceSent['Name'], bd=4)
-        DeviceFrame.pack(fill="both", expand=True, padx=10, pady=10)
-        DeviceFrame.rowconfigure(0,weight=1)
+        DeviceFrame.pack(fill="x", expand=True, padx=10, pady=10)
+        #DeviceFrame.rowconfigure(0,weight=1)
         DeviceFrame.columnconfigure(4,weight=1)
 
         def ConnectDevice():
@@ -11802,15 +11820,14 @@ def CreateOutputWire(OutputWire):
     WireOutputListAddDevice.grid(row=0,column=1, pady=10, padx=(10, 5), sticky="new")
 
     WireOutputListFrame = nulltk.LabelFrame(WireOutputList)
-    WireOutputListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=8)
-    WireOutputListFrame.config(height=200)
+    WireOutputListFrame.grid(row=0, column=2,sticky="ew",padx=(0,5), pady=8)
     WireOutputListFrame.columnconfigure(0,weight=1)
 
-    CollapseWireOutputList(WireOutputListCollapseButton)
+    
 
 
     WireOutputListList = ScrollableFrame(WireOutputListFrame)
-    WireOutputListList.grid(row=0, column=0,sticky="nsew")
+    WireOutputListList.grid(row=0, column=0,sticky="ew")
     WireOutputListList.columnconfigure(0,weight=1)
 
 
@@ -11996,19 +12013,18 @@ def CreateOutputWire(OutputWire):
 
     WireSourcesListFrame = nulltk.LabelFrame(SourcesOutputList)
     WireSourcesListFrame.grid(row=0, column=2,sticky="nsew",padx=(0,5), pady=9)
-    WireSourcesListFrame.config(height=200)
     WireSourcesListFrame.columnconfigure(0,weight=1)
 
-    CollapseWireSourceList(WireSourceListCollapseButton)
+    
 
     WireSourceListList = ScrollableFrame(WireSourcesListFrame)
     WireSourceListList.grid(row=0, column=0,sticky="nsew")
     WireSourceListList.columnconfigure(0,weight=1)
     
-
     WireSourceListListInner = WireSourceListList.Inner
 
     #--- append
+    
 
     OutputRows[MainFrame] = {
         "Wire": OutputWire,
@@ -12033,6 +12049,9 @@ def CreateOutputWire(OutputWire):
     for item in OutputWire['AudioSourcesIn']:
         CreateSourceOnWire(item)
 
+    CollapseWireOutputList(WireOutputListCollapseButton)
+    CollapseWireSourceList(WireSourceListCollapseButton)
+    WireAddativesFrame.grid_forget()
     return    
 
 def AddInputWire():
@@ -12410,7 +12429,12 @@ def CreateInputWire(InputWire):
 
     return
 
+def SetUnattachedVolume(event = None):
+    global UnattachedVolume
+    UnattachedVolume = NullWireOutputUnattachedVolumeVar.get()
+    SaveConfig("NullWire")
 
+    return
 
 
 
@@ -12437,17 +12461,34 @@ NullWireOutputPage.columnconfigure(0, weight=1)
 
 NullWireOutputTop = nulltk.Frame(NullWireOutputPage)
 NullWireOutputTop.grid(row=0,column=0,sticky="ew", padx=10,pady=10)
-NullWireOutputTop.rowconfigure(1, weight=1)
+NullWireOutputTop.rowconfigure(2, weight=1)
 NullWireOutputTop.columnconfigure(1, weight=1)
 
 NullWireOutputName = tk.StringVar(value="")
 
 NullWireOutputEntry = nulltk.Entry(NullWireOutputTop, textvariable=NullWireOutputName)
-NullWireOutputEntry.grid(row=0,column=1,sticky="ew")
+NullWireOutputEntry.grid(row=0,column=1,sticky="ew",columnspan=2)
 NullWireOutputEntry.bind("<Return>",lambda event: AddOutputWire())
 
 NullWireAddOutputWireButton = nulltk.Button(NullWireOutputTop, text="Add Output Wire", command=lambda: AddOutputWire(), width = 16)
 NullWireAddOutputWireButton.grid(row=0,column=0,sticky="ew")
+
+NullWireOutputUnattachedVolumeVar = tk.IntVar(value=UnattachedVolume)
+
+
+
+NullWireOutputUnattachedVolumeLabel = nulltk.Label(NullWireOutputTop, text="Unattached App\n Start Volume:")
+NullWireOutputUnattachedVolumeLabel.grid(row=1,column=0, sticky="w", pady=10)
+
+NullWireOutputUnattachedVolumeScale = nulltk.Scale(NullWireOutputTop,from_=0,to=100,orient="horizontal",showvalue=0,variable=NullWireOutputUnattachedVolumeVar)
+NullWireOutputUnattachedVolumeScale.grid(row=1,column=1, sticky="ew", pady=10)
+
+NullWireOutputUnattachedVolumeAmountShow = nulltk.Label(NullWireOutputTop, textvariable=NullWireOutputUnattachedVolumeVar)
+NullWireOutputUnattachedVolumeAmountShow.grid(row=1,column=2, sticky="w", padx=(0,10), pady=10)
+
+NullWireOutputUnattachedVolumeScale.bind("<ButtonRelease-1>", SetUnattachedVolume)
+NullWireOutputUnattachedVolumeScale.bind("<Button-4>",lambda e: (NullWireOutputUnattachedVolumeScale.set(min(100, NullWireOutputUnattachedVolumeScale.get() + 5)),SetUnattachedVolume()))
+NullWireOutputUnattachedVolumeScale.bind("<Button-5>",lambda e: (NullWireOutputUnattachedVolumeScale.set(max(0, NullWireOutputUnattachedVolumeScale.get() - 5)),SetUnattachedVolume()))
 
 
 NullWireOutputList = ScrollableFrame(NullWireOutputPage)
@@ -12489,7 +12530,7 @@ NullWireInputListInner = NullWireInputList.Inner
 
 
 def NullWireConnectionLoop():
-    global LastOutputs, LastInputs, LastSources
+    global LastOutputs, LastInputs, LastSources, UnattachedSources
     
     tick = 0
     while True:
@@ -12501,11 +12542,16 @@ def NullWireConnectionLoop():
                     NewSources = CurrentSet - LastSources
                     LastSources = CurrentSet
 
+                    SourceNotAttached = set(NewSources)
                     for Sources in NewSources:
+                        if Sources in UnattachedSources:
+                            SourceNotAttached.discard(Sources)
+
                         for Wire in OutputWires.values():
                             for AttachedSource in Wire["AudioSourcesIn"]:
                                 if AttachedSource["Name"] == Sources:
                                     PactlAttach(AttachedSource,Wire,"SourceToSink", 0)
+                                    SourceNotAttached.discard(Sources)
                             if Wire['SteamAppAuto']:
                                 SourceInfo = SourceWindowClass.get(Sources, {})
                                 WindowClass = SourceInfo.get("WMClass") or ""
@@ -12530,7 +12576,9 @@ def NullWireConnectionLoop():
                                             if RowData["Wire"] is Wire:
                                                 RowData["CreateSource"](SteamSource)
                                                 break
-                        
+                    for Source in SourceNotAttached:
+                        UnattachedSources.add(Source)
+                        PactlSetVolume(Source, "Unattached")
             elif tick == 1:
                 GetAllOutputDevices()
                 if CurrentOutputs != LastOutputs:
@@ -12598,7 +12646,7 @@ def NullWireVolumeLoop():
         time.sleep(0.100)
 
 def StartUpNullWire():
-    global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows, NullWireThreads
+    global OutputWires,InputWires, LoadCompleted, ActualProgramLoadedCount, OutputRows,InputRows, NullWireThreads, NullWireOutputUnattachedVolumeVar
     
     if NullWireActive.get() == True:
 
@@ -12642,7 +12690,8 @@ def StartUpNullWire():
             for Wire in InputWires.values():
                 CreateInputWire(Wire)
             
-
+            NullWireOutputUnattachedVolumeVar.set(wire['UnattachedVolume'])
+            SetUnattachedVolume()
             
 
             Notebook.add(NullWire, text="NullWire")

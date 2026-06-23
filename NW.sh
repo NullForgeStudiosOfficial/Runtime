@@ -91,6 +91,25 @@ case "$Action" in
         exit 0
     ;;
 
+    SetUnattachedVolume)
+        Source="$Arg1"
+        Volume="$Arg2%"
+
+        pactl list sink-inputs | while read -r line; do
+
+            if [[ "$line" == *"Sink Input #"* ]]; then
+                Id=$(echo "$line" | awk '{print $3}' | tr -d '#')
+            fi
+
+            if [[ "$line" == *"application.name"* && "$line" == *"$Source"* ]]; then
+                pactl set-sink-input-volume "$Id" "$Volume"
+            fi
+
+        done
+
+        exit 0
+    ;;
+
     SetMicSinkVolume)
         Sink="$Arg1"
         Volume="$Arg2%"
@@ -214,11 +233,10 @@ case "$Action" in
     
     #---------------------------------------------Sources
     ConnectSourceToSink)
-        echo "testing"
         InputName="$Arg1"
         TargetSink="$Arg2"
         Mono="$Arg3"
-
+ 
         echo "Attach $InputName → $TargetSink"
 
 
