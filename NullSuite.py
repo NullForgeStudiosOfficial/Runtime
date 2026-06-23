@@ -11171,7 +11171,7 @@ def PactlSetVolume(Source, VolumeType):
 
 def NullWireCreatePopupWindow(ThisType, Wire):
 
-    ExcludeThis = Wire['Name']
+    ExcludeThis = Wire['InternalName']
 
     Result = {"Value": None}
 
