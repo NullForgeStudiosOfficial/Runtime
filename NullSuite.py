@@ -12688,6 +12688,23 @@ def StartUpNullWire():
             InputRows.clear()
 
             for Wire in InputWires.values():
+                if not Wire["AttachedInputs"]:
+                    continue
+                Device = Wire["AttachedInputs"][0]
+                MicIDs = ResolveID(Device["Name"], "Input")
+                if not MicIDs:
+                    Log(f"Could not resolve {Device['Name']}", "Error")
+                    continue
+                subprocess.call([
+                NWPath,
+                "CreateMic",
+                Wire["InternalName"],
+                MicIDs[0]
+                ])
+
+
+
+            for Wire in InputWires.values():
                 CreateInputWire(Wire)
             
             NullWireOutputUnattachedVolumeVar.set(wire['UnattachedVolume'])
