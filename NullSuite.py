@@ -8327,7 +8327,8 @@ def BuildGitPage(Repo=None):
         if IsOwner(Repo['Path']):
             nulltk.Button(AllBox, text="Push Repo",command=lambda: PushGit(Repo, CommitMessage, StatusVar, CommitVar)).grid(row=4, column=0, padx=10, sticky="we")
             nulltk.Entry(AllBox, textvariable=CommitMessage).grid(row=4, column=1, sticky="ew", padx=10, columnspan=99)
-            nulltk.Button(AllBox, text="Open Repo Location", command=lambda: OpenRepo(Repo, True)).grid(row=5, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
+            nulltk.Button(AllBox, text="Open Repo Local", command=lambda: OpenRepo(Repo, True)).grid(row=5, column=0, sticky="ew", padx=10, pady=10, columnspa=2)
+            nulltk.Button(AllBox, text="Open Repo On Github", command=lambda: OpenRepo(Repo, False)).grid(row=5, column=2, sticky="ew", padx=10, pady=10)
             
             nulltk.Frame(AllBox,height=6,Reversed = True).grid(row=6, column=0, sticky="ew", padx=10, pady=10, columnspan=99)
 
