@@ -9536,8 +9536,6 @@ def AddClipBoardEntry(ClipBoardContents):
 
     BuildClipBoardRow(Row)
 
-
-
     SaveClipBoard()
 
 def BuildClipBoardRow(Row):
@@ -9795,6 +9793,10 @@ def DeleteClipboardItems():
             ClipBoardHistory.remove(Row)
 
             CBRow.destroy()
+
+    SaveClipBoard()
+    
+    GenClipboard()
     return
 
 def SelectAllClipBoard():
@@ -10027,6 +10029,42 @@ def AttemptToGetSpotifyID():
             continue
 
     return None
+
+def GenClipboard():
+    global ClipBoardHistory, ClipBoardRows
+    
+    ClipBoardHistory.clear()
+
+    for rows in ClipBoardRows:
+        rows.destroy()
+    
+    ClipBoardRows.clear()
+
+    MonthFolder = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
+
+    ClipSave = os.path.join(MonthFolder,"000-ClipBoard.json")
+    os.makedirs(MonthFolder, exist_ok=True)
+
+    if not os.path.isfile(ClipSave):
+        with open(ClipSave, "w") as f:
+            json.dump([], f, indent=2)
+
+    try:
+        with open(ClipSave, "r") as f:
+            clippy = json.load(f)
+
+
+    except Exception as e:
+        Butts.set(f"ERROR LOADING ClipBoard Save\n\n{e}")
+        Root.update_idletasks()
+        return False
+        
+    ClipBoardHistory = clippy
+
+    for Row in clippy:
+        Row['Collapsed'] = False
+        BuildClipBoardRow(Row)
+    return
 
 NullFocusNotebook = nulltk.Notebook(NullFocus)
 NullFocusManagePage = nulltk.Frame(NullFocusNotebook)
@@ -10315,8 +10353,6 @@ def NullFocusClipBoardLoop():
 
             if Current:
                 if Current['Hash'] != LastClipBoard:
-
-
                     LastClipBoard = Current['Hash']
                     Root.after(0,lambda c=Current: AddClipBoardEntry(c))
         time.sleep(1.5)
@@ -10334,7 +10370,7 @@ def StartUpNullFocus():
     global AppClassification,WriteToDiskSeconds,MinimumWindowTime,NewDayThreshold,LoadCompleted,ActualProgramLoadedCount
     global SystemLoading, YearButtons, CurrentCycle,ClassificationRows, OnCurrentCycle
     global CurrentViewedMonth, CurrentViewedYear, CurrentViewedCycle, WaitForNullFocusLoad
-    global NullFocusOperatorRows, NullFocusOperators, ClipBoardHistory
+    global NullFocusOperatorRows, NullFocusOperators
     global NullFocusThreads
     
     if NullFocusActive.get() == True:
@@ -10474,39 +10510,9 @@ def StartUpNullFocus():
 
 
         #---- ClipBoard stuff
+        GenClipboard()
 
-
-        ClipBoardHistory.clear()
-
-        for rows in ClipBoardRows:
-            rows.destroy()
-
-        ClipBoardRows.clear()
-
-        MonthFolder = os.path.join(ClipboardPath,datetime.now().strftime("%Y - %b"))
-
-        ClipSave = os.path.join(MonthFolder,"000-ClipBoard.json")
-        os.makedirs(MonthFolder, exist_ok=True)
-
-        if not os.path.isfile(ClipSave):
-            with open(ClipSave, "w") as f:
-                json.dump([], f, indent=2)
-
-        try:
-            with open(ClipSave, "r") as f:
-                clippy = json.load(f)
-
-
-        except Exception as e:
-            Butts.set(f"ERROR LOADING ClipBoard Save\n\n{e}")
-            Root.update_idletasks()
-            return False
         
-        ClipBoardHistory = clippy
-
-        for Row in clippy:
-            Row['Collapsed'] = False
-            BuildClipBoardRow(Row)
 
         Notebook.add(NullFocus, text="NullFocus")
         ClickYearButton(LatestYear)
