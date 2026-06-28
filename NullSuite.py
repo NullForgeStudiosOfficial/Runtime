@@ -66,6 +66,7 @@ import hashlib
 from datetime import datetime, timedelta
 import urllib.request
 import nulltk # type: ignore
+import dbus
 
 setproctitle.setproctitle("NullSuite")
 os.environ["PULSE_PROP_application.name"] = "NullMidiSounds"
@@ -5053,192 +5054,307 @@ class ToolTip:
             self.tip.destroy()
             self.tip = None
 
+    # NullmonitorProfiles
+
 def CaptureLayout():
+
+    bus = dbus.SessionBus()
+
+    display = bus.get_object(
+        "org.cinnamon.Muffin.DisplayConfig",
+        "/org/cinnamon/Muffin/DisplayConfig"
+    )
+
+    iface = dbus.Interface(
+        display,
+        "org.cinnamon.Muffin.DisplayConfig"
+    )
+
     try:
-        Out = subprocess.check_output([XrandrPath]).decode()
+        serial, monitors, logical_monitors, properties = iface.GetCurrentState()
     except:
         return []
 
-    Layout = []
+    MonitorInfo = {}
 
-    for Line in Out.splitlines():
-        if " connected" in Line:
-            Parts = Line.split()
-            ID = Parts[0]
+    for ident, modes, props in monitors:
 
-            Resolution = None
-            Pos = None
-            Primary = "primary" in Parts
+        Connector = str(ident[0])
+        Vendor = str(ident[1])
+        Product = str(ident[2])
+        Serial = str(ident[3])
 
-            for P in Parts:
-                if "+" in P and "x" in P:
-                    Resolution, X, Y = re.split(r"[+]", P)
-                    Pos = f"{X}x{Y}"
-                    break
+        Name = str(props.get("display-name", Product))
 
-            if not Resolution:
+        Resolution = None
+        RefreshRate = None
+        Mode = None
+
+        for ModeInfo in modes:
+
+            if len(ModeInfo) < 7:
                 continue
 
+            ModeProps = ModeInfo[6]
+
+            if "is-current" in ModeProps and ModeProps["is-current"]:
+
+                Resolution = f"{int(ModeInfo[1])}x{int(ModeInfo[2])}"
+                RefreshRate = round(float(ModeInfo[3]), 3)
+                Mode = str(ModeInfo[0])
+                break
+
+        MonitorInfo[Connector] = {
+            "Name": Name,
+            "Vendor": Vendor,
+            "Product": Product,
+            "Serial": Serial,
+            "Resolution": Resolution,
+            "RefreshRate": RefreshRate,
+            "Mode": Mode
+        }
+
+    Layout = []
+
+    for LogicalMonitor in logical_monitors:
+
+        X = int(LogicalMonitor[0])
+        Y = int(LogicalMonitor[1])
+
+        Primary = bool(LogicalMonitor[4])
+
+        for Monitor in LogicalMonitor[5]:
+
+            Connector = str(Monitor[0])
+
+            if Connector not in MonitorInfo:
+                continue
+
+            Info = MonitorInfo[Connector]
+
             Layout.append({
-                "ID": ID,
-                "Resolution": Resolution,
-                "Pos": Pos,
+
+                "ID": Connector,
+
+                "Name": Info["Name"],
+                "Product": Info["Product"],
+                "Setup": Info["Mode"],
+
+                "X": X,
+                "Y": Y,
+
+                "Resolution": Info["Resolution"],
+                "RefreshRate": Info["RefreshRate"],
+                "Transform": int(LogicalMonitor[3]),
+
+                "Enabled": True,
                 "Primary": Primary
+
             })
+
+    # Saftey for adding disabled monitors too
+    Used = {Monitor["ID"] for Monitor in Layout}
+
+    for Connector, Info in MonitorInfo.items():
+
+        if Connector in Used:
+            continue
+
+        Layout.append({
+
+            "ID": Connector,
+
+            "Name": Info["Name"],
+            "Product": Info["Product"],
+            "Setup": Info["Mode"],
+
+            "X": 0,
+            "Y": 0,
+
+            "Resolution": Info["Resolution"],
+            "RefreshRate": Info["RefreshRate"],
+            "Transform": int(LogicalMonitor[3]),
+
+            "Enabled": False,
+            "Primary": False
+
+        })
 
     return Layout
 
 def GetMonitors():
+
+    bus = dbus.SessionBus()
+
+    display = bus.get_object(
+        "org.cinnamon.Muffin.DisplayConfig",
+        "/org/cinnamon/Muffin/DisplayConfig"
+    )
+
+    iface = dbus.Interface(
+        display,
+        "org.cinnamon.Muffin.DisplayConfig"
+    )
+
     try:
-        Out = subprocess.check_output([XrandrPath]).decode()
+        serial, monitors, logical_monitors, properties = iface.GetCurrentState()
     except:
         return []
 
+    #
+    # Figure out which connectors are primary
+    #
+    PrimaryConnectors = set()
+
+    for LogicalMonitor in logical_monitors:
+
+        IsPrimary = bool(LogicalMonitor[4])
+
+        if not IsPrimary:
+            continue
+
+        for Monitor in LogicalMonitor[5]:
+            PrimaryConnectors.add(str(Monitor[0]))
+
     Monitors = []
 
-    for Line in Out.splitlines():
-        if " connected" in Line:
-            Parts = Line.split()
-            ID = Parts[0]
+    for ident, modes, props in monitors:
 
-            IsPrimary = " primary " in Line
+        Connector = str(ident[0])
 
-            Resolution = None
-            for P in Parts:
-                if "+" in P and "x" in P:
-                    Resolution = P.split("+")[0]
-                    break
+        Resolution = "Unknown"
 
-            if not Resolution:
+        for ModeInfo in modes:
+
+            if len(ModeInfo) < 7:
                 continue
 
-            if IsPrimary:
-                Label = f"Primary ({ID} {Resolution})"
-            else:
-                Label = f"{ID} ({Resolution})"
+            ModeProps = ModeInfo[6]
 
-            Monitors.append({
-                "ID": ID,
-                "Label": Label,
-                "Primary": IsPrimary
-            })
+            if ModeProps.get("is-current", False):
+                Resolution = f"{int(ModeInfo[1])}x{int(ModeInfo[2])}"
+                break
+
+        IsPrimary = Connector in PrimaryConnectors
+
+        if IsPrimary:
+            Label = f"Primary ({Connector} {Resolution})"
+        else:
+            Label = f"{Connector} ({Resolution})"
+
+        Monitors.append({
+            "ID": Connector,
+            "Label": Label,
+            "Primary": IsPrimary
+        })
 
     return Monitors
 
 def GetProfiles():
     return list(Profiles.keys()) if Profiles else ["NO PROFILES. GO CREATE ONE"]
 
-def ShowDetectionOverlay(which):
-    global OverlayWindows
-    if OverlayWindows:
+def CreateProfileBox(Name):
+    global NullMonitorSetActiveCheckBoxes
+    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=10,pady=10)
+    Frame.pack(fill="x",pady=10)
+
+    TopRow = nulltk.Frame(Frame)
+    TopRow.pack(fill="x")
+    TopRow.columnconfigure(2,weight=1)
+
+    ActiveVar = tk.BooleanVar()
+
+    ActiveCheck = nulltk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
+    ActiveCheck.grid(row=0,column=0,padx=2,pady=2,sticky="ew")
+
+    NullMonitorSetActiveCheckBoxes.append(ActiveCheck)
+
+    DeleteBtn = nulltk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
+    DeleteBtn.grid(row=0,column=3,padx=2,pady=2,sticky="ew")
+
+    
+
+    EnableWallPaperVar = tk.BooleanVar(value=Profiles[Name].get("EnabledWallPapers",False))
+
+    def UpdateWallPaperEnabled(thisbutton):
+        Profiles[Name]["EnabledWallPapers"] = EnableWallPaperVar.get()
+        if Profiles[Name]["EnabledWallPapers"] == False:
+            thisbutton.grid_remove()
+        else:
+            thisbutton.grid(row=1,column=1,padx=2,pady=2)
+        SaveConfig("NullMonitor")
+
+    
+
+    ManageWallPaper = nulltk.Button(TopRow,text="Manage Wallpapers",command=lambda: ManageWallPapers(Name))
+    ManageWallPaper.grid(row=1,column=1,padx=2,pady=2,sticky="ew")
+
+    WallPapersEnabled = nulltk.Checkbutton(TopRow,text="Wallpapers",variable=EnableWallPaperVar,command= lambda: UpdateWallPaperEnabled(ManageWallPaper), width=16)
+    WallPapersEnabled.grid(row=0,column=1,padx=2,pady=2,sticky="ew")
+
+    UpdateWallPaperEnabled(ManageWallPaper)
+
+    Spacer3 = nulltk.Frame(Frame,bg="black",height=2)
+    Spacer3.pack(fill="x",pady=10)
+
+    BtnRow = nulltk.Frame(Frame)
+    BtnRow.pack(fill="x")
+
+    nulltk.Button(BtnRow,text="Create Warp",command=lambda: OpenAddWarp(Name)).pack(side="left",padx=2)
+    nulltk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
+
+    WarpBox = nulltk.Frame(Frame,padx=1,pady=1)
+    WarpBox.pack(fill="x",pady=10)
+
+    InnerWarp = nulltk.Frame(WarpBox)
+    InnerWarp.pack(fill="x")
+
+    WarpVar = tk.StringVar()
+
+    WarpLabel = nulltk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
+    WarpLabel.pack(fill="x",padx=10,pady=3)
+
+    ProfileWidgets[Name] = {
+        "Frame": Frame,
+        "ActiveVar": ActiveVar,
+        "EnableWallPaperVar": EnableWallPaperVar,
+        "WarpVar": WarpVar
+    }
+
+    RefreshWarpDisplay(Name)
+
+def CreateProfile():
+    Name = NullMonitorProfileNameVar.get().strip()
+
+    if not Name:
         return
 
+    if Name in Profiles:
+        return
 
-    OverlayWindows = []
+    Layout = CaptureLayout()
+    Wallpapers = {}
 
-    Bounds = GetMonitorBounds()
+    for monitor in Layout:
+        Wallpapers[monitor['ID']] = {
+            "DTPath": "",
+            "DTMode": "Fill",
+            "LSPath": "",
+            "LSMode": "Fill"
+            }
 
-    for ID, B in Bounds.items():
-        W = B["x2"] - B["x1"]
-        H = B["y2"] - B["y1"]
+    Profiles[Name] = {
+        "Layout": Layout,
+        "EnabledWallPapers": False,
+        "Wallpapers": Wallpapers,
+        "Warps": {},
+        "DeleteConfirmation": False,
+    }
 
-        if which == "detection":
-            Px = int(W * StartDetection)
-            Py = int(H * StartDetection)
-        else:
-            Px = EdgeBuffer
-            Py = EdgeBuffer
-
-        # Left
-        OverlayWindows.append(CreateOverlay(
-            B["x1"], B["y1"], Px, H
-        ))
-
-        # Right
-        OverlayWindows.append(CreateOverlay(
-            B["x2"] - Px, B["y1"], Px, H
-        ))
-
-        # Top
-        OverlayWindows.append(CreateOverlay(
-            B["x1"], B["y1"], W, Py
-        ))
-
-        # Bottom
-        OverlayWindows.append(CreateOverlay(
-            B["x1"], B["y2"] - Py, W, Py
-        ))
-    return OverlayWindows
-
-def CreateOverlay(x, y, w, h):
-    Popup = nulltk.Toplevel(Root)
-    Popup.overrideredirect(True)
-    Popup.attributes("-topmost", True)
-    Popup.attributes("-alpha", 0.25)
-
-    Popup.geometry(f"{w}x{h}+{x}+{y}")
-    Popup.configure(bg="red")
-
-    return Popup
-
-def HideDetectionOverlay():
-    global OverlayWindows
-
-    for W in OverlayWindows:
-        try:
-            W.destroy()
-        except:
-            pass
-
-    OverlayWindows = []
-
-def UpdateStartDetection(v):
-    global StartDetection
-    StartDetection = int(v) / 1000
-    NullMonitorStartValueLabel.config(text=f"{int(v)}   |") 
+    CreateProfileBox(Name)
+    NullMonitorProfileNameVar.set("")
+    SetActiveProfile(Name)
     SaveConfig("NullMonitor")
-
-def OnHoverEnter(e, which):
-    global Overlays, HideJob
-    if HideJob:
-        Root.after_cancel(HideJob)
-        HideJob = None
-    HideDetectionOverlay()
-    Overlays = ShowDetectionOverlay(which)
-
-def OnHoverLeave(e):
-    global HideJob
-    HideJob = Root.after(50, HideDetectionOverlay)
-
-def DelayedHide():
-    Root.after(50, lambda: HideDetectionOverlay())
-
-def UpdateEdgeBuffer(*args):
-    global EdgeBuffer
-    try:
-        EdgeBuffer = int(NullMonitorEdgeBufferVar.get())
-        SaveConfig("NullMonitor")
-    except:
-        pass
-
-def UpdateScanTime(v):
-    global ScanTime
-    ScanTime = float(v)
-    NullMonitorScanValueLabel.config(text=f"{ScanTime:.3f}")
-    SaveConfig("NullMonitor")
-
-def CenterOnRoot(Popup, width, height):
-    Root.update_idletasks()
-
-    rx = Root.winfo_rootx()
-    ry = Root.winfo_rooty()
-    rw = Root.winfo_width()
-    rh = Root.winfo_height()
-
-    x = rx + (rw // 2) - (width // 2)
-    y = ry + (rh // 2) - (height // 2)
-
-    Popup.geometry(f"{width}x{height}+{x}+{y}")
 
 def SetActiveProfile(Name, Apply=True):
     global ActiveProfile
@@ -5352,6 +5468,88 @@ def DeleteProfile(Name,Button, Frame, Timeout=4):
 
     SaveConfig("NullMonitor")
 
+def BuildUIFromProfiles():
+    global NullMonitorSetActiveCheckBoxes
+
+    NullMonitorSetActiveCheckBoxes.clear()
+    
+    for w in NullMonitorProfileContainer.winfo_children():
+        w.destroy()
+
+    ProfileWidgets.clear()
+
+    for Name in Profiles:
+        CreateProfileBox(Name)
+
+    if ActiveProfile in ProfileWidgets:
+        SetActiveProfile(ActiveProfile, Apply= False)
+
+    #endregion
+
+    #region NullMonitorWarping
+
+def ToggleNullMonitor():
+    global ScanForMouse
+    ScanForMouse = NullMonitorEnabledVar.get()
+    if ScanForMouse:
+        NullMonitorDisabledOverlay.place_forget()
+    else:
+        NullMonitorDisabledOverlay.place(
+            relx=0,
+            rely=0,
+            relwidth=1,
+            relheight=1
+        )
+    SaveConfig("NullMonitor")
+
+def UpdateStartDetection(v):
+    global StartDetection
+    StartDetection = int(v) / 1000
+    NullMonitorStartValueLabel.config(text=f"{int(v)}   |") 
+    SaveConfig("NullMonitor")
+
+def OnHoverEnter(e, which):
+    global Overlays, HideJob
+    if HideJob:
+        Root.after_cancel(HideJob)
+        HideJob = None
+    HideDetectionOverlay()
+    Overlays = ShowDetectionOverlay(which)
+
+def OnHoverLeave(e):
+    global HideJob
+    HideJob = Root.after(50, HideDetectionOverlay)
+
+def DelayedHide():
+    Root.after(50, lambda: HideDetectionOverlay())
+
+def UpdateEdgeBuffer(*args):
+    global EdgeBuffer
+    try:
+        EdgeBuffer = int(NullMonitorEdgeBufferVar.get())
+        SaveConfig("NullMonitor")
+    except:
+        pass
+
+def UpdateScanTime(v):
+    global ScanTime
+    ScanTime = float(v)
+    NullMonitorScanValueLabel.config(text=f"{ScanTime:.3f}")
+    SaveConfig("NullMonitor")
+
+def CenterOnRoot(Popup, width, height):
+    Root.update_idletasks()
+
+    rx = Root.winfo_rootx()
+    ry = Root.winfo_rooty()
+    rw = Root.winfo_width()
+    rh = Root.winfo_height()
+
+    x = rx + (rw // 2) - (width // 2)
+    y = ry + (rh // 2) - (height // 2)
+
+    Popup.geometry(f"{width}x{height}+{x}+{y}")
+
 def OpenRemoveWarp(Name):
     Popup = nulltk.Toplevel(Root)
     Popup.title("Remove Warp")
@@ -5458,22 +5656,6 @@ def SpawnMonitorPopups(OnSelect):
 
     return Popups
 
-def CreateCenterPopup():
-    Popup = nulltk.Toplevel(Root)
-    CenterOnRoot(Popup, 400, 100)
-    Popup.attributes("-topmost", True)
-    
-
-    Frame = nulltk.Frame(Popup)
-    Frame.pack(fill="both", expand=True)
-
-    Label = nulltk.Label(Frame, text="", font=("Arial", 12))
-    Label.pack(expand=True)
-
-    
-
-    return Popup, Label
-
 def OpenWarpConfigPopup(ProfileName, SourceID, TargetID):
     Popup = nulltk.Toplevel(Root)
     CenterOnRoot(Popup, 300, 200)
@@ -5569,22 +5751,6 @@ def StartWarpSelection(ProfileName):
 
 def OpenAddWarp(Name):
     StartWarpSelection(Name)
-
-def BuildUIFromProfiles():
-    global NullMonitorSetActiveCheckBoxes
-
-    NullMonitorSetActiveCheckBoxes.clear()
-    
-    for w in NullMonitorProfileContainer.winfo_children():
-        w.destroy()
-
-    ProfileWidgets.clear()
-
-    for Name in Profiles:
-        CreateProfileBox(Name)
-
-    if ActiveProfile in ProfileWidgets:
-        SetActiveProfile(ActiveProfile, Apply= False)
 
 def GetMouseDirection(x, y):
     global LastMousePos
@@ -5733,19 +5899,89 @@ def DetectEdge(x, y, B):
 
     return None
 
-def ToggleNullMonitor():
-    global ScanForMouse
-    ScanForMouse = NullMonitorEnabledVar.get()
-    if ScanForMouse:
-        NullMonitorDisabledOverlay.place_forget()
-    else:
-        NullMonitorDisabledOverlay.place(
-            relx=0,
-            rely=0,
-            relwidth=1,
-            relheight=1
-        )
-    SaveConfig("NullMonitor")
+def HideDetectionOverlay():
+    global OverlayWindows
+
+    for W in OverlayWindows:
+        try:
+            W.destroy()
+        except:
+            pass
+
+    OverlayWindows = []
+    
+def ShowDetectionOverlay(which):
+    global OverlayWindows
+    if OverlayWindows:
+        return
+
+
+    OverlayWindows = []
+
+    Bounds = GetMonitorBounds()
+
+    for ID, B in Bounds.items():
+        W = B["x2"] - B["x1"]
+        H = B["y2"] - B["y1"]
+
+        if which == "detection":
+            Px = int(W * StartDetection)
+            Py = int(H * StartDetection)
+        else:
+            Px = EdgeBuffer
+            Py = EdgeBuffer
+
+        # Left
+        OverlayWindows.append(CreateOverlay(
+            B["x1"], B["y1"], Px, H
+        ))
+
+        # Right
+        OverlayWindows.append(CreateOverlay(
+            B["x2"] - Px, B["y1"], Px, H
+        ))
+
+        # Top
+        OverlayWindows.append(CreateOverlay(
+            B["x1"], B["y1"], W, Py
+        ))
+
+        # Bottom
+        OverlayWindows.append(CreateOverlay(
+            B["x1"], B["y2"] - Py, W, Py
+        ))
+    return OverlayWindows
+
+def CreateOverlay(x, y, w, h):
+    Popup = nulltk.Toplevel(Root)
+    Popup.overrideredirect(True)
+    Popup.attributes("-topmost", True)
+    Popup.attributes("-alpha", 0.25)
+
+    Popup.geometry(f"{w}x{h}+{x}+{y}")
+    Popup.configure(bg="red")
+
+    return Popup
+
+def CreateCenterPopup():
+    Popup = nulltk.Toplevel(Root)
+    CenterOnRoot(Popup, 400, 100)
+    Popup.attributes("-topmost", True)
+    
+
+    Frame = nulltk.Frame(Popup)
+    Frame.pack(fill="both", expand=True)
+
+    Label = nulltk.Label(Frame, text="", font=("Arial", 12))
+    Label.pack(expand=True)
+
+    
+
+    return Popup, Label
+
+    #endregion
+
+    #region NullMonitorWallPapers
 
 def UpdateDesktopWallPapers(ProfileName):
 
@@ -6107,6 +6343,14 @@ def ManageWallPapers(Name):
     NullMonitorNotebook.tab(NullMonitorWallPapersPage,state="normal")
     NullMonitorNotebook.select(NullMonitorWallPapersPage)
 
+    #endregion
+
+
+
+
+
+
+
 def NullMonitorNoteBookChange(event):
     CurrentTab = NullMonitorNotebook.select()
     if str(CurrentTab) == str(NullMonitorPage):
@@ -6115,109 +6359,6 @@ def NullMonitorNoteBookChange(event):
             state="disabled"
         )
     return
-
-def CreateProfileBox(Name):
-    global NullMonitorSetActiveCheckBoxes
-    Frame = nulltk.LabelFrame(NullMonitorProfileContainer,text=Name,padx=10,pady=10)
-    Frame.pack(fill="x",pady=10)
-
-    TopRow = nulltk.Frame(Frame)
-    TopRow.pack(fill="x")
-    TopRow.columnconfigure(2,weight=1)
-
-    ActiveVar = tk.BooleanVar()
-
-    ActiveCheck = nulltk.Checkbutton(TopRow,text="Active",variable=ActiveVar,command=lambda: SetActiveProfile(Name,Apply=True))
-    ActiveCheck.grid(row=0,column=0,padx=2,pady=2,sticky="ew")
-
-    NullMonitorSetActiveCheckBoxes.append(ActiveCheck)
-
-    DeleteBtn = nulltk.Button(TopRow,text="Delete Profile",command=lambda: DeleteProfile(Name,DeleteBtn,Frame),width=16)
-    DeleteBtn.grid(row=0,column=3,padx=2,pady=2,sticky="ew")
-
-    
-
-    EnableWallPaperVar = tk.BooleanVar(value=Profiles[Name].get("EnabledWallPapers",False))
-
-    def UpdateWallPaperEnabled(thisbutton):
-        Profiles[Name]["EnabledWallPapers"] = EnableWallPaperVar.get()
-        if Profiles[Name]["EnabledWallPapers"] == False:
-            thisbutton.grid_remove()
-        else:
-            thisbutton.grid(row=1,column=1,padx=2,pady=2)
-        SaveConfig("NullMonitor")
-
-    
-
-    ManageWallPaper = nulltk.Button(TopRow,text="Manage Wallpapers",command=lambda: ManageWallPapers(Name))
-    ManageWallPaper.grid(row=1,column=1,padx=2,pady=2,sticky="ew")
-
-    WallPapersEnabled = nulltk.Checkbutton(TopRow,text="Wallpapers",variable=EnableWallPaperVar,command= lambda: UpdateWallPaperEnabled(ManageWallPaper), width=16)
-    WallPapersEnabled.grid(row=0,column=1,padx=2,pady=2,sticky="ew")
-
-    UpdateWallPaperEnabled(ManageWallPaper)
-
-    Spacer3 = nulltk.Frame(Frame,bg="black",height=2)
-    Spacer3.pack(fill="x",pady=10)
-
-    BtnRow = nulltk.Frame(Frame)
-    BtnRow.pack(fill="x")
-
-    nulltk.Button(BtnRow,text="Create Warp",command=lambda: OpenAddWarp(Name)).pack(side="left",padx=2)
-    nulltk.Button(BtnRow,text="Delete Warp",command=lambda: OpenRemoveWarp(Name)).pack(side="left",padx=2)
-
-    WarpBox = nulltk.Frame(Frame,padx=1,pady=1)
-    WarpBox.pack(fill="x",pady=10)
-
-    InnerWarp = nulltk.Frame(WarpBox)
-    InnerWarp.pack(fill="x")
-
-    WarpVar = tk.StringVar()
-
-    WarpLabel = nulltk.Label(InnerWarp,textvariable=WarpVar,anchor="w",justify="left")
-    WarpLabel.pack(fill="x",padx=10,pady=3)
-
-    ProfileWidgets[Name] = {
-        "Frame": Frame,
-        "ActiveVar": ActiveVar,
-        "EnableWallPaperVar": EnableWallPaperVar,
-        "WarpVar": WarpVar
-    }
-
-    RefreshWarpDisplay(Name)
-
-def CreateProfile():
-    Name = NullMonitorProfileNameVar.get().strip()
-
-    if not Name:
-        return
-
-    if Name in Profiles:
-        return
-
-    Layout = CaptureLayout()
-    Wallpapers = {}
-
-    for monitor in Layout:
-        Wallpapers[monitor['ID']] = {
-            "DTPath": "",
-            "DTMode": "Fill",
-            "LSPath": "",
-            "LSMode": "Fill"
-            }
-
-    Profiles[Name] = {
-        "Layout": Layout,
-        "EnabledWallPapers": False,
-        "Wallpapers": Wallpapers,
-        "Warps": {},
-        "DeleteConfirmation": False,
-    }
-
-    CreateProfileBox(Name)
-    NullMonitorProfileNameVar.set("")
-    SetActiveProfile(Name)
-    SaveConfig("NullMonitor")
 
 
 NullMonitorNotebook = nulltk.Notebook(NullMonitor)
