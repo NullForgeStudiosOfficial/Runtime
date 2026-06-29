@@ -6346,11 +6346,6 @@ def ManageWallPapers(Name):
     #endregion
 
 
-
-
-
-
-
 def NullMonitorNoteBookChange(event):
     CurrentTab = NullMonitorNotebook.select()
     if str(CurrentTab) == str(NullMonitorPage):
@@ -11250,7 +11245,8 @@ def PactlRemove(Source,Wire, DetachmentType, IDIndex, BypassMono=False):
         subprocess.call([
         NWPath,
         "RemoveSourceFromSink",
-        Source['Name']
+        Source['Name'],
+        Wire['InternalName']
         ])
         
         return
@@ -11804,11 +11800,11 @@ def CreateOutputWire(OutputWire):
             else:
                 Device = {
                     "Name": DeviceFound,
-                    "Override": True,
+                    "Override": False,
                     "IDs": [],
                     "Muted": False,
                     "Mono": False,
-                    "Volume": 100,
+                    "Volume": UnattachedVolume,
                     "Delete": False,
                     "Wire": False,
                     "InternalName": None
@@ -12021,11 +12017,11 @@ def CreateOutputWire(OutputWire):
         else:
             Source = {
                 "Name": SourceFound,
-                "Override": True,
+                "Override": False,
                 "ID": None,
                 "Mono": False,
                 "Muted": False,
-                "Volume": 100,
+                "Volume": UnattachedVolume,
                 "Delete": False
                 }
         
@@ -12053,7 +12049,6 @@ def CreateOutputWire(OutputWire):
             SourceSent['Mono'] = SourceMono.get()
             SaveConfig("NullWire")
             PactlAttach(SourceSent,OutputWire,"SourceToSink", 0)
-
             NormalizeSourceVolumesInSinks(SourceSent['Name'],SourceSent['Volume'], SourceSent['Muted'],SourceSent['Mono'], SourceSent['Override'])
             return
         

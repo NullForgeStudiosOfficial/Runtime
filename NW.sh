@@ -5,6 +5,46 @@ Arg1="$2"
 Arg2="$3"
 Arg3="$4"
 
+GetNodeFromSerial() {
+    local Serial="$1"
+
+    echo "$Nodes" | awk -v serial="$Serial" '
+    /^[[:space:]]*id / {
+        node=$2
+        sub(",", "", node)
+    }
+
+    /object.serial/ {
+        if ($3 == "\"" serial "\"") {
+            print node
+            exit
+        }
+    }'
+}
+
+GetPortFromNode() {
+    local Node="$1"
+    local PortName="$2"
+
+    echo "$Ports" | awk -v node="$Node" -v portname="$PortName" '
+    /^[[:space:]]*id / {
+        port=$2
+        sub(",", "", port)
+    }
+
+    /node.id/ {
+        matchnode = ($3 == "\"" node "\"")
+    }
+
+    /port.name/ {
+        if (matchnode && $3 == "\"" portname "\"") {
+            print port
+            exit
+        }
+    }'
+}
+
+
 case "$Action" in
 
     SafetyCheck)
@@ -236,39 +276,38 @@ case "$Action" in
         InputName="$Arg1"
         TargetSink="$Arg2"
         Mono="$Arg3"
- 
-        echo "Attach $InputName → $TargetSink"
 
+        Nodes="$(pw-cli ls Node)"
+        Ports="$(pw-cli ls Port)"
 
         pactl list sink-inputs | while read -r line; do
-
-
 
             if [[ "$line" == *"Sink Input #"* ]]; then
                 Id=$(echo "$line" | awk '{print $3}' | tr -d '#')
             fi
 
             if [[ "$line" == *"application.name"* && "$line" == *"$InputName"* ]]; then
+                NodeId=$(GetNodeFromSerial "$Id")
+                FLPort=$(GetPortFromNode "$NodeId" output_FL)
+                FRPort=$(GetPortFromNode "$NodeId" output_FR)
 
-
-                echo "Moving input $Id → $TargetSink"
                 pactl move-sink-input "$Id" "$TargetSink"
 
                 if [[ "$Mono" == "1" || "$Mono" == "True" || "$Mono" == "true" ]]; then
 
-                    sleep 0.1
 
-                    pw-link "$InputName:output_FL" "$TargetSink:playback_FL" 2>/dev/null || true
-                    pw-link "$InputName:output_FL" "$TargetSink:playback_FR" 2>/dev/null || true
-                    pw-link "$InputName:output_FR" "$TargetSink:playback_FL" 2>/dev/null || true
-                    pw-link "$InputName:output_FR" "$TargetSink:playback_FR" 2>/dev/null || true
+                    pw-link "$FLPort" "$TargetSink:playback_FL" 2>/dev/null || true
+                    pw-link "$FLPort" "$TargetSink:playback_FR" 2>/dev/null || true
+                    pw-link "$FRPort" "$TargetSink:playback_FL" 2>/dev/null || true
+                    pw-link "$FRPort:" "$TargetSink:playback_FR" 2>/dev/null || true
 
                 
                 else
-                    pw-link -d "$InputName:output_FL" "$TargetSink:playback_FR" 2>/dev/null || true 
-                    pw-link -d "$InputName:output_FR" "$TargetSink:playback_FL" 2>/dev/null || true 
-                    pw-link "$InputName:output_FL" "$TargetSink:playback_FL" 2>/dev/null || true
-                    pw-link "$InputName:output_FR" "$TargetSink:playback_FR" 2>/dev/null || true
+
+                    pw-link -d "$FLPort" "$TargetSink:playback_FR" 2>/dev/null || true 
+                    pw-link -d "$FRPort" "$TargetSink:playback_FL" 2>/dev/null || true 
+                    pw-link "$FLPort" "$TargetSink:playback_FL" 2>/dev/null || true
+                    pw-link "$FRPort" "$TargetSink:playback_FR" 2>/dev/null || true
                 fi
             fi
 
@@ -279,8 +318,10 @@ case "$Action" in
 
     RemoveSourceFromSink)
         InputName="$Arg1"
+        TargetSink="$Arg2"
 
-        echo "Detach $InputName → default"
+        Nodes="$(pw-cli ls Node)"
+        Ports="$(pw-cli ls Port)"
 
         DefaultSink=$(pactl get-default-sink)
 
@@ -288,10 +329,25 @@ case "$Action" in
 
             if [[ "$line" == *"Sink Input #"* ]]; then
                 Id=$(echo "$line" | awk '{print $3}' | tr -d '#')
+                NodeId=$(GetNodeFromSerial "$Id")
+                FLPort=$(GetPortFromNode "$NodeId" output_FL)
+                FRPort=$(GetPortFromNode "$NodeId" output_FR)
+
+                echo "Id     = $Id"
+                echo "Node   = $NodeId"
+                echo "FLPort = $FLPort"
+                echo "FRPort = $FRPort"
             fi
 
             if [[ "$line" == *"application.name"* && "$line" == *"$InputName"* ]]; then
-                echo "Moving input $Id → $DefaultSink"
+                
+                
+
+                pw-link -d "$FLPort" "$TargetSink:playback_FL" 2>/dev/null || true
+                pw-link -d "$FLPort" "$TargetSink:playback_FR" 2>/dev/null || true
+                pw-link -d "$FRPort" "$TargetSink:playback_FL" 2>/dev/null || true
+                pw-link -d "$FRPort" "$TargetSink:playback_FR" 2>/dev/null || true
+
                 pactl move-sink-input "$Id" "$DefaultSink"
             fi
 
