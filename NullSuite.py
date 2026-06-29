@@ -11384,21 +11384,30 @@ def NullWireCreatePopupWindow(ThisType, Wire):
         if ThisType == "Input" and any(Device["Name"] == Item for Device in Wire["AttachedInputs"]):
             continue
 
-        if ThisType == "Source" and any(Source["Name"] == Item for Source in Wire["AudioSourcesIn"]):
-            continue
-
         if ThisType == "Source":
-            WindowClass = SourceWindowClass.get(Item, {}).get("WMClass") or ""
+            Item = SourceWindowClass[Item]
+            if any(Source["Name"] == Item['Name'] for Source in Wire["AudioSourcesIn"]):
+                continue
+
+            WindowClass = Item["WMClass"] or ""
             issteamapp = "steam_app" in WindowClass.lower()
+
+
+            Button = nulltk.Button(
+                Inner,
+                text=Item["Name"],
+                command=lambda value=Item["Name"], steam=issteamapp: SelectItem(value, steam)
+            )
+            Button.pack(fill="x", padx=10, pady=2)
         else:
             issteamapp = False
 
-        Button = nulltk.Button(
-            Inner,
-            text=Item,
-            command=lambda value=Item, steam=issteamapp: SelectItem(value,steam)
-        )
-        Button.pack(fill="x", padx=10, pady=2)
+            Button = nulltk.Button(
+                Inner,
+                text=Item,
+                command=lambda value=Item, steam=issteamapp: SelectItem(value,steam)
+            )
+            Button.pack(fill="x", padx=10, pady=2)
 
     Popup.wait_window()
 
@@ -11464,6 +11473,7 @@ def GetAllAudioSources():
     CurrentSources = []
     SourceWindowClass = {}
 
+    CurrentID = None
     CurrentName = None
     CurrentPID = None
 
@@ -11477,17 +11487,21 @@ def GetAllAudioSources():
     for line in out.splitlines():
         line = line.strip()
 
-        if "application.name" in line:
+        if line.startswith("Sink Input #"):
+            CurrentID = int(line.split("#")[1])
+            CurrentName = None
+            CurrentPID = None
+
+        elif "application.name" in line:
             CurrentName = line.split("=", 1)[1].strip().strip('"')
 
         elif "application.process.id" in line:
             CurrentPID = line.split("=", 1)[1].strip().strip('"')
 
-            if CurrentName is None:
+            if CurrentID is None or CurrentName is None:
                 continue
 
-            if CurrentName not in CurrentSources:
-                CurrentSources.append(CurrentName)
+            CurrentSources.append(CurrentID)
 
             WMClass = None
 
@@ -11514,10 +11528,11 @@ def GetAllAudioSources():
                     except:
                         pass
 
-            SourceWindowClass[CurrentName] = {
-            "Name": CurrentName,
-            "PID": CurrentPID,
-            "WMClass": WMClass
+            SourceWindowClass[CurrentID] = {
+                "ID": CurrentID,
+                "Name": CurrentName,
+                "PID": CurrentPID,
+                "WMClass": WMClass
             }
 
     return
@@ -12680,48 +12695,45 @@ def NullWireConnectionLoop():
         if NullWireActive.get() == True:
             if tick == 0:
                 GetAllAudioSources()
-                if CurrentSources != LastSources:
-                    CurrentSet = set(CurrentSources)
+                CurrentSet = set(CurrentSources)
+                if CurrentSet != LastSources:
                     NewSources = CurrentSet - LastSources
                     LastSources = CurrentSet
-
                     SourceNotAttached = set(NewSources)
-                    for Sources in NewSources:
-                        if Sources in UnattachedSources:
-                            SourceNotAttached.discard(Sources)
-
+                    for SourceID in NewSources:
+                        SourceInfo = SourceWindowClass[SourceID]
+                        if SourceID in UnattachedSources:
+                            SourceNotAttached.discard(SourceID)
                         for Wire in OutputWires.values():
                             for AttachedSource in Wire["AudioSourcesIn"]:
-                                if AttachedSource["Name"] == Sources:
-                                    PactlAttach(AttachedSource,Wire,"SourceToSink", 0)
-                                    SourceNotAttached.discard(Sources)
-                            if Wire['SteamAppAuto']:
-                                SourceInfo = SourceWindowClass.get(Sources, {})
-                                WindowClass = SourceInfo.get("WMClass") or ""
+                                if AttachedSource["Name"] == SourceInfo["Name"]:
+                                    PactlAttach(AttachedSource, Wire, "SourceToSink", 0)
+                                    SourceNotAttached.discard(SourceID)
+                            if Wire["SteamAppAuto"]:
+                                WindowClass = SourceInfo["WMClass"] or ""
                                 if "steam_app" in WindowClass.lower():
-                                    AlreadyAttached = any(AttachedSource["Name"] == Sources for AttachedSource in Wire["AudioSourcesIn"])
-                                    
-                                    if not AlreadyAttached and SourceInfo:
+                                    AlreadyAttached = any(AttachedSource["Name"] == SourceInfo["Name"]for AttachedSource in Wire["AudioSourcesIn"])
+                                    if not AlreadyAttached:
                                         SteamSource = {
-                                            "Name": SourceInfo.get("Name"),
-                                            "Override": True,
-                                            "IDs": [],
-                                            "Muted": False,
-                                            "Mono": False,
-                                            "Volume": 100,
-                                            "Delete": False,
-                                            "Wire": False,
-                                            "InternalName": None
-                                        }
-        
-                                        Wire['AudioSourcesIn'].append(SteamSource)
+                                        "Name": SourceInfo["Name"],
+                                        "Override": True,
+                                        "IDs": [],
+                                        "Muted": False,
+                                        "Mono": False,
+                                        "Volume": 100,
+                                        "Delete": False,
+                                        "Wire": False,
+                                        "InternalName": None
+                                    }
+                                        Wire["AudioSourcesIn"].append(SteamSource)
+
                                         for MainFrame, RowData in OutputRows.items():
                                             if RowData["Wire"] is Wire:
                                                 RowData["CreateSource"](SteamSource)
                                                 break
-                    for Source in SourceNotAttached:
-                        UnattachedSources.add(Source)
-                        PactlSetVolume(Source, "Unattached")
+                    for SourceID in SourceNotAttached:
+                        UnattachedSources.add(SourceID)
+                        PactlSetVolume(SourceWindowClass[SourceID]['Name'], "Unattached")
             elif tick == 1:
                 GetAllOutputDevices()
                 if CurrentOutputs != LastOutputs:
