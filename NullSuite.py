@@ -8828,6 +8828,10 @@ def OnKeyPress(Key):
 def ChangedWindowFocus(NewFocus):
     global CurrentFocus, FocusStartTime, CurrentCycle, PreviousFocusStartTime, OldFocus, CurrentViewedCycle, CurrentViewedMonth, CurrentViewedYear, OnCurrentCycle, ResetClock
 
+    if NewFocus == CurrentFocus:
+        return
+    
+    
     OldFocus = CurrentFocus
     CurrentFocus = NewFocus
     PreviousFocusStartTime = FocusStartTime
@@ -8883,6 +8887,8 @@ def ChangedWindowFocus(NewFocus):
     NullFocusRunOperators()
 
     return
+
+
 
 def WatchFocus():
     if NullFocusActive.get() == True:
@@ -10411,6 +10417,8 @@ def NullFocusLoop():
 def NullFocusFocusLoop():
     for WindowID in WatchFocus():
         FocusedClass = GetWindowClass(WindowID)
+        if FocusedClass == CurrentFocus:
+            continue
         ChangedWindowFocus(FocusedClass)
 
 def NullFocusClockLoop():
